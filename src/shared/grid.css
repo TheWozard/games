@@ -1,0 +1,114 @@
+/* Board, number pad and tools for digit-grid games (GridPlay.svelte). --n is the grid size. */
+
+.board {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  grid-template-rows: repeat(var(--n), 1fr);
+  width: 100%;
+  aspect-ratio: 1;
+  /* Thin grid lines are the 1px gaps between cells, so every cell is exactly the same size. */
+  gap: 1px;
+  background: var(--line);
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.grid-board .cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: calc(58cqi / var(--n));
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thick box / cage lines: an overlay that covers the gap plus 1px of the cell, and reaches 1px past
+   the cell at both ends so lines meeting at a corner join without notches. */
+.grid-board .cell.wall-r::after,
+.grid-board .cell.wall-b::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  border: 0 solid var(--line-strong);
+  pointer-events: none;
+}
+.grid-board .cell.wall-r::after { border-right-width: 2px; }
+.grid-board .cell.wall-b::after { border-bottom-width: 2px; }
+
+.grid-board .cell:focus-visible { outline: none; }
+.grid-board .cell.given { color: var(--text); font-weight: 600; }
+.grid-board .cell.peer { background: var(--peer); }
+.grid-board .cell.same { background: var(--accent-soft); }
+.grid-board .cell.selected { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.grid-board .cell.conflict { color: var(--danger); background: var(--danger-soft); }
+.grid-board .cell.conflict.selected { box-shadow: inset 0 0 0 2px var(--danger); }
+
+.grid-board .label {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  color: var(--text);
+  font-size: calc(22cqi / var(--n));
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.grid-board .notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(var(--note-cols), 1fr);
+  color: var(--muted);
+  font-size: calc(21.6cqi / var(--n));
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Dashed cage outlines, inset from the grid lines. Sides shared with the same cage reach across
+   the gap instead, so an outline runs unbroken from cell to cell. */
+.grid-board .cell.outlined::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 0 dashed var(--muted);
+  pointer-events: none;
+}
+.grid-board .cell.o-t::before { top: 3px; border-top-width: 1px; }
+.grid-board .cell.o-r::before { right: 3px; border-right-width: 1px; }
+.grid-board .cell.o-b::before { bottom: 3px; border-bottom-width: 1px; }
+.grid-board .cell.o-l::before { left: 3px; border-left-width: 1px; }
+/* The sum sits on the outline's corner, masking the line behind it. */
+.grid-board .cell.outlined .label { top: 1px; left: 1px; padding: 0 2px; background: inherit; }
+
+/* Keep pencil marks clear of a corner label. */
+.grid-board .cell:has(.label) .notes { top: 28%; }
+
+.grid-board .notes span { display: grid; place-items: center; }
+
+.pad { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
+
+.digit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.digit-n { font-size: 1.6rem; line-height: 1.1; }
+.digit-left { min-height: 1em; color: var(--muted); font-size: 0.7rem; }
+.digit.complete { opacity: 0.35; }
+.pad.notes-mode .digit-n { font-size: 1.1rem; line-height: 1.6; color: var(--muted); }

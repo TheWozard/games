@@ -48,6 +48,24 @@ button {
 }
 
 .bar h1 { flex: 1; margin: 0; font-size: 1.25rem; }
+.bar h1 small { color: var(--muted); font-size: 0.9rem; font-weight: 400; }
+
+/* Game pages (<body class="game">): header pinned to the top, game centred in the space below
+   it, so it sits comfortably on tall phones instead of hugging the header. */
+body.game { display: flex; flex-direction: column; }
+body.game #root { flex: 1; display: flex; flex-direction: column; }
+
+.play {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
 
 .back { color: var(--accent); text-decoration: none; white-space: nowrap; }
 
@@ -59,6 +77,19 @@ button {
 }
 
 .btn:disabled { opacity: 0.4; cursor: default; }
+
+.btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+/* The row under the actions that picks what a tap places (bridge count, reveal or flag...). */
+.choices .choice { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px; }
+.choices .choice svg { width: 32px; height: 12px; }
+.choices .choice span { font-size: 0.85rem; }
+
+/* A line of help text under a game's buttons. */
+.hint { margin: -4px 0 0; color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+/* A row of equal-width buttons under a game board. */
+.tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 

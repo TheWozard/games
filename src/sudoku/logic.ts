@@ -82,6 +82,13 @@ function fillRandom(grid: Grid, random: () => number): boolean {
   return false;
 }
 
+/** A random complete, valid Sudoku grid. */
+export function solvedGrid(random: () => number = Math.random): Grid {
+  const grid: Grid = new Array(81).fill(0);
+  fillRandom(grid, random);
+  return grid;
+}
+
 /** Counts solutions up to `limit`, leaving the grid as it found it. */
 export function countSolutions(grid: Grid, limit: number): number {
   const pick = pickCell(grid);
@@ -99,8 +106,7 @@ export function countSolutions(grid: Grid, limit: number): number {
 
 /** A random full grid, then clues removed in random order while the solution stays unique. */
 export function generate(difficulty: Difficulty, random: () => number = Math.random): { puzzle: Grid; solution: Grid } {
-  const solution: Grid = new Array(81).fill(0);
-  fillRandom(solution, random);
+  const solution = solvedGrid(random);
   const puzzle = solution.slice();
   let clues = 81;
   for (const i of shuffle([...Array(81).keys()], random)) {
@@ -111,9 +117,4 @@ export function generate(difficulty: Difficulty, random: () => number = Math.ran
     else puzzle[i] = value;
   }
   return { puzzle, solution };
-}
-
-export function hasConflict(values: Grid, i: number): boolean {
-  const v = values[i];
-  return v !== 0 && PEERS[i].some((p) => values[p] === v);
 }

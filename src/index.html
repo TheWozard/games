@@ -41,6 +41,45 @@
         <div><strong>Sudoku</strong><span>Fill the grid so every row, column and box has 1–9.</span></div>
       </a>
     </li>
+    <li>
+      <a class="game" href="killer/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="2" y="2" width="44" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="1" opacity="0.45"/>
+          <path d="M6 6h21v7H20v14H6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 1.8" stroke-linejoin="round"/>
+          <text x="8" y="13.5" font-size="7" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif">17</text>
+          <text x="38" y="42" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">8</text>
+        </svg>
+        <div><strong>Killer Sudoku</strong><span>Sudoku with no clues, just cages: each one adds up to its sum, with no repeats.</span></div>
+      </a>
+    </li>
+    <li>
+      <a class="game" href="mines/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="2" y="2" width="44" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="2"/>
+          <text x="9.5" y="14" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">1</text>
+          <text x="24" y="28" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">2</text>
+          <path d="M35 34v9M35.6 34.4h6l-1.6 2.4 1.6 2.4h-6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+        <div><strong>Mines</strong><span>Clear the field using the counts of hidden mines next to each cell. No guessing needed.</span></div>
+      </a>
+    </li>
+    <li>
+      <a class="game" href="bridges/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M12 12h24M12 36h24M10.5 15v18M13.5 15v18" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="36" cy="12" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="12" cy="36" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="36" cy="36" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="12" y="15">3</text><text x="36" y="15">1</text><text x="12" y="39">3</text><text x="36" y="39">1</text>
+          </g>
+        </svg>
+        <div><strong>Bridges</strong><span>Link the islands with bridges so each has its number, without crossings, all connected.</span></div>
+      </a>
+    </li>
   </ul>
 </body>
 </html>

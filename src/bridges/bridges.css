@@ -1,0 +1,60 @@
+.bridges-board {
+  /* As wide as the column allows, but short enough to leave room for the header and buttons. */
+  width: min(100%, calc((100dvh - 230px) * (var(--cols) + 0.5) / (var(--rows) + 0.5)));
+  align-self: center;
+  /* The viewBox has a quarter-cell margin all round, so edge islands clear the rounded corners. */
+  aspect-ratio: calc(var(--cols) + 0.5) / calc(var(--rows) + 0.5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+.bridges-board .dot { fill: var(--line); }
+
+.bridges-board .guide {
+  stroke: var(--accent);
+  stroke-width: 0.04;
+  stroke-dasharray: 0.12 0.12;
+  opacity: 0.7;
+}
+
+.bridges-board .bridge {
+  stroke: var(--text);
+  stroke-width: 0.07;
+  stroke-linecap: round;
+}
+
+.bridges-board .hit {
+  stroke: transparent;
+  stroke-width: 0.7;
+  cursor: pointer;
+  outline: none;
+}
+
+.bridges-board .island { cursor: pointer; outline: none; }
+.bridges-board .hit-island { fill: transparent; }
+
+.bridges-board .ring {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+  stroke-width: 0.06;
+}
+
+.bridges-board .island text {
+  fill: var(--text);
+  font-size: 0.46px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.bridges-board .island.full .ring { fill: var(--accent-soft); stroke: var(--accent-soft); }
+.bridges-board .island.full text { fill: var(--muted); }
+.bridges-board .island.over .ring { stroke: var(--danger); fill: var(--danger-soft); }
+.bridges-board .island.over text { fill: var(--danger); }
+.bridges-board .island.selected .ring { stroke: var(--accent); stroke-width: 0.1; }

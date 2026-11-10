@@ -6,6 +6,9 @@ TypeScript, built with [Vite](https://vite.dev) into small static files.
 
 Games:
 - [Sudoku](src/sudoku/): generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
+- [Killer Sudoku](src/killer/): Sudoku plus dashed cages that add up to their sums; every puzzle has a unique solution and almost no givens.
+- [Mines](src/mines/): find the mines from the neighbour counts. The first tap is always safe and every board can be cleared without guessing.
+- [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network; every puzzle has a unique solution.
 
 ## Installing on a phone
 
@@ -36,6 +39,10 @@ The service worker only exists in the production build, so test offline behaviou
 - `src/shared/`: what every page loads: [base.css](src/shared/base.css), the service worker
   registration ([app.ts](src/shared/app.ts)), a safe `localStorage` wrapper ([storage.ts](src/shared/storage.ts))
   and a modal [Dialog.svelte](src/shared/Dialog.svelte).
+- Digit-grid games (Sudoku, Killer Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
+  pencil marks, undo, win) and their whole screen ([GridPlay.svelte](src/shared/GridPlay.svelte)).
+  Each one only supplies a puzzle generator and a `layout` (size, which cells can't repeat a
+  digit, thick lines, dashed outlines, corner labels).
 - `public/`: copied into the build unchanged (icons, manifest, `.nojekyll`).
 
 ### Deploying
@@ -51,13 +58,14 @@ an open app downloads it in the background and reloads onto it.
 
 ## Adding a game
 
-1. Make `src/<name>/index.html` (copy the `<head>` from [src/sudoku/index.html](src/sudoku/index.html)
-   for the manifest, icons and theme colours) with a `<script type="module" src="./main.ts">`.
-   It's picked up as a build entry automatically.
+1. Make `src/<name>/index.html` by copying [src/mines/index.html](src/mines/index.html) (manifest,
+   icons, theme colour, `<body class="game">` for the centred layout). It's picked up as a build
+   entry automatically.
 2. In `main.ts`, import `../shared/app` first (shared styles + offline support), then `mount()` your
-   game's `.svelte` component (see [src/sudoku/main.ts](src/sudoku/main.ts)). Use `<script lang="ts">`.
+   game's `.svelte` component (see [src/mines/main.ts](src/mines/main.ts)). Use `<script lang="ts">`.
+   A digit-grid game can mount `GridPlay` directly instead (see [src/killer/main.ts](src/killer/main.ts)).
    Keep game rules in plain `.ts` modules with `*.test.ts` tests beside them; see
-   [src/sudoku/logic.ts](src/sudoku/logic.ts) and [src/sudoku/game.ts](src/sudoku/game.ts).
+   [src/mines/logic.ts](src/mines/logic.ts) and [src/mines/game.ts](src/mines/game.ts).
 3. Add a card for it to [src/index.html](src/index.html) and a line to the list above.
 
 Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative links between pages
