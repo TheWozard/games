@@ -1,34 +1,19 @@
 /* Shared look for the launcher and every game. */
 :root {
-  --bg: #f6f5f2;
-  --surface: #ffffff;
-  --text: #1d1f24;
-  --muted: #6b7080;
-  --line: #d9d6cf;
-  --line-strong: #4f535e;
-  --accent: #2f6bd8;
-  --accent-soft: #d9e5fb;
-  --peer: #edebe5;
-  --danger: #c8372d;
-  --danger-soft: #f9dcd9;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #16181d;
-    --surface: #1f2228;
-    --text: #e8e9ec;
-    --muted: #9095a3;
-    --line: #353943;
-    --line-strong: #9aa0ad;
-    --accent: #7aa5f5;
-    --accent-soft: #2a3a5c;
-    --peer: #262a32;
-    --danger: #f07b70;
-    --danger-soft: #4a2622;
-    color-scheme: dark;
-  }
+  /* Always dark, so the installed app's system bars (which take the manifest's single
+     theme_color) match the page. Keep --bg in sync with public/manifest.webmanifest. */
+  --bg: #16181d;
+  --surface: #1f2228;
+  --text: #e8e9ec;
+  --muted: #9095a3;
+  --line: #353943;
+  --line-strong: #9aa0ad;
+  --accent: #7aa5f5;
+  --accent-soft: #2a3a5c;
+  --peer: #262a32;
+  --danger: #f07b70;
+  --danger-soft: #4a2622;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
