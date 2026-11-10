@@ -1,9 +1,20 @@
-# Serve locally at http://localhost:8000 (service workers work on localhost without HTTPS)
-serve port="8000":
-    python3 -m http.server {{port}}
+# Dev server with hot reload at http://localhost:5173 (no service worker in dev)
+dev:
+    npm run dev
 
-# Render the PNG icons from icons/icon.svg
+# Typecheck and build the site into dist/
+build:
+    npm run build
+
+# Serve the production build (with its service worker) at http://localhost:4173
+preview: build
+    npm run preview
+
+test:
+    npm test
+
+# Render the PNG icons from public/icons/icon.svg
 icons:
-    inkscape icons/icon.svg --export-type=png -w 512 -h 512 -o icons/icon-512.png
-    inkscape icons/icon.svg --export-type=png -w 192 -h 192 -o icons/icon-192.png
-    inkscape icons/icon.svg --export-type=png -w 180 -h 180 -o icons/apple-touch-icon.png
+    inkscape public/icons/icon.svg --export-type=png -w 512 -h 512 -o public/icons/icon-512.png
+    inkscape public/icons/icon.svg --export-type=png -w 192 -h 192 -o public/icons/icon-192.png
+    inkscape public/icons/icon.svg --export-type=png -w 180 -h 180 -o public/icons/apple-touch-icon.png
