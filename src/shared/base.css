@@ -85,6 +85,11 @@ body.game #root { flex: 1; display: flex; flex-direction: column; }
 .choices .choice svg { width: 32px; height: 12px; }
 .choices .choice span { font-size: 0.85rem; }
 
+/* Under a finished zen game: a quiet note and the next puzzle. */
+.settled { display: flex; align-items: center; justify-content: center; gap: 16px; color: var(--muted); }
+.settled p { margin: 0; }
+.settled .btn { min-width: 96px; }
+
 /* A line of help text under a game's buttons. */
 .hint { margin: -4px 0 0; color: var(--muted); font-size: 0.85rem; text-align: center; }
 

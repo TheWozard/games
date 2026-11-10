@@ -1,0 +1,50 @@
+.gradient-board {
+  width: min(100%, calc((100dvh - 230px) * var(--cols) / var(--rows)));
+  align-self: center;
+  aspect-ratio: var(--cols) / var(--rows);
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  gap: 3px;
+  border-radius: 12px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: gap 0.6s ease;
+}
+
+.gradient-board .tile {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  transition: border-radius 0.6s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  touch-action: manipulation;
+}
+
+.gradient-board .tile.fixed { cursor: default; }
+.gradient-board .tile.fixed::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.35);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25);
+}
+
+.gradient-board .tile.selected {
+  transform: scale(0.86);
+  box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text);
+  z-index: 1;
+}
+
+/* Solved: the gaps close and the tiles melt into one smooth gradient. */
+.gradient-board.done { gap: 0; }
+.gradient-board.done .tile { border-radius: 0; }
+.gradient-board.done .tile.fixed::after { opacity: 0; transition: opacity 0.6s ease; }

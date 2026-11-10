@@ -9,6 +9,9 @@ Games:
 - [Killer Sudoku](src/killer/): Sudoku plus dashed cages that add up to their sums; every puzzle has a unique solution and almost no givens.
 - [Mines](src/mines/): find the mines from the neighbour counts. The first tap is always safe and every board can be cleared without guessing.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network; every puzzle has a unique solution.
+- [Gradient](src/gradient/): swap colour tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
+- [Untangle](src/untangle/): drag dots until no lines cross; built from random lines, so every puzzle is solvable.
+- [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 
 ## Installing on a phone
 
@@ -20,6 +23,8 @@ Once it has loaded once, everything works offline. Saved games live in the brows
 this origin, so they stay on that device.
 
 ## Developing
+
+See [AGENTS.md](AGENTS.md) for how the repo is organised, the UI and puzzle conventions, and how to add a game.
 
 Needs Node 22+. Run `npm install` once, then:
 

@@ -1,0 +1,40 @@
+.tangle-count { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.untangle-board {
+  width: min(100%, calc((100dvh - 230px) * 100 / 130));
+  align-self: center;
+  aspect-ratio: 100 / 130;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none; /* dragging a dot must not scroll the page */
+}
+
+.untangle-board .edge {
+  stroke: var(--accent);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  transition: stroke 0.25s ease, opacity 0.25s ease;
+}
+.untangle-board .edge.crossed { stroke: var(--danger); opacity: 0.55; }
+.untangle-board .edge.active { opacity: 1; stroke-width: 1.1; }
+
+.untangle-board .dot { cursor: grab; outline: none; }
+.untangle-board.dragging .dot { cursor: grabbing; }
+.untangle-board .dot .hit { fill: transparent; }
+.untangle-board .dot .mark {
+  fill: var(--text);
+  stroke: var(--surface);
+  stroke-width: 0.9;
+  transition: r 0.12s ease;
+}
+.untangle-board .dot.near .mark { fill: var(--accent); }
+.untangle-board .dot.held .mark { fill: var(--accent); stroke: var(--text); }
+
+/* Untangled: everything settles into the calm accent colour. */
+.untangle-board.done .edge { stroke: var(--accent); opacity: 0.9; }
+.untangle-board.done .dot { cursor: default; }
+.untangle-board.done .dot .mark { fill: var(--accent); }
