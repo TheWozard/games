@@ -1,6 +1,9 @@
 <script lang="ts">
   import { scale } from 'svelte/transition';
   import Dialog from '../shared/Dialog.svelte';
+  import BackButton from '../shared/BackButton.svelte';
+  import NewButton from '../shared/NewButton.svelte';
+  import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
@@ -33,7 +36,7 @@
 
   let askingNew = $state(false);
 
-  $effect(() => saveJSON(STORAGE_KEY, { ...game, hint: null }));
+  $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(name: string) {
     if (isLayout(name)) game = newGame(name);
@@ -49,9 +52,7 @@
       shakeTimer = setTimeout(() => (shaking = null), 300);
       return;
     }
-    const before = game;
     dispatch({ type: 'tap', slot: i });
-    if (game.gone.filter(Boolean).length > before.gone.filter(Boolean).length) navigator.vibrate?.(12);
   }
 
   function onKey(e: KeyboardEvent) {
@@ -59,8 +60,6 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       dispatch({ type: 'undo' });
-    } else if (e.key === 'h' || e.key === 'H') {
-      dispatch({ type: 'hint' });
     }
   }
 </script>
@@ -70,9 +69,16 @@
 <TileFaces />
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>Mahjong <small>{layout.name}</small></h1>
-  {#if !game.done}<span class="mj-count">{tilesLeft} left</span>{/if}
+  {#if !game.done}
+    <span class="mj-count" aria-label="{tilesLeft} tiles left">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2" width="9" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+      {tilesLeft}
+    </span>
+  {/if}
+  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
+  <NewButton onclick={() => (askingNew = true)} />
 </header>
 
 <main class="play">
@@ -84,7 +90,6 @@
           class={['mj-tile', {
             blocked: !free(game, s.i),
             selected: game.selected === s.i,
-            hint: game.hint?.includes(s.i),
             shake: shaking === s.i,
           }]}
           style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
@@ -102,22 +107,14 @@
     {/each}
   </div>
 
-  <div class="tools">
-    <button type="button" class="btn" disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })}>Undo</button>
-    <button type="button" class="btn" disabled={game.done || moves === 0} onclick={() => dispatch({ type: 'hint' })}>Hint</button>
-    <button type="button" class={['btn', { primary: !game.done && moves === 0 }]} disabled={game.done} onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</button>
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
-  </div>
-
   {#if game.done}
-    <div class="settled">
-      <p>Cleared.</p>
-      <button type="button" class="btn primary" onclick={() => start(game.layout)}>Next</button>
-    </div>
+    <p class="status">Cleared.</p>
   {:else if moves === 0}
-    <p class="hint">No matching pairs are free. Shuffle to mix up the tiles that are left.</p>
-  {:else}
-    <p class="hint">Match pairs of free tiles: nothing on top, and open on the left or right. {moves} {moves === 1 ? 'match' : 'matches'} available.</p>
+    <!-- Stuck: the only time Shuffle appears. -->
+    <p class="status">No matching pairs are free.</p>
+    <div class="tools">
+      <button type="button" class="btn primary" onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</button>
+    </div>
   {/if}
 </main>
 

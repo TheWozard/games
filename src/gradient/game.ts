@@ -1,11 +1,15 @@
 // Gradient game state and moves, as a pure reducer.
-import { corners, DIFFICULTIES, fixedTiles, isDifficulty, shuffled, type Difficulty, type Lab } from './logic';
+import { corners, fixedTiles, isPattern, isSize, PATTERNS, shuffled, SIZES, type Lab, type Pattern, type Size } from './logic';
 
 export const STORAGE_KEY = 'games.gradient.v1';
 const HISTORY_LIMIT = 500;
 
-export interface Game {
-  difficulty: Difficulty;
+export interface Settings {
+  size: Size;
+  pattern: Pattern;
+}
+
+export interface Game extends Settings {
   cols: number;
   rows: number;
   corners: Lab[];
@@ -21,11 +25,14 @@ export type Action =
   | { type: 'swap'; from: number; to: number }
   | { type: 'undo' };
 
-export function newGame(difficulty: Difficulty): Game {
-  const { cols, rows, fixed: pattern } = DIFFICULTIES[difficulty];
+export const DEFAULT: Settings = { size: 'small', pattern: 'checker' };
+
+export function newGame({ size, pattern }: Settings): Game {
+  const { cols, rows } = SIZES[size];
   const fixed = fixedTiles(cols, rows, pattern);
   return {
-    difficulty,
+    size,
+    pattern,
     cols,
     rows,
     corners: corners(),
@@ -37,10 +44,13 @@ export function newGame(difficulty: Difficulty): Game {
   };
 }
 
+export const describe = ({ size, pattern }: Settings) =>
+  `${SIZES[size].cols}×${SIZES[size].rows} · ${PATTERNS[pattern].label}`;
+
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
-  if (!isDifficulty(g?.difficulty)) return false;
-  const { cols, rows } = DIFFICULTIES[g.difficulty];
+  if (!isSize(g?.size) || !isPattern(g.pattern)) return false;
+  const { cols, rows } = SIZES[g.size];
   const n = cols * rows;
   return (
     g.cols === cols && g.rows === rows &&
@@ -82,4 +92,39 @@ export function reducer(g: Game, action: Action): Game {
       return { ...swap(g, last[0], last[1], false), history: g.history.slice(0, -1) };
     }
   }
+}
+
+export interface Line {
+  correct: boolean; // every tile in it is home
+  fixed: boolean; // every tile in it is fixed, so it's always correct (no marker shown)
+}
+
+/** For each row and column: whether it's complete, and whether it's made only of fixed tiles. */
+export function lines(g: Game): { rows: Line[]; cols: Line[] } {
+  const line = (cells: number[]): Line => ({
+    correct: cells.every((p) => g.order[p] === p),
+    fixed: cells.every((p) => g.fixed[p]),
+  });
+  const range = (n: number) => [...Array(n).keys()];
+  return {
+    rows: range(g.rows).map((r) => line(range(g.cols).map((c) => r * g.cols + c))),
+    cols: range(g.cols).map((c) => line(range(g.rows).map((r) => r * g.cols + c))),
+  };
+}
+
+/** What earlier versions (with three fixed levels) saved, mapped to the matching settings. */
+const OLD_LEVELS: Record<string, Settings> = {
+  easy: { size: 'small', pattern: 'checker' },
+  medium: { size: 'medium', pattern: 'border' },
+  hard: { size: 'large', pattern: 'corners' },
+};
+
+/** A saved game in the current shape, upgrading one saved by an earlier version; else null. */
+export function fromSaved(value: unknown): Game | null {
+  if (isGame(value)) return value;
+  const old = value as { difficulty?: unknown } | null;
+  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty)) return null;
+  const { difficulty, ...rest } = old as { difficulty: string };
+  const upgraded = { ...rest, ...OLD_LEVELS[difficulty] };
+  return isGame(upgraded) ? upgraded : null;
 }

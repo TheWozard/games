@@ -3,17 +3,27 @@
 // Colours are mixed in OKLab, where equal steps look equally different, so every row and column
 // changes evenly and the puzzle can be solved by eye.
 
-export const DIFFICULTIES = {
-  easy: { label: 'Easy', cols: 4, rows: 5, fixed: 'checker' },
-  medium: { label: 'Medium', cols: 5, rows: 7, fixed: 'border' },
-  hard: { label: 'Hard', cols: 6, rows: 9, fixed: 'corners' },
+export const SIZES = {
+  small: { label: 'Small', cols: 4, rows: 5 },
+  medium: { label: 'Medium', cols: 5, rows: 7 },
+  large: { label: 'Large', cols: 6, rows: 9 },
+  huge: { label: 'Huge', cols: 7, rows: 11 },
 } as const;
 
-export type Difficulty = keyof typeof DIFFICULTIES;
-type FixedPattern = (typeof DIFFICULTIES)[Difficulty]['fixed'];
+/** Which tiles stay put, easiest first. The four corners are always fixed: they anchor the blend. */
+export const PATTERNS = {
+  checker: { label: 'Checker' },
+  stripes: { label: 'Stripes' },
+  border: { label: 'Border' },
+  scattered: { label: 'Scattered' },
+  corners: { label: 'Corners' },
+} as const;
 
-export const isDifficulty = (value: unknown): value is Difficulty =>
-  typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
+export type Size = keyof typeof SIZES;
+export type Pattern = keyof typeof PATTERNS;
+
+export const isSize = (value: unknown): value is Size => typeof value === 'string' && Object.hasOwn(SIZES, value);
+export const isPattern = (value: unknown): value is Pattern => typeof value === 'string' && Object.hasOwn(PATTERNS, value);
 
 /** An OKLab colour: lightness, then two opponent-colour axes. */
 export type Lab = [L: number, a: number, b: number];
@@ -94,16 +104,20 @@ export function palette(cols: number, rows: number, [tl, tr, bl, br]: readonly L
 
 // ---- Layout ----
 
-export function fixedTiles(cols: number, rows: number, pattern: FixedPattern): boolean[] {
+export function fixedTiles(cols: number, rows: number, pattern: Pattern, random: Random = Math.random): boolean[] {
   return Array.from({ length: cols * rows }, (_, i) => {
     const r = Math.floor(i / cols);
     const c = i % cols;
     const edgeR = r === 0 || r === rows - 1;
     const edgeC = c === 0 || c === cols - 1;
     if (edgeR && edgeC) return true;
-    if (pattern === 'border') return edgeR || edgeC;
-    if (pattern === 'checker') return (r + c) % 2 === 0;
-    return false;
+    switch (pattern) {
+      case 'checker': return (r + c) % 2 === 0;
+      case 'stripes': return r % 2 === 0;
+      case 'border': return edgeR || edgeC;
+      case 'scattered': return random() < 0.3;
+      case 'corners': return false;
+    }
   });
 }
 

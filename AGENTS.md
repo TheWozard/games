@@ -59,7 +59,8 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
 - **Digit-grid games** (Sudoku-like) don't need their own component: mount `GridPlay` from
   `main.ts` with a `layout(game)` that gives size, peers (cells that can't share a digit), thick
-  walls, dashed outlines and corner labels. See `src/killer/`.
+  walls, zone tints (0–4; touching zones must differ) and corner labels. See
+  `src/killer/`.
 
 ### Puzzle quality rules
 
@@ -79,14 +80,16 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `--muted`, `--accent`, `--danger`...). Use them, not raw colours. The manifest's
   `background_color` / `theme_color` and each page's `<meta name="theme-color">` must equal `--bg`
   (#16181d) so Android's system bars blend in.
-- **Page shell:** `<body class="game">`, a `<header class="bar">` (back link `‹ Games`, `<h1>` with
-  the difficulty in `<small>`, optional status on the right), then `<main class="play">`, which
-  centres the board vertically.
+- **Page shell:** `<body class="game">`, a `<header class="bar">` (`<BackButton>` to the launcher, `<h1>` with
+  the difficulty in `<small>`, optional status, then `<UndoButton>` if the game has undo, then
+  `<NewButton>` — the "+" that opens the New dialog, last on the right), then `<main class="play">`, which centres the board vertically.
 - **Controls under the board, always in this order:**
-  1. `.tools` row of actions: Undo, Clear/Erase, (Notes / Hint / Shuffle), New.
-  2. A row for *what a tap places*: the number pad, or a `.tools.choices` row of `.choice`
-     buttons (Bridges: None/Single/Double; Mines: Reveal/Flag).
-  3. Optional `.hint` text, or the `.settled` row (a note plus a **Next** button) once finished.
+  1. `.tools` row of the game's other actions: Clear/Erase, Notes, Hint, Shuffle. Undo and New
+     are in the header; leave the row out if nothing's left.
+  2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
+     buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
+  3. A `.status` note only when there's a state to report (finished, lost, stuck). No how-to text
+     on the game screen: instructions live behind the card's **i** button in `src/index.html`.
 - **Toggles** use `aria-pressed`. `base.css` styles `[aria-pressed="true"]` as selected.
 - **Fit the phone:** size boards with
   `width: min(100%, calc((100dvh - <chrome>px) * cols / rows)); aspect-ratio: cols / rows`, so
@@ -94,9 +97,10 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
-  must not fire each other. Short `navigator.vibrate?.()` pulses are fine for feedback.
-- **Calm by default:** no timers. Zen games (Gradient, Untangle, Mahjong) have no fail state and
-  show the `.settled` row instead of a win dialog.
+  must not fire each other. No vibration: feedback is visual only.
+- **Calm by default:** no timers, and no pop-ups when a game ends. The finished board stays on
+  screen with a `.status` note (e.g. "Solved."), and the player taps **+** (New) when they want
+  another. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
 - **Relative URLs only.** The site lives under `/games/`. Link between pages with `../`. Reference
   files in `public/` root-relative (`/icons/icon.svg`); the build rewrites them.
 
@@ -117,7 +121,8 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
    and theme-color tags), `main.ts`, `logic.ts`, `game.ts`, the component and CSS.
 2. Write tests: generator validity and solvability, reducer moves, undo, win, and an `isGame`
    JSON round trip.
-3. Add a card to `src/index.html` (see Icons below) and a line to the game list in `README.md`.
+3. Add a card to `src/index.html` (see Icons below) with its **i** button and `.how` popover of
+   instructions, and a line to the game list in `README.md`.
 4. `npm test && npm run build`, then check it at phone size (390×844 and 360 wide).
 
 Nothing else to register: Vite finds the page, and Workbox precaches every built file.

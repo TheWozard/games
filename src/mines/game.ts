@@ -12,15 +12,13 @@ export interface Game {
   mines: boolean[] | null; // placed on the first reveal
   revealed: boolean[];
   flagged: boolean[];
-  flagMode: boolean; // taps place flags instead of revealing
   status: 'playing' | 'won' | 'lost';
   exploded: number | null; // the mine that ended the game
 }
 
 export type Action =
-  | { type: 'tap'; index: number } // reveal, or flag in flag mode
-  | { type: 'flag'; index: number } // long-press / right-click
-  | { type: 'flagMode'; on: boolean }; // whether taps flag instead of revealing
+  | { type: 'tap'; index: number } // reveal (or, on a number, clear around it)
+  | { type: 'flag'; index: number }; // long-press / right-click
 
 export function newGame(difficulty: Difficulty): Game {
   const { rows, cols, mines } = DIFFICULTIES[difficulty];
@@ -32,7 +30,6 @@ export function newGame(difficulty: Difficulty): Game {
     mines: null,
     revealed: new Array(rows * cols).fill(false),
     flagged: new Array(rows * cols).fill(false),
-    flagMode: false,
     status: 'playing',
     exploded: null,
   };
@@ -97,10 +94,8 @@ function reveal(g: Game, i: number, random: () => number): Game {
 export function reducer(g: Game, action: Action, random: () => number = Math.random): Game {
   switch (action.type) {
     case 'tap':
-      return g.flagMode && !g.revealed[action.index] ? toggleFlag(g, action.index) : reveal(g, action.index, random);
+      return reveal(g, action.index, random);
     case 'flag':
       return toggleFlag(g, action.index);
-    case 'flagMode':
-      return action.on === g.flagMode ? g : { ...g, flagMode: action.on };
   }
 }

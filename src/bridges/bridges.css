@@ -10,16 +10,28 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  touch-action: manipulation;
+  touch-action: none; /* drags and swipes on the board must not scroll the page */
 }
 
 .bridges-board .dot { fill: var(--line); }
 
-.bridges-board .guide {
+.bridges-board .preview {
   stroke: var(--accent);
-  stroke-width: 0.04;
-  stroke-dasharray: 0.12 0.12;
-  opacity: 0.7;
+  stroke-width: 0.09;
+  stroke-linecap: round;
+  stroke-dasharray: 0.2 0.14;
+  pointer-events: none;
+}
+.bridges-board .preview.loose { opacity: 0.4; }
+
+.bridges-board .trail {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 0.08;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .bridges-board .bridge {
@@ -35,7 +47,7 @@
   outline: none;
 }
 
-.bridges-board .island { cursor: pointer; outline: none; }
+.bridges-board .island { cursor: grab; outline: none; }
 .bridges-board .hit-island { fill: transparent; }
 
 .bridges-board .ring {
@@ -57,4 +69,3 @@
 .bridges-board .island.full text { fill: var(--muted); }
 .bridges-board .island.over .ring { stroke: var(--danger); fill: var(--danger-soft); }
 .bridges-board .island.over text { fill: var(--danger); }
-.bridges-board .island.selected .ring { stroke: var(--accent); stroke-width: 0.1; }

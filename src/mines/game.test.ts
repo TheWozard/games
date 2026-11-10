@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flagsLeft, newGame, reducer, type Game } from './game';
+import { flagsLeft, isGame, newGame, reducer, type Game } from './game';
 
 function playToEnd(g: Game, pick: (g: Game) => number): Game {
   for (let k = 0; k < 1000 && g.status === 'playing'; k++) g = reducer(g, { type: 'tap', index: pick(g) });
@@ -33,13 +33,11 @@ describe('reducer', () => {
     expect(reducer(g, { type: 'tap', index: 0 })).toBe(g);
   });
 
-  it('flags in flag mode, and flagged cells ignore taps', () => {
+  it('flags with a long-press, and flagged cells ignore taps', () => {
     let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
     const hidden = g.revealed.indexOf(false);
-    g = reducer(g, { type: 'flagMode', on: true });
-    g = reducer(g, { type: 'tap', index: hidden });
+    g = reducer(g, { type: 'flag', index: hidden });
     expect(g.flagged[hidden]).toBe(true);
-    g = reducer(g, { type: 'flagMode', on: false });
     expect(reducer(g, { type: 'tap', index: hidden })).toBe(g);
     g = reducer(g, { type: 'flag', index: hidden });
     expect(g.flagged[hidden]).toBe(false);
@@ -58,5 +56,10 @@ describe('reducer', () => {
     g = reducer(g, { type: 'tap', index: cell });
     expect(g.status).not.toBe('lost');
     expect(g.revealed.filter(Boolean).length).toBeGreaterThanOrEqual(before);
+  });
+
+  it('loads games saved with the old flag-mode button', () => {
+    const g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    expect(isGame(JSON.parse(JSON.stringify({ ...g, flagMode: true })))).toBe(true);
   });
 });

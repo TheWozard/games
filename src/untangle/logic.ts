@@ -29,13 +29,19 @@ type Random = () => number;
 
 const cross = (o: Point, a: Point, b: Point) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 
-/** Whether segments p1–p2 and p3–p4 properly cross (touching at an end doesn't count). */
+/**
+ * Whether segments p1–p2 and p3–p4 properly cross. Touching at an end, or lying along the same
+ * line, doesn't count. Orientations within a tiny tolerance of zero count as "on the line":
+ * otherwise rounding noise can make two pieces of one straight line look as if they cross.
+ */
 export function segmentsCross(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
-  const d1 = cross(p3, p4, p1);
-  const d2 = cross(p3, p4, p2);
-  const d3 = cross(p1, p2, p3);
-  const d4 = cross(p1, p2, p4);
-  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  const eps = 1e-9 * Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) * Math.hypot(p4[0] - p3[0], p4[1] - p3[1]);
+  const side = (v: number) => (v > eps ? 1 : v < -eps ? -1 : 0);
+  const d1 = side(cross(p3, p4, p1));
+  const d2 = side(cross(p3, p4, p2));
+  const d3 = side(cross(p1, p2, p3));
+  const d4 = side(cross(p1, p2, p4));
+  return d1 * d2 < 0 && d3 * d4 < 0;
 }
 
 /** For each edge, whether it crosses any other edge (edges sharing a dot never count). */

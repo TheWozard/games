@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
   import Dialog from '../shared/Dialog.svelte';
+  import BackButton from '../shared/BackButton.svelte';
+  import NewButton from '../shared/NewButton.svelte';
+  import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { counts, edgesFor, isGame, newGame, reducer, settable, STORAGE_KEY, type Action, type Brush } from './game';
+  import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { centre, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
   import { DIFFICULTIES, isDifficulty } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
@@ -14,18 +17,80 @@
   const at = (i: number) => ({ x: game.islands[i].c + 0.5, y: game.islands[i].r + 0.5 });
 
   let askingNew = $state(false);
-  let won = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  let wasDone = untrack(() => game.done);
-  $effect(() => {
-    if (game.done && !wasDone) won = true;
-    wasDone = game.done;
-  });
-
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
+  }
+
+  // ---- Gestures ----
+  // Drag from an island towards another to build one more bridge; swipe across a bridge (starting
+  // away from an island) to remove one. A press that barely moves stays an ordinary tap (a tap on
+  // the gap between islands cycles 0 → 1 → 2 → 0); once a gesture starts, the click that follows
+  // is ignored.
+
+  const START = 0.3; // board units a press must travel before it counts as a gesture
+  let svg: SVGSVGElement;
+  let press: { id: number; start: Point; from: number | null } | null = null;
+  let gesture = $state<
+    | { kind: 'build'; from: number; to: Point; edge: number }
+    | { kind: 'swipe'; last: Point; trail: Point[]; cut: Set<number> }
+    | null
+  >(null);
+  let swallowClick = false;
+
+  function toBoard(e: PointerEvent): Point {
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  function pointerDown(e: PointerEvent) {
+    swallowClick = false;
+    if (game.done || press || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const start = toBoard(e);
+    press = { id: e.pointerId, start, from: islandAt(game, start) };
+  }
+
+  function pointerMove(e: PointerEvent) {
+    if (!press || e.pointerId !== press.id) return;
+    const p = toBoard(e);
+    if (!gesture) {
+      if (Math.hypot(p.x - press.start.x, p.y - press.start.y) < START) return;
+      svg.setPointerCapture?.(e.pointerId);
+      swallowClick = true;
+      gesture = press.from !== null
+        ? { kind: 'build', from: press.from, to: p, edge: -1 }
+        : { kind: 'swipe', last: press.start, trail: [press.start], cut: new Set() };
+    }
+    if (gesture.kind === 'build') {
+      const edge = dragEdge(game, gesture.from, p);
+      gesture = { ...gesture, to: p, edge: edge >= 0 && buildable(game, edge) ? edge : -1 };
+    } else {
+      // Each bridge crossed loses one, once per swipe.
+      for (const k of swipedEdges(game, gesture.last, p)) {
+        if (gesture.cut.has(k)) continue;
+        gesture.cut.add(k);
+        dispatch({ type: 'remove', edge: k });
+      }
+      gesture = { ...gesture, last: p, trail: [...gesture.trail, p].slice(-24) };
+    }
+  }
+
+  function pointerUp(e: PointerEvent) {
+    if (!press || e.pointerId !== press.id) return;
+    if (gesture?.kind === 'build' && gesture.edge >= 0) dispatch({ type: 'build', edge: gesture.edge });
+    press = null;
+    gesture = null;
+  }
+
+  function pointerCancel() {
+    press = null;
+    gesture = null;
+  }
+
+  function tapEdge(k: number) {
+    if (!swallowClick) dispatch({ type: 'cycle', edge: k });
   }
 
   function onKey(e: KeyboardEvent) {
@@ -33,10 +98,6 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       dispatch({ type: 'undo' });
-    } else if (e.key === '0' || e.key === '1' || e.key === '2') {
-      dispatch({ type: 'brush', brush: Number(e.key) as Brush });
-    } else if (e.key === 'Escape' && game.selected !== null) {
-      dispatch({ type: 'tapIsland', island: game.selected });
     }
   }
 </script>
@@ -44,18 +105,25 @@
 <svelte:document onkeydown={onKey} />
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>Bridges <small>{label}</small></h1>
+  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
+  <NewButton onclick={() => (askingNew = true)} />
 </header>
 
 <main class="play">
   <svg
+    bind:this={svg}
     class="bridges-board"
     viewBox="-0.25 -0.25 {game.cols + 0.5} {game.rows + 0.5}"
     style:--cols={game.cols}
     style:--rows={game.rows}
     role="group"
     aria-label="Bridges board"
+    onpointerdown={pointerDown}
+    onpointermove={pointerMove}
+    onpointerup={pointerUp}
+    onpointercancel={pointerCancel}
   >
     <!-- Faint dots on every cell, to make rows and columns easy to follow. -->
     {#each { length: game.rows } as _, r (r)}
@@ -63,15 +131,6 @@
         <circle class="dot" cx={c + 0.5} cy={r + 0.5} r="0.035" />
       {/each}
     {/each}
-
-    <!-- Guides from the selected island to the islands a tap would change. -->
-    {#if game.selected !== null}
-      {#each edges as e, k (k)}
-        {#if (e.a === game.selected || e.b === game.selected) && settable(game, k)}
-          <line class="guide" x1={at(e.a).x} y1={at(e.a).y} x2={at(e.b).x} y2={at(e.b).y} />
-        {/if}
-      {/each}
-    {/if}
 
     {#each edges as e, k (k)}
       {@const a = at(e.a)}
@@ -85,7 +144,7 @@
         <line class="bridge" x1={a.x - dx} y1={a.y - dy} x2={b.x - dx} y2={b.y - dy} />
         <line class="bridge" x1={a.x + dx} y1={a.y + dy} x2={b.x + dx} y2={b.y + dy} />
       {/if}
-      <!-- Wide invisible target: tap the gap between two islands to set its bridges. -->
+      <!-- Wide invisible target: tap the gap between two islands to cycle its bridges. -->
       <line
         class="hit"
         x1={a.x}
@@ -95,23 +154,30 @@
         role="button"
         tabindex="-1"
         aria-label="Bridge between islands, {n} built"
-        onclick={() => dispatch({ type: 'tapEdge', edge: k })}
+        onclick={() => tapEdge(k)}
         onkeydown={() => {}}
       />
     {/each}
 
+    <!-- Gesture feedback: where a drag will build, or the trail of a swipe. -->
+    {#if gesture?.kind === 'build'}
+      {@const from = centre(game, gesture.from)}
+      {@const e = edges[gesture.edge]}
+      {#if e}
+        {@const to = centre(game, e.a === gesture.from ? e.b : e.a)}
+        <line class="preview" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />
+      {:else}
+        <line class="preview loose" x1={from.x} y1={from.y} x2={gesture.to.x} y2={gesture.to.y} />
+      {/if}
+    {:else if gesture?.kind === 'swipe'}
+      <polyline class="trail" points={gesture.trail.map((p) => `${p.x},${p.y}`).join(' ')} />
+    {/if}
+
     {#each game.islands as s, i (i)}
       <g
-        class={['island', {
-          selected: game.selected === i,
-          full: have[i] === s.n,
-          over: have[i] > s.n,
-        }]}
-        role="button"
-        tabindex="-1"
+        class={['island', { full: have[i] === s.n, over: have[i] > s.n }]}
+        role="img"
         aria-label="Island {s.n}, {have[i]} bridges"
-        onclick={() => dispatch({ type: 'tapIsland', island: i })}
-        onkeydown={() => {}}
       >
         <circle class="hit-island" cx={s.c + 0.5} cy={s.r + 0.5} r="0.5" />
         <circle class="ring" cx={s.c + 0.5} cy={s.r + 0.5} r="0.37" />
@@ -120,34 +186,7 @@
     {/each}
   </svg>
 
-  <div class="tools">
-    <button type="button" class="btn" disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })}>Undo</button>
-    <button type="button" class="btn" disabled={game.done || game.bridges.every((v) => v === 0)} onclick={() => dispatch({ type: 'clear' })}>Clear</button>
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
-  </div>
-  <div class="tools choices" role="group" aria-label="Bridges a tap sets">
-    {#each [0, 1, 2] as const as n (n)}
-      <button
-        type="button"
-        class="btn choice"
-        aria-pressed={game.brush === n}
-        disabled={game.done}
-        onclick={() => dispatch({ type: 'brush', brush: n })}
-      >
-        <svg viewBox="0 0 32 12" aria-hidden="true">
-          {#if n === 0}
-            <path d="M3 6h26" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" opacity="0.6" />
-          {:else if n === 1}
-            <path d="M3 6h26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-          {:else}
-            <path d="M3 3.5h26M3 8.5h26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-          {/if}
-        </svg>
-        <span>{n === 0 ? 'None' : n === 1 ? 'Single' : 'Double'}</span>
-      </button>
-    {/each}
-  </div>
-  <p class="hint">Pick a bridge count, then tap between two islands (or one island, then another) to set it.</p>
+  {#if game.done}<p class="status">Connected.</p>{/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
@@ -157,11 +196,4 @@
     <button class="btn" value={key}>{d.label} · {d.cols}×{d.rows}</button>
   {/each}
   <button class="btn" value="">Cancel</button>
-</Dialog>
-
-<Dialog open={won} onclose={(value) => { won = false; if (value === 'new') askingNew = true; }}>
-  <h2>Connected!</h2>
-  <p>{label} puzzle complete.</p>
-  <button class="btn primary" value="new">New game</button>
-  <button class="btn" value="">Close</button>
 </Dialog>

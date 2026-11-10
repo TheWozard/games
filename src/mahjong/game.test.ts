@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { free, isGame, newGame, pairsLeft, reducer, type Game } from './game';
+
+/** A game played with random free pairs until no match is left (common in Mahjong). */
+function stuck(): Game {
+  for (let tries = 0; tries < 500; tries++) {
+    let g = newGame('pyramid');
+    for (;;) {
+      const pairs = pairsLeft(g);
+      if (g.done || pairs.length === 0) break;
+      const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+      g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
+    }
+    if (!g.done) return g;
+  }
+  throw new Error('never got stuck');
+}
 import { deal } from './logic';
 
 describe('reducer', () => {
@@ -27,28 +42,28 @@ describe('reducer', () => {
     expect(g.gone.some(Boolean)).toBe(false);
   });
 
-  it('hints at free pairs, stepping through them', () => {
-    let g = newGame('steps');
-    g = reducer(g, { type: 'hint' });
-    const first = g.hint!;
-    expect(g.kinds[first[0]]).toBe(g.kinds[first[1]]);
-    if (pairsLeft(g).length > 1) expect(reducer(g, { type: 'hint' }).hint).not.toEqual(first);
-  });
-
-  it('shuffles the remaining faces, undoably', () => {
-    let g = newGame('pyramid');
+  it('only shuffles when stuck, keeping the same faces, undoably', () => {
+    const fresh = newGame('pyramid');
+    expect(reducer(fresh, { type: 'shuffle' })).toBe(fresh); // matches available: no shuffle
+    let g = stuck();
     const before = g.kinds;
     g = reducer(g, { type: 'shuffle' });
-    expect([...g.kinds].sort()).toEqual([...before].sort());
+    const left = (k: number[]) => k.filter((_, i) => !g.gone[i]).sort((x, y) => x - y);
+    expect(left(g.kinds)).toEqual(left(before));
     g = reducer(g, { type: 'undo' });
     expect(g.kinds).toEqual(before);
   });
 
   it('is done when the board is clear, following the dealer’s order', () => {
     const { kinds, order } = deal('fortress');
-    let g: Game = { layout: 'fortress', kinds, gone: kinds.map(() => false), selected: null, hint: null, history: [], done: false };
+    let g: Game = { layout: 'fortress', kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
     for (const [a, b] of order) g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
     expect(g.done).toBe(true);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
+  });
+
+  it('loads games saved with the old Hint button', () => {
+    const g = newGame('pyramid');
+    expect(isGame(JSON.parse(JSON.stringify({ ...g, hint: [0, 1] })))).toBe(true);
   });
 });

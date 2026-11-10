@@ -1,6 +1,15 @@
-.gradient-board {
-  width: min(100%, calc((100dvh - 230px) * var(--cols) / var(--rows)));
+.gradient-wrap {
+  /* Board plus a 6px marker gutter (and 6px gap) to the right and below. */
+  --gutter: 12px;
+  width: min(100%, calc((100dvh - 250px) * var(--cols) / var(--rows) + var(--gutter)));
   align-self: center;
+  display: grid;
+  grid-template-columns: 1fr 6px;
+  grid-template-rows: auto 6px;
+  gap: 6px;
+}
+
+.gradient-board {
   aspect-ratio: var(--cols) / var(--rows);
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
@@ -44,7 +53,39 @@
   z-index: 1;
 }
 
-/* Solved: the gaps close and the tiles melt into one smooth gradient. */
-.gradient-board.done { gap: 0; }
-.gradient-board.done .tile { border-radius: 0; }
-.gradient-board.done .tile.fixed::after { opacity: 0; transition: opacity 0.6s ease; }
+.marks { display: grid; gap: 3px; }
+.marks.rows { grid-template-rows: repeat(var(--rows), 1fr); }
+.marks.cols { grid-template-columns: repeat(var(--cols), 1fr); }
+
+.mark {
+  place-self: center;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 0.6s ease;
+}
+/* Lit: a short bar along the line, in the text colour. */
+.marks.rows .mark.on { height: 45%; background: var(--text); }
+.marks.cols .mark.on { width: 45%; background: var(--text); }
+.mark.none { visibility: hidden; }
+
+/* Solved: the gaps close, the tiles melt into one smooth gradient, and the markers fade away. */
+.gradient-wrap.done .gradient-board { gap: 0; }
+.gradient-wrap.done .tile { border-radius: 0; }
+.gradient-wrap.done .tile.fixed::after { opacity: 0; transition: opacity 0.6s ease; }
+.gradient-wrap.done .mark { opacity: 0; }
+
+/* New-game dialog: pick a size and a fixed-tile pattern, then start. */
+.pick-title { margin: 6px 0 0; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.pick { display: grid; gap: 6px; }
+.pick.sizes { grid-template-columns: repeat(4, 1fr); }
+.pick.patterns { grid-template-columns: repeat(5, 1fr); }
+.pick .btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; min-width: 0; }
+.pick .btn span { font-size: 0.75rem; }
+.pick.sizes .btn strong { font-size: 0.85rem; }
+.pick.sizes .btn span { color: var(--muted); }
+.pick.sizes .btn[aria-pressed="true"] span { color: inherit; }
+.pick svg { width: 28px; height: 35px; }
+.pick svg .fixed { fill: currentColor; }
+.pick svg .loose { fill: none; stroke: currentColor; stroke-width: 0.6; opacity: 0.45; }

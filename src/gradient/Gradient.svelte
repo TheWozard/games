@@ -1,23 +1,41 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
   import Dialog from '../shared/Dialog.svelte';
+  import BackButton from '../shared/BackButton.svelte';
+  import NewButton from '../shared/NewButton.svelte';
+  import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { DIFFICULTIES, isDifficulty, palette, toCss } from './logic';
+  import { DEFAULT, describe, fromSaved, lines, newGame, reducer, STORAGE_KEY, type Action, type Settings } from './game';
+  import { fixedTiles, palette, PATTERNS, SIZES, toCss, type Pattern, type Size } from './logic';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
+  const anything = (_value: unknown): _value is unknown => true;
+  let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame(DEFAULT));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const colors = $derived(palette(game.cols, game.rows, game.corners).map(toCss));
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(describe(game));
+  const marks = $derived(lines(game));
 
   let askingNew = $state(false);
+  // What the New dialog has picked so far; it opens on the current game's settings.
+  let choice = $state<Settings>({ ...DEFAULT });
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  const start = (settings: Settings) => (game = newGame(settings));
+
+  function askNew() {
+    choice = { size: game.size, pattern: game.pattern };
+    askingNew = true;
   }
+
+  // Tiny previews of each pattern in the dialog (Scattered uses a fixed example).
+  const PREVIEW = { cols: 4, rows: 5 };
+  let seed = 7;
+  const example = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const previews = Object.fromEntries(
+    (Object.keys(PATTERNS) as Pattern[]).map((p) => [p, fixedTiles(PREVIEW.cols, PREVIEW.rows, p, example)]),
+  ) as Record<Pattern, boolean[]>;
 
   // Drag a tile onto another to swap them; a press that doesn't move is an ordinary tap.
   let dragFrom: number | null = null;
@@ -60,18 +78,17 @@
 <svelte:document onkeydown={onKey} onpointerup={pointerUp} />
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>Gradient <small>{label}</small></h1>
+  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
+  <NewButton onclick={askNew} />
 </header>
 
 <main class="play">
-  <div
-    class={['gradient-board', { done: game.done }]}
-    style:--cols={game.cols}
-    style:--rows={game.rows}
-    role="group"
-    aria-label="Gradient tiles"
-  >
+  <!-- The board, with a marker beside each row and under each column that lights up when that
+       line is all in place. Lines made only of fixed tiles are always right, so they get none. -->
+  <div class={['gradient-wrap', { done: game.done }]} style:--cols={game.cols} style:--rows={game.rows}>
+  <div class="gradient-board" role="group" aria-label="Gradient tiles">
     {#each game.order as id, pos (id)}
       <button
         type="button"
@@ -86,26 +103,54 @@
       ></button>
     {/each}
   </div>
-
-  <div class="tools">
-    <button type="button" class="btn" disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })}>Undo</button>
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
+  <div class="marks rows" aria-hidden="true">
+    {#each marks.rows as line, r (r)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
+  </div>
+  <div class="marks cols" aria-hidden="true">
+    {#each marks.cols as line, c (c)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
+  </div>
   </div>
 
+
   {#if game.done}
-    <div class="settled">
-      <p>Settled in {game.history.length} {game.history.length === 1 ? 'swap' : 'swaps'}.</p>
-      <button type="button" class="btn primary" onclick={() => start(game.difficulty)}>Next</button>
-    </div>
-  {:else}
-    <p class="hint">Swap tiles (tap two, or drag one onto another) until the colours flow smoothly. Dotted tiles stay put.</p>
+    <p class="status">Settled in {game.history.length} {game.history.length === 1 ? 'swap' : 'swaps'}.</p>
   {/if}
 </main>
 
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
+<Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') start(choice); }}>
   <h2>New game</h2>
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {d.cols}×{d.rows}</button>
-  {/each}
+  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
+
+  <h3 class="pick-title">Size</h3>
+  <div class="pick sizes">
+    {#each Object.entries(SIZES) as [key, s] (key)}
+      <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
+        <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
+      </button>
+    {/each}
+  </div>
+
+  <h3 class="pick-title">Fixed tiles</h3>
+  <div class="pick patterns">
+    {#each Object.entries(PATTERNS) as [key, p] (key)}
+      <button type="button" class="btn" aria-pressed={choice.pattern === key} onclick={() => (choice.pattern = key as Pattern)}>
+        <svg viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}" aria-hidden="true">
+          {#each previews[key as Pattern] as fixed, i (i)}
+            <rect
+              x={(i % PREVIEW.cols) * 5 + 0.5}
+              y={Math.floor(i / PREVIEW.cols) * 5 + 0.5}
+              width="4"
+              height="4"
+              rx="1"
+              class={fixed ? 'fixed' : 'loose'}
+            />
+          {/each}
+        </svg>
+        <span>{p.label}</span>
+      </button>
+    {/each}
+  </div>
+
+  <button class="btn primary" value="start">Start · {describe(choice)}</button>
   <button class="btn" value="">Cancel</button>
 </Dialog>

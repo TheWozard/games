@@ -1,5 +1,8 @@
 <script lang="ts">
   import Dialog from '../shared/Dialog.svelte';
+  import BackButton from '../shared/BackButton.svelte';
+  import NewButton from '../shared/NewButton.svelte';
+  import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { crossings, DIFFICULTIES, HEIGHT, isDifficulty, WIDTH, type Point } from './logic';
@@ -41,7 +44,6 @@
     before = game.points;
     const [x, y] = toBoard(e);
     grab = [game.points[i][0] - x, game.points[i][1] - y];
-    navigator.vibrate?.(8);
   }
 
   function pointerMove(e: PointerEvent) {
@@ -72,9 +74,16 @@
 <svelte:document onkeydown={onKey} />
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>Untangle <small>{label}</small></h1>
-  {#if !game.done}<span class="tangle-count" aria-live="polite">{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'}</span>{/if}
+  {#if !game.done}
+    <span class="tangle-count" aria-live="polite" aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      {tangle.count}
+    </span>
+  {/if}
+  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
+  <NewButton onclick={() => (askingNew = true)} />
 </header>
 
 <main class="play">
@@ -111,18 +120,9 @@
     {/each}
   </svg>
 
-  <div class="tools">
-    <button type="button" class="btn" disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })}>Undo</button>
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
-  </div>
 
   {#if game.done}
-    <div class="settled">
-      <p>Untangled in {game.moves} {game.moves === 1 ? 'move' : 'moves'}.</p>
-      <button type="button" class="btn primary" onclick={() => start(game.difficulty)}>Next</button>
-    </div>
-  {:else}
-    <p class="hint">Drag the dots until no lines cross.</p>
+    <p class="status">Untangled in {game.moves} {game.moves === 1 ? 'move' : 'moves'}.</p>
   {/if}
 </main>
 

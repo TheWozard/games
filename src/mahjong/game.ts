@@ -11,14 +11,12 @@ export interface Game {
   kinds: number[]; // face per slot of LAYOUTS[layout]
   gone: boolean[];
   selected: number | null;
-  hint: [number, number] | null;
   history: Move[];
   done: boolean;
 }
 
 export type Action =
   | { type: 'tap'; slot: number }
-  | { type: 'hint' }
   | { type: 'shuffle' }
   | { type: 'undo' };
 
@@ -27,7 +25,7 @@ export const near = (d: LayoutName) => NEAR.get(d) ?? NEAR.set(d, neighbours(LAY
 
 export function newGame(layout: LayoutName): Game {
   const { kinds } = deal(layout);
-  return { layout, kinds, gone: kinds.map(() => false), selected: null, hint: null, history: [], done: false };
+  return { layout, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
 }
 
 export function isGame(value: unknown): value is Game {
@@ -45,34 +43,25 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
     case 'tap': {
       const i = action.slot;
       if (g.done || !free(g, i)) return g;
-      if (g.selected === null || g.selected === i) return { ...g, selected: g.selected === i ? null : i, hint: null };
-      if (g.kinds[g.selected] !== g.kinds[i]) return { ...g, selected: i, hint: null };
+      if (g.selected === null || g.selected === i) return { ...g, selected: g.selected === i ? null : i };
+      if (g.kinds[g.selected] !== g.kinds[i]) return { ...g, selected: i };
       const gone = g.gone.slice();
       gone[g.selected] = gone[i] = true;
       return {
         ...g,
         gone,
         selected: null,
-        hint: null,
         history: [...g.history, { pair: [g.selected, i] }],
         done: gone.every(Boolean),
       };
     }
-    case 'hint': {
-      if (g.done) return g;
-      const pairs = pairsLeft(g);
-      if (pairs.length === 0) return g.hint ? { ...g, hint: null } : g;
-      // Step through the available pairs on repeated presses.
-      const at = g.hint ? pairs.findIndex(([a, b]) => a === g.hint![0] && b === g.hint![1]) : -1;
-      return { ...g, hint: pairs[(at + 1) % pairs.length], selected: null };
-    }
     case 'shuffle': {
-      if (g.done) return g;
+      // Only offered when stuck: no free matching pairs left.
+      if (g.done || pairsLeft(g).length > 0) return g;
       return {
         ...g,
         kinds: reshuffle(g.kinds, near(g.layout), g.gone, random),
         selected: null,
-        hint: null,
         history: [...g.history, { shuffled: g.kinds }],
       };
     }
@@ -80,10 +69,10 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
       const last = g.history.at(-1);
       if (g.done || !last) return g;
       const history = g.history.slice(0, -1);
-      if ('shuffled' in last) return { ...g, kinds: last.shuffled, selected: null, hint: null, history };
+      if ('shuffled' in last) return { ...g, kinds: last.shuffled, selected: null, history };
       const gone = g.gone.slice();
       gone[last.pair[0]] = gone[last.pair[1]] = false;
-      return { ...g, gone, selected: null, hint: null, history };
+      return { ...g, gone, selected: null, history };
     }
   }
 }

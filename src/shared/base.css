@@ -8,6 +8,7 @@
   --muted: #9095a3;
   --line: #353943;
   --line-strong: #9aa0ad;
+  --grid-line: #4c525e; /* thin lines between grid cells: clear against cells and tints */
   --accent: #7aa5f5;
   --accent-soft: #2a3a5c;
   --peer: #262a32;
@@ -47,8 +48,10 @@ button {
   padding: 12px 16px;
 }
 
-.bar h1 { flex: 1; margin: 0; font-size: 1.25rem; }
-.bar h1 small { color: var(--muted); font-size: 0.9rem; font-weight: 400; }
+/* Title, with the difficulty / settings as a smaller line beneath it. */
+.bar h1 { flex: 1; min-width: 0; display: flex; flex-direction: column; margin: 0; font-size: 1.2rem; line-height: 1.2; }
+.bar h1 small { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+.bar h1, .bar h1 small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Game pages (<body class="game">): header pinned to the top, game centred in the space below
    it, so it sits comfortably on tall phones instead of hugging the header. */
@@ -67,7 +70,24 @@ body.game #root { flex: 1; display: flex; flex-direction: column; }
   padding: 0 16px 24px;
 }
 
-.back { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.back { text-decoration: none; }
+
+/* Round icon buttons at the right of the header (Undo, New game). */
+.icon-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn + .icon-btn { margin-left: -4px; }
 
 .btn {
   border: 1px solid var(--line);
@@ -79,19 +99,6 @@ body.game #root { flex: 1; display: flex; flex-direction: column; }
 .btn:disabled { opacity: 0.4; cursor: default; }
 
 .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
-
-/* The row under the actions that picks what a tap places (bridge count, reveal or flag...). */
-.choices .choice { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px; }
-.choices .choice svg { width: 32px; height: 12px; }
-.choices .choice span { font-size: 0.85rem; }
-
-/* Under a finished zen game: a quiet note and the next puzzle. */
-.settled { display: flex; align-items: center; justify-content: center; gap: 16px; color: var(--muted); }
-.settled p { margin: 0; }
-.settled .btn { min-width: 96px; }
-
-/* A line of help text under a game's buttons. */
-.hint { margin: -4px 0 0; color: var(--muted); font-size: 0.85rem; text-align: center; }
 
 /* A row of equal-width buttons under a game board. */
 .tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }

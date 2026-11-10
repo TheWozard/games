@@ -30,5 +30,11 @@ describe('segmentsCross', () => {
     expect(segmentsCross([0, 0], [10, 10], [0, 10], [10, 0])).toBe(true);
     expect(segmentsCross([0, 0], [10, 10], [20, 0], [30, 10])).toBe(false);
     expect(segmentsCross([0, 0], [10, 0], [10, 0], [10, 10])).toBe(false); // touching at an end
+    // Two pieces of one straight line never cross, even with rounding in the coordinates
+    // (this exact pair once came out of the generator and was counted as a crossing).
+    expect(segmentsCross(
+      [6.7115136673934135, 30.11355397154393], [25.996608724756022, 42.95188483922837],
+      [31.14734732026596, 46.38079644715239], [62.72319729728594, 67.40123778942015],
+    )).toBe(false);
   });
 });

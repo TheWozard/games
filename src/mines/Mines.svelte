@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
   import Dialog from '../shared/Dialog.svelte';
+  import BackButton from '../shared/BackButton.svelte';
+  import NewButton from '../shared/NewButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { counts, DIFFICULTIES, isDifficulty } from './logic';
@@ -14,16 +15,8 @@
   const label = $derived(DIFFICULTIES[game.difficulty].label);
 
   let askingNew = $state(false);
-  let ended = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
-
-  // Show the result when a game ends (not when an ended game is reloaded).
-  let wasStatus = untrack(() => game.status);
-  $effect(() => {
-    if (game.status !== 'playing' && wasStatus === 'playing') ended = true;
-    wasStatus = game.status;
-  });
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
@@ -35,11 +28,7 @@
   let pressFlagged = false;
   let pressAt = { x: 0, y: 0 };
 
-  function flag(i: number) {
-    const before = game;
-    dispatch({ type: 'flag', index: i });
-    if (game !== before) navigator.vibrate?.(15);
-  }
+  const flag = (i: number) => dispatch({ type: 'flag', index: i });
 
   function pointerDown(e: PointerEvent, i: number) {
     pressFlagged = false;
@@ -87,9 +76,10 @@
 {/snippet}
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>Mines <small>{label}</small></h1>
   <span class="mines-left" aria-label="Mines left to flag">{@render flagIcon()} {flagsLeft(game)}</span>
+  <NewButton onclick={() => (askingNew = true)} />
 </header>
 
 <main class="play">
@@ -127,30 +117,11 @@
     {/each}
   </div>
 
-  <div class="tools">
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
-  </div>
-  <div class="tools choices" role="group" aria-label="What a tap does">
-    {#each [false, true] as on (on)}
-      <button
-        type="button"
-        class="btn choice"
-        aria-pressed={game.flagMode === on}
-        disabled={game.status !== 'playing'}
-        onclick={() => dispatch({ type: 'flagMode', on })}
-      >
-        <svg viewBox="0 0 32 12" aria-hidden="true">
-          {#if on}
-            <path d="M13 1.5v9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><path d="M13.8 1.8h6.4l-1.8 2.4 1.8 2.4h-6.4z" fill="currentColor" />
-          {:else}
-            <rect x="11" y="1" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
-          {/if}
-        </svg>
-        <span>{on ? 'Flag' : 'Reveal'}</span>
-      </button>
-    {/each}
-  </div>
-  <p class="hint">Long-press also flags · tap a number to clear around it</p>
+  {#if game.status === 'won'}
+    <p class="status">Cleared.</p>
+  {:else if game.status === 'lost'}
+    <p class="status lost">That one was a mine.</p>
+  {/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
@@ -160,16 +131,4 @@
     <button class="btn" value={key}>{d.label} · {d.cols}×{d.rows}, {d.mines} mines</button>
   {/each}
   <button class="btn" value="">Cancel</button>
-</Dialog>
-
-<Dialog open={ended} onclose={(value) => { ended = false; if (value === 'new') askingNew = true; }}>
-  {#if game.status === 'won'}
-    <h2>Cleared!</h2>
-    <p>{label} field cleared.</p>
-  {:else}
-    <h2>Boom</h2>
-    <p>That one was a mine.</p>
-  {/if}
-  <button class="btn primary" value="new">New game</button>
-  <button class="btn" value="">Look at the board</button>
 </Dialog>

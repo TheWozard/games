@@ -1,4 +1,5 @@
-.mj-count { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mj-count { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mj-count svg { width: 1em; height: 1em; }
 
 .mj-board {
   /* --w × --h is the board in tile units (a tile is 3 × 4). */
@@ -38,12 +39,6 @@
   transform: translate(calc(var(--u) * -0.12), calc(var(--u) * -0.12));
   outline: 2px solid var(--accent);
   outline-offset: -1px;
-}
-
-.mj-tile.hint { animation: mj-glow 1.2s ease-in-out infinite; }
-
-@keyframes mj-glow {
-  50% { background: linear-gradient(160deg, #fff6d6, #f5dc8f); }
 }
 
 .mj-tile.shake { animation: mj-shake 0.3s ease; }

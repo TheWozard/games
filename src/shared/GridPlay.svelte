@@ -10,8 +10,8 @@
     /** Thick line on the cell's right / bottom edge (box or cage boundaries). */
     wallRight?: (i: number) => boolean;
     wallBottom?: (i: number) => boolean;
-    /** Which sides of the cell get a dashed outline (cages drawn inside the grid lines). */
-    outline?: (i: number) => { top: boolean; right: boolean; bottom: boolean; left: boolean };
+    /** A muted background tint (0–5) for the cell's zone, e.g. its cage. */
+    tint?: (i: number) => number;
     /** Small text in the cell's top-left corner (cage clues). */
     label?: (i: number) => string;
     /** Extra error highlighting beyond repeated digits (e.g. a full cage that doesn't add up). */
@@ -22,6 +22,9 @@
 <script lang="ts" generics="G extends GridState">
   import { untrack } from 'svelte';
   import Dialog from './Dialog.svelte';
+  import BackButton from './BackButton.svelte';
+  import NewButton from './NewButton.svelte';
+  import UndoButton from './UndoButton.svelte';
   import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import './grid.css';
@@ -43,7 +46,6 @@
   const dispatch = (action: GridAction) => (game = gridReducer(game, action, shape));
 
   let askingNew = $state(false);
-  let won = $state(false);
 
   const digits = $derived(Array.from({ length: shape.size }, (_, k) => k + 1));
   const selValue = $derived(game.selected === null ? 0 : game.values[game.selected]);
@@ -51,13 +53,6 @@
 
   // Save after every change (the reducer returns a new object only when something changed).
   $effect(() => saveJSON(storageKey, game));
-
-  // Celebrate when a game becomes solved (not when a finished game is reloaded).
-  let wasDone = untrack(() => game.done);
-  $effect(() => {
-    if (game.done && !wasDone) won = true;
-    wasDone = game.done;
-  });
 
   function start(difficulty: string) {
     if (Object.hasOwn(difficulties, difficulty)) game = create(difficulty);
@@ -75,8 +70,10 @@
 <svelte:document onkeydown={onKey} />
 
 <header class="bar">
-  <a class="back" href="../">‹ Games</a>
+  <BackButton />
   <h1>{title} <small>{difficulties[game.difficulty]?.label}</small></h1>
+  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
+  <NewButton onclick={() => (askingNew = true)} />
 </header>
 
 <main class="play">
@@ -87,17 +84,12 @@
       {@const given = game.puzzle[i] !== 0}
       {@const mask = v ? 0 : game.notes[i]}
       {@const label = shape.label?.(i)}
-      {@const o = shape.outline?.(i)}
       <button
         type="button"
         class={['cell', {
           'wall-r': shape.wallRight?.(i),
           'wall-b': shape.wallBottom?.(i),
-          outlined: o,
-          'o-t': o?.top,
-          'o-r': o?.right,
-          'o-b': o?.bottom,
-          'o-l': o?.left,
+          [`tint-${shape.tint?.(i)}`]: shape.tint !== undefined,
           given,
           selected: i === game.selected,
           peer: game.selected !== null && shape.peers[game.selected].includes(i),
@@ -117,10 +109,8 @@
   </div>
 
   <div class="tools">
-    <button type="button" class="btn" disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })}>Undo</button>
     <button type="button" class="btn" disabled={game.done} onclick={() => dispatch({ type: 'erase' })}>Erase</button>
     <button type="button" class="btn" aria-pressed={game.notesMode} onclick={() => dispatch({ type: 'toggleNotes' })}>Notes</button>
-    <button type="button" class="btn" onclick={() => (askingNew = true)}>New</button>
   </div>
 
   <div class={['pad', { 'notes-mode': game.notesMode }]} style:--n={shape.size}>
@@ -131,6 +121,7 @@
       </button>
     {/each}
   </div>
+  {#if game.done}<p class="status">Solved.</p>{/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
@@ -140,11 +131,4 @@
     <button class="btn" value={key}>{label}</button>
   {/each}
   <button class="btn" value="">Cancel</button>
-</Dialog>
-
-<Dialog open={won} onclose={(value) => { won = false; if (value === 'new') askingNew = true; }}>
-  <h2>Solved!</h2>
-  <p>{difficulties[game.difficulty]?.label} puzzle complete.</p>
-  <button class="btn primary" value="new">New game</button>
-  <button class="btn" value="">Close</button>
 </Dialog>

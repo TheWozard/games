@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { corners, DIFFICULTIES, fixedTiles, palette, shuffled, toCss, type Difficulty } from './logic';
+import { corners, fixedTiles, palette, PATTERNS, shuffled, SIZES, toCss, type Pattern, type Size } from './logic';
 
 describe('palette', () => {
   it('blends from the four corners, in sRGB range', () => {
@@ -16,7 +16,7 @@ describe('palette', () => {
 
   it('keeps neighbouring tiles distinguishable', () => {
     for (let run = 0; run < 50; run++) {
-      const { cols, rows } = DIFFICULTIES.hard;
+      const { cols, rows } = SIZES.huge;
       const p = palette(cols, rows, corners());
       const dist = (i: number, j: number) => Math.hypot(p[i][0] - p[j][0], p[i][1] - p[j][1], p[i][2] - p[j][2]);
       for (let i = 0; i < p.length; i++) {
@@ -28,14 +28,31 @@ describe('palette', () => {
 });
 
 describe('shuffled', () => {
-  for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
-    it(`keeps ${difficulty} fixed tiles home and moves every other tile`, () => {
-      const { cols, rows, fixed: pattern } = DIFFICULTIES[difficulty];
-      const fixed = fixedTiles(cols, rows, pattern);
-      expect(fixed[0] && fixed[cols - 1] && fixed[cols * (rows - 1)] && fixed[cols * rows - 1]).toBe(true);
-      const order = shuffled(fixed);
-      expect([...order].sort((a, b) => a - b)).toEqual([...Array(cols * rows).keys()]);
-      order.forEach((id, pos) => expect(id === pos).toBe(fixed[pos]));
-    });
+  for (const size of Object.keys(SIZES) as Size[]) {
+    for (const pattern of Object.keys(PATTERNS) as Pattern[]) {
+      it(`keeps ${size} ${pattern} fixed tiles home and moves every other tile`, () => {
+        const { cols, rows } = SIZES[size];
+        const fixed = fixedTiles(cols, rows, pattern);
+        expect(fixed[0] && fixed[cols - 1] && fixed[cols * (rows - 1)] && fixed[cols * rows - 1]).toBe(true);
+        expect(fixed.filter((f) => !f).length).toBeGreaterThanOrEqual(2);
+        const order = shuffled(fixed);
+        expect([...order].sort((a, b) => a - b)).toEqual([...Array(cols * rows).keys()]);
+        order.forEach((id, pos) => expect(id === pos).toBe(fixed[pos]));
+      });
+    }
   }
+});
+
+describe('fixedTiles', () => {
+  it('draws each pattern', () => {
+    const grid = (p: Pattern) => {
+      const f = fixedTiles(4, 5, p, () => 0.5);
+      return [0, 1, 2, 3, 4].map((r) => f.slice(r * 4, r * 4 + 4).map((x) => (x ? '#' : '.')).join(''));
+    };
+    expect(grid('corners')).toEqual(['#..#', '....', '....', '....', '#..#']);
+    expect(grid('border')).toEqual(['####', '#..#', '#..#', '#..#', '####']);
+    expect(grid('checker')).toEqual(['#.##', '.#.#', '#.#.', '.#.#', '#.##']);
+    expect(grid('stripes')).toEqual(['####', '....', '####', '....', '####']);
+    expect(grid('scattered')).toEqual(['#..#', '....', '....', '....', '#..#']); // 0.5 ≥ 0.3: none extra
+  });
 });

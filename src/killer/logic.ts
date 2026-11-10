@@ -1,4 +1,4 @@
-// Killer Sudoku: Sudoku's rules (rows, columns and 3×3 boxes hold 1–9) plus cages: outlined groups
+// Killer Sudoku: Sudoku's rules (rows, columns and 3×3 boxes hold 1–9) plus cages: groups
 // of cells whose digits add up to the cage's sum, with no digit repeated inside a cage.
 // Puzzles have a unique solution: random solved grid → random cages → solver check, and wherever
 // two solutions disagree that cell becomes a given, until only one solution remains.

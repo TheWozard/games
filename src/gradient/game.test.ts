@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isGame, newGame, reducer, type Game } from './game';
+import { describe as label, fromSaved, isGame, lines, newGame, reducer, type Game } from './game';
 
 /** Puts each tile home with as few swaps as it takes. */
 function solve(g: Game): Game {
@@ -11,7 +11,7 @@ function solve(g: Game): Game {
 
 describe('reducer', () => {
   it('swaps two tapped tiles and undoes the swap', () => {
-    let g = newGame('medium');
+    let g = newGame({ size: 'medium', pattern: 'border' });
     const loose = g.fixed.flatMap((f, i) => (f ? [] : [i]));
     const [a, b] = loose;
     const before = g.order;
@@ -26,7 +26,7 @@ describe('reducer', () => {
   });
 
   it('never moves a fixed tile', () => {
-    const g = newGame('easy');
+    const g = newGame({ size: 'small', pattern: 'checker' });
     const fixed = g.fixed.indexOf(true);
     const loose = g.fixed.indexOf(false);
     expect(reducer(g, { type: 'tap', pos: fixed })).toBe(g);
@@ -34,9 +34,45 @@ describe('reducer', () => {
   });
 
   it('is done once every tile is home, and round-trips through JSON', () => {
-    const g = solve(newGame('hard'));
+    const g = solve(newGame({ size: 'huge', pattern: 'corners' }));
     expect(g.done).toBe(true);
     expect(reducer(g, { type: 'undo' })).toBe(g);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
+  });
+
+  it('marks a row or column correct exactly when all its tiles are home', () => {
+    let g = newGame({ size: 'small', pattern: 'checker' });
+    const before = lines(g);
+    // Shuffled: no line with a loose tile is correct; all-fixed lines (none on Easy) would be.
+    before.rows.forEach((l) => expect(l.correct).toBe(l.fixed));
+    // Put row 0 right.
+    for (let c = 0; c < g.cols; c++) {
+      if (g.order[c] !== c) g = reducer(g, { type: 'swap', from: c, to: g.order.indexOf(c) });
+    }
+    expect(lines(g).rows[0].correct).toBe(true);
+    g = solve(g);
+    const after = lines(g);
+    expect(after.rows.every((l) => l.correct) && after.cols.every((l) => l.correct)).toBe(true);
+  });
+
+  it('flags lines made only of fixed tiles', () => {
+    const g = newGame({ size: 'medium', pattern: 'border' });
+    const { rows, cols } = lines(g);
+    expect(rows.map((l) => l.fixed)).toEqual(rows.map((_, r) => r === 0 || r === g.rows - 1));
+    expect(cols.map((l) => l.fixed)).toEqual(cols.map((_, c) => c === 0 || c === g.cols - 1));
+  });
+
+  it('describes its settings', () => {
+    expect(label({ size: 'medium', pattern: 'border' })).toBe('5×7 · Border');
+  });
+
+  it('upgrades a game saved with the old three levels', () => {
+    const g = newGame({ size: 'large', pattern: 'corners' });
+    const { size: _s, pattern: _p, ...rest } = g;
+    const old = JSON.parse(JSON.stringify({ ...rest, difficulty: 'hard' }));
+    expect(fromSaved(old)).toEqual(g);
+    expect(fromSaved({ ...old, difficulty: 'extreme' })).toBeNull();
+    expect(fromSaved(null)).toBeNull();
+    expect(fromSaved(JSON.parse(JSON.stringify(g)))).toEqual(g);
   });
 });
