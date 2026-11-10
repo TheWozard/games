@@ -1,0 +1,89 @@
+.bar h1 small { color: var(--muted); font-size: 0.9rem; font-weight: 400; }
+
+.timer { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.sudoku {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+
+.board {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--accent);
+  font-size: 6.5cqi;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell.box-r { border-right: 2px solid var(--line-strong); }
+.cell.box-b { border-bottom: 2px solid var(--line-strong); }
+.cell.edge-r { border-right: 0; }
+.cell.edge-b { border-bottom: 0; }
+
+.cell:focus-visible { outline: none; }
+.cell.given { color: var(--text); font-weight: 600; }
+.cell.peer { background: var(--peer); }
+.cell.same { background: var(--accent-soft); }
+.cell.selected { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.cell.conflict { color: var(--danger); background: var(--danger-soft); }
+.cell.conflict.selected { box-shadow: inset 0 0 0 2px var(--danger); }
+
+.notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  color: var(--muted);
+  font-size: 2.4cqi;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.notes span { display: grid; place-items: center; }
+
+.tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.tools .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+.pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+
+.digit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.digit-n { font-size: 1.6rem; line-height: 1.1; }
+.digit-left { min-height: 1em; color: var(--muted); font-size: 0.7rem; }
+.digit.complete { opacity: 0.35; }
+.pad.notes-mode .digit-n { font-size: 1.1rem; line-height: 1.6; color: var(--muted); }
