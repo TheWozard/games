@@ -33,6 +33,8 @@
 }
 .untangle-board .dot.near .mark { fill: var(--accent); }
 .untangle-board .dot.held .mark { fill: var(--accent); stroke: var(--text); }
+/* A dot sitting on a line it isn't part of: counts as a crossing. */
+.untangle-board .dot.touching .mark { stroke: var(--danger); stroke-width: 1.1; }
 
 /* Untangled: everything settles into the calm accent colour. */
 .untangle-board.done .edge { stroke: var(--accent); opacity: 0.9; }

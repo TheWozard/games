@@ -76,16 +76,9 @@
 .gradient-wrap.done .tile.fixed::after { opacity: 0; transition: opacity 0.6s ease; }
 .gradient-wrap.done .mark { opacity: 0; }
 
-/* New-game dialog: pick a size and a fixed-tile pattern, then start. */
-.pick-title { margin: 6px 0 0; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.pick { display: grid; gap: 6px; }
+/* Gradient's New dialog: four sizes, five patterns with tiny previews. */
 .pick.sizes { grid-template-columns: repeat(4, 1fr); }
 .pick.patterns { grid-template-columns: repeat(5, 1fr); }
-.pick .btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; min-width: 0; }
-.pick .btn span { font-size: 0.75rem; }
-.pick.sizes .btn strong { font-size: 0.85rem; }
-.pick.sizes .btn span { color: var(--muted); }
-.pick.sizes .btn[aria-pressed="true"] span { color: inherit; }
 .pick svg { width: 28px; height: 35px; }
 .pick svg .fixed { fill: currentColor; }
 .pick svg .loose { fill: none; stroke: currentColor; stroke-width: 0.6; opacity: 0.45; }

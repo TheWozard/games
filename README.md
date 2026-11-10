@@ -10,7 +10,7 @@ Games:
 - [Mines](src/mines/): find the mines from the neighbour counts. The first tap is always safe and every board can be cleared without guessing.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network; every puzzle has a unique solution.
 - [Gradient](src/gradient/): swap colour tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
-- [Untangle](src/untangle/): drag dots until no lines cross; built from random lines, so every puzzle is solvable.
+- [Untangle](src/untangle/): drag dots until no lines cross (a dot on a line counts); 10–36 dots in three styles, each built from an untangled layout so every puzzle is solvable.
 - [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 
 ## Installing on a phone

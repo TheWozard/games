@@ -4,14 +4,16 @@
   import NewButton from '../shared/NewButton.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { crossings, DIFFICULTIES, HEIGHT, isDifficulty, WIDTH, type Point } from './logic';
+  import { DEFAULT, describe, fromSaved, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { crossings, dotRadius, HEIGHT, SIZES, STARTS, STYLES, WIDTH, type Point, type Settings, type Size, type Start, type Style } from './logic';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
+  const anything = (_value: unknown): _value is unknown => true;
+  let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame(DEFAULT));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const tangle = $derived(crossings(game.points, game.edges));
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(describe(game));
+  const r = $derived(dotRadius(game.points.length));
 
   let askingNew = $state(false);
   let svg: SVGSVGElement;
@@ -54,12 +56,16 @@
 
   function pointerUp() {
     if (dragging === null) return;
+    const index = dragging;
     dragging = null;
-    dispatch({ type: 'drop', before });
+    dispatch({ type: 'drop', index, before });
   }
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  // The New dialog's picks, starting from the current game's settings.
+  let choice = $state<Settings>({ ...DEFAULT });
+  function askNew() {
+    choice = { size: game.size, style: game.style, start: game.start };
+    askingNew = true;
   }
 
   function onKey(e: KeyboardEvent) {
@@ -83,7 +89,7 @@
     </span>
   {/if}
   <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
+  <NewButton onclick={askNew} />
 </header>
 
 <main class="play">
@@ -108,14 +114,14 @@
     {/each}
     {#each game.points as [x, y], i (i)}
       <g
-        class={['dot', { held: dragging === i, near: neighbours.has(i) }]}
+        class={['dot', { held: dragging === i, near: neighbours.has(i), touching: tangle.touching[i] }]}
         role="button"
         tabindex="-1"
         aria-label="Dot {i + 1}"
         onpointerdown={(e) => pointerDown(e, i)}
       >
         <circle class="hit" cx={x} cy={y} r="7" />
-        <circle class="mark" cx={x} cy={y} r={dragging === i ? 3.6 : 2.8} />
+        <circle class="mark" cx={x} cy={y} r={dragging === i ? r * 1.3 : r} />
       </g>
     {/each}
   </svg>
@@ -126,10 +132,38 @@
   {/if}
 </main>
 
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
+<Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') game = newGame(choice); }}>
   <h2>New game</h2>
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {(d.lines * (d.lines - 1)) / 2} dots</button>
-  {/each}
+  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
+
+  <h3 class="pick-title">Dots</h3>
+  <div class="pick">
+    {#each Object.entries(SIZES) as [key, s] (key)}
+      <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
+        <strong>{s.label}</strong>
+      </button>
+    {/each}
+  </div>
+
+  <h3 class="pick-title">Style</h3>
+  <div class="pick">
+    {#each Object.entries(STYLES) as [key, s] (key)}
+      <button type="button" class="btn" aria-pressed={choice.style === key} onclick={() => (choice.style = key as Style)}>
+        <strong>{s.label}</strong>
+        <span>{key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}</span>
+      </button>
+    {/each}
+  </div>
+
+  <h3 class="pick-title">Start</h3>
+  <div class="pick">
+    {#each Object.entries(STARTS) as [key, s] (key)}
+      <button type="button" class="btn" aria-pressed={choice.start === key} onclick={() => (choice.start = key as Start)}>
+        <strong>{s.label}</strong>
+      </button>
+    {/each}
+  </div>
+
+  <button class="btn primary" value="start">Start · {describe(choice)}</button>
   <button class="btn" value="">Cancel</button>
 </Dialog>
