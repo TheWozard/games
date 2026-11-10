@@ -17,7 +17,6 @@ export interface Game {
   selected: number | null;
   notesMode: boolean;
   history: Change[][];
-  elapsed: number; // seconds
   done: boolean;
 }
 
@@ -32,7 +31,6 @@ export function newGame(difficulty: Difficulty): Game {
     selected: null,
     notesMode: false,
     history: [],
-    elapsed: 0,
     done: false,
   };
 }
@@ -54,8 +52,7 @@ export type Action =
   | { type: 'enter'; digit: number }
   | { type: 'erase' }
   | { type: 'undo' }
-  | { type: 'toggleNotes' }
-  | { type: 'tick' };
+  | { type: 'toggleNotes' };
 
 const editable = (g: Game) => !g.done && g.selected !== null && g.puzzle[g.selected] === 0;
 
@@ -122,8 +119,5 @@ export function reducer(g: Game, action: Action): Game {
 
     case 'toggleNotes':
       return { ...g, notesMode: !g.notesMode };
-
-    case 'tick':
-      return g.done ? g : { ...g, elapsed: g.elapsed + 1 };
   }
 }

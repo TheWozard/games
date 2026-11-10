@@ -3,7 +3,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { colOf, DIFFICULTIES, formatTime, hasConflict, isDifficulty, PEERS, rowOf } from './logic';
+  import { colOf, DIFFICULTIES, hasConflict, isDifficulty, PEERS, rowOf } from './logic';
 
   const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   const ARROWS: Record<string, [number, number]> = {
@@ -20,15 +20,8 @@
   const selValue = $derived(game.selected === null ? 0 : game.values[game.selected]);
   const remaining = $derived(DIGITS.map((d) => 9 - game.values.filter((v) => v === d).length));
 
-  // Save after every move, and every 10 s of play (plus on hide) so the clock is roughly kept.
-  const save = () => saveJSON(STORAGE_KEY, game);
-  $effect(() => {
-    void [game.puzzle, game.values, game.notes, game.notesMode, game.done];
-    untrack(save);
-  });
-  $effect(() => {
-    if (game.elapsed % 10 === 0) untrack(save);
-  });
+  // Save after every change (the reducer returns a new object only when something changed).
+  $effect(() => saveJSON(STORAGE_KEY, game));
 
   // Celebrate when a game becomes solved (not when a finished game is reloaded).
   let wasDone = untrack(() => game.done);
@@ -37,14 +30,7 @@
     wasDone = game.done;
   });
 
-  // The clock only runs while the game is on screen and no dialog is open.
   const dialogOpen = () => document.querySelector('dialog[open]') !== null;
-  $effect(() => {
-    const id = setInterval(() => {
-      if (document.visibilityState === 'visible' && !dialogOpen()) dispatch({ type: 'tick' });
-    }, 1000);
-    return () => clearInterval(id);
-  });
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
@@ -74,13 +60,11 @@
   }
 </script>
 
-<svelte:document onkeydown={onKey} onvisibilitychange={save} />
-<svelte:window onpagehide={save} />
+<svelte:document onkeydown={onKey} />
 
 <header class="bar">
   <a class="back" href="../">‹ Games</a>
   <h1>Sudoku <small>{DIFFICULTIES[game.difficulty].label}</small></h1>
-  <span class="timer" aria-label="Time">{formatTime(game.elapsed)}</span>
 </header>
 
 <main class="sudoku">
@@ -142,7 +126,7 @@
 
 <Dialog open={won} onclose={(value) => { won = false; if (value === 'new') askingNew = true; }}>
   <h2>Solved!</h2>
-  <p>{DIFFICULTIES[game.difficulty].label} puzzle in {formatTime(game.elapsed)}.</p>
+  <p>{DIFFICULTIES[game.difficulty].label} puzzle complete.</p>
   <button class="btn primary" value="new">New game</button>
   <button class="btn" value="">Close</button>
 </Dialog>

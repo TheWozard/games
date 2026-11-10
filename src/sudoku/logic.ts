@@ -117,10 +117,3 @@ export function hasConflict(values: Grid, i: number): boolean {
   const v = values[i];
   return v !== 0 && PEERS[i].some((p) => values[p] === v);
 }
-
-export function formatTime(s: number): string {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor(s / 60) % 60;
-  const sec = String(s % 60).padStart(2, '0');
-  return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
-}

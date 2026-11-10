@@ -33,6 +33,5 @@ describe('reducer', () => {
       g = reducer(reducer(g, { type: 'select', index: i }), { type: 'enter', digit: g.solution[i] });
     }
     expect(g.done).toBe(true);
-    expect(reducer(g, { type: 'tick' })).toBe(g);
   });
 });
