@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  adjacent, connected, DIFFICULTIES, extend, generate, isBridge, isHole, isSlow, isSolved, NO_RULES, plainBoard, settle,
+  adjacent, connected, DIFFICULTIES, extend, generate, isBridge, isHole, isSlow, isSolved, NO_RULES, plainBoard, settle, wait,
   startStroke, type Board, type Difficulty, type Rules,
 } from './logic';
 import { countSolutions } from './solve';
@@ -45,6 +45,21 @@ describe('generate', () => {
       }, 120_000);
     }
   }
+});
+
+describe('wait', () => {
+  it('marks Hard wrapping without holes slow, and slower without walls too', () => {
+    const wrap = { ...NO_RULES, wrap: true };
+    expect(wait('medium', wrap)).toBe('quick');
+    expect(wait('hard', NO_RULES)).toBe('quick');
+    expect(wait('hard', { ...wrap, holes: true })).toBe('quick');
+    expect(wait('hard', { ...wrap, walls: true })).toBe('slow');
+    expect(wait('hard', { ...wrap, walls: true, bridges: true })).toBe('slow');
+    expect(wait('hard', wrap)).toBe('slower');
+    expect(wait('hard', { ...wrap, bridges: true })).toBe('slower');
+    expect(isSlow('hard', { ...wrap, walls: true })).toBe(true);
+    expect(isSlow('hard', NO_RULES)).toBe(false);
+  });
 });
 
 describe('drawing', () => {

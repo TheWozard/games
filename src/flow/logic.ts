@@ -13,6 +13,7 @@
 // - wrap: the edges join up, so a path leaving one side comes back on the opposite one;
 // - bridges: a bridge square carries two paths, one straight across and one straight down, and is
 //   filled once both cross it; each starts as two short straight paths crossing it.
+import type { Wait } from '../shared/wait';
 import { countSolutions } from './solve';
 
 export const DIFFICULTIES = {
@@ -165,13 +166,20 @@ const WALLS = 0.15;
 const BRIDGES = { easy: 1, medium: 2, hard: 3 } as const;
 
 /**
- * Settings whose puzzles can take a while to make: Hard with wrapping, where the uniqueness check
- * has no edges to box paths in, unless holes give it some back. On a laptop they take about half
- * a second to several seconds (the rest stay well under one); they're made in the background,
- * behind an orange Play or Next.
+ * How long a setting's puzzles take to make (see src/shared/wait.ts). Slow ones are Hard with
+ * wrapping, where the uniqueness check has no edges to box paths in, unless holes give it some
+ * back. Medians on a laptop (a phone takes about four times as long):
+ * - slower: wrapping alone, 1.5–4 s; with bridges, about 0.5 s;
+ * - slow: with walls (with or without bridges), 30–100 ms, occasionally about a second;
+ * - quick: everything else, tens of milliseconds at most.
+ * Slow and slower ones are made in the background, behind an orange or red Play or Next.
  */
-export const isSlow = (difficulty: Difficulty, rules: Rules): boolean =>
-  difficulty === 'hard' && rules.wrap && !rules.holes;
+export function wait(difficulty: Difficulty, rules: Rules): Wait {
+  if (difficulty !== 'hard' || !rules.wrap || rules.holes) return 'quick';
+  return rules.walls ? 'slow' : 'slower';
+}
+
+export const isSlow = (difficulty: Difficulty, rules: Rules): boolean => wait(difficulty, rules) !== 'quick';
 
 export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
   const { size, colors } = DIFFICULTIES[difficulty];

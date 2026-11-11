@@ -10,8 +10,8 @@
   aria-pressed tiles), and Play calls `onstart('start')`. The × in the top corner, Escape and the
   backdrop close it without starting anything. Conventions: AGENTS.md, "New Game dialog".
 
-  A setting that takes a while to make (`slow` for the one picked in the dialog, `nextSlow` for the
-  current one) turns Play or Next orange. If `onstart` or `onnext` returns a promise, its button
+  A setting that takes a while to make (`wait` for the one picked in the dialog, `nextWait` for the
+  current one; see wait.ts) turns Play or Next orange, or red if it's likely over a second. If `onstart` or `onnext` returns a promise, its button
   shows a spinner until it settles, and the dialog stays open (and can't be closed) meanwhile.
 -->
 <script lang="ts">
@@ -21,6 +21,7 @@
   import NewButton from './NewButton.svelte';
   import NextButton from './NextButton.svelte';
   import UndoButton from './UndoButton.svelte';
+  import type { Wait } from './wait';
 
   interface Props {
     title: string;
@@ -45,10 +46,10 @@
     /** Won, completed or lost: show Next. */
     finished: boolean;
     onnext: () => unknown;
-    /** The setting picked in the New dialog is slow to make: Play turns orange. */
-    slow?: boolean;
-    /** The current setting is slow to make: Next turns orange. */
-    nextSlow?: boolean;
+    /** How long the setting picked in the New dialog takes to make: Play turns orange or red. */
+    wait?: Wait;
+    /** How long the current setting takes to make: Next turns orange or red. */
+    nextWait?: Wait;
     /** Let the board use the full width of a big screen, not the usual centered column. */
     wide?: boolean;
     children: Snippet;
@@ -56,7 +57,7 @@
 
   let {
     title, subtitle, status, onundo, canUndo = false, options = [], current,
-    optionsTitle = 'Difficulty', picker, onopennew, onstart, finished, onnext, slow = false, nextSlow = false,
+    optionsTitle = 'Difficulty', picker, onopennew, onstart, finished, onnext, wait = 'quick', nextWait = 'quick',
     wide = false, children,
   }: Props = $props();
 
@@ -119,7 +120,7 @@
   {@render children()}
 </main>
 
-<NextButton show={finished} onclick={next} slow={nextSlow} busy={busy === 'next'} />
+<NextButton show={finished} onclick={next} wait={nextWait} busy={busy === 'next'} />
 
 <Dialog open={askingNew} locked={busy === 'play'} onclose={() => (askingNew = false)}>
   <h2>New Game</h2>
@@ -136,7 +137,7 @@
     </div>
   {/if}
   <!-- The form's first submit button, so Enter plays; it starts the game itself (see play). -->
-  <button class={['btn primary new-start', { slow }]} aria-busy={busy === 'play'} onclick={play}>
+  <button class={['btn primary new-start', wait]} aria-busy={busy === 'play'} onclick={play}>
     Play
     {#if busy === 'play'}
       <span class="spinner" aria-hidden="true"></span>

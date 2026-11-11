@@ -88,8 +88,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
 - **A setting that can't be fast is marked slow** (Flow: Hard with Wrapping and no Holes, up to
-  several seconds). Its Play and Next turn orange (`GameScreen`'s `slow` / `nextSlow`, color
-  `--warn`), and the game makes it in a Web Worker (`src/flow/worker.ts`, `background.ts`):
+  several seconds). Its Play and Next turn orange, or red when it's likely over a second on a
+  phone (`GameScreen`'s `wait` / `nextWait`: `'quick' | 'slow' | 'slower'`, `src/shared/wait.ts`;
+  colors `--warn` and `--danger`), and the game makes it in a Web Worker (`src/flow/worker.ts`, `background.ts`):
   `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the
   New Game dialog held open meanwhile.
 

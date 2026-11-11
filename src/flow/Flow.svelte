@@ -6,7 +6,7 @@
   import { generateInBackground } from './background';
   import { gameOf, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
-    bridgeWay, connected, DIFFICULTIES, dirOf, dotColor, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES,
+    bridgeWay, connected, DIFFICULTIES, dirOf, dotColor, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES, wait,
     settle, startStroke, type Difficulty, type Path, type Rule, type Rules,
   } from './logic';
 
@@ -186,8 +186,8 @@
   onstart={start}
   finished={game.done}
   onnext={() => make(game.difficulty, game.rules)}
-  slow={isSlow(choice.difficulty, choice.rules)}
-  nextSlow={isSlow(game.difficulty, game.rules)}
+  wait={wait(choice.difficulty, choice.rules)}
+  nextWait={wait(game.difficulty, game.rules)}
 >
   {#snippet picker()}
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />

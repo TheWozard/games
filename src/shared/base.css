@@ -138,8 +138,9 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 .tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
-/* Play or Next for a setting that takes a while to make. */
+/* Play or Next for a setting that takes a while to make (wait.ts), or likely over a second. */
 .btn.primary.slow { background: var(--warn); border-color: var(--warn); }
+.btn.primary.slower { background: var(--danger); border-color: var(--danger); }
 
 /* Turns in place of a button's arrow while its game is being made. */
 .spinner {
