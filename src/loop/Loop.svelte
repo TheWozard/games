@@ -105,7 +105,7 @@
           {#if game.rings[d]}
             <circle class={['ring', { met: degree[d] === 2 }]} cx={c} cy={r} r="0.17" />
           {/if}
-          <circle class={['dot', { bad: degree[d] > 2 }]} cx={c} cy={r} r="0.08" />
+          <circle class={['dot', { bad: degree[d] > 2 }]} cx={c} cy={r} r="0.035" />
         {/each}
       {/each}
     </svg>

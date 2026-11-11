@@ -29,7 +29,7 @@
 .loop-board .cross { stroke: var(--muted); stroke-width: 0.05; stroke-linecap: round; pointer-events: none; }
 .loop-board .hit { stroke: transparent; stroke-width: 0.42; cursor: pointer; outline: none; }
 
-.loop-board .dot { fill: var(--line-strong); pointer-events: none; }
+.loop-board .dot { fill: var(--line); pointer-events: none; }
 
 /* Squares: light ones solid, dark ones hollow, so the two kinds differ by more than color. */
 .loop-board .square { fill: var(--text); pointer-events: none; }
