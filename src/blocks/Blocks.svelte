@@ -11,8 +11,16 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
+  // The New Game picks: a difficulty, and which of its puzzles (its next one unless another is
+  // picked). Play starts them.
+  let choice = $state<{ difficulty: Difficulty; number: number }>({ difficulty: 'easy', number: 0 });
+
+  function pickDifficulty(difficulty: Difficulty) {
+    choice = { difficulty, number: game.upNext[difficulty] % PUZZLES[difficulty].length };
+  }
+
   function start(value: string) {
-    if (isDifficulty(value)) game = newGame(value, game.upNext);
+    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, game.upNext, choice.number);
   }
 
   // ---- Dragging ----
@@ -60,7 +68,7 @@
   // The exit arrow sits just past the right-hand edge, level with the key block's row.
   const EDGE = 0.15;
 
-  /** The New Game choices, with the range of moves each difficulty's puzzles take. */
+  /** The New Game difficulties, with the range of moves each one's puzzles take. */
   const options = (Object.keys(DIFFICULTIES) as Difficulty[]).map((value) => {
     const fewest = PUZZLES[value].map(([n]) => n);
     return { value, label: DIFFICULTIES[value].label, detail: `${Math.min(...fewest)}–${Math.max(...fewest)} moves` };
@@ -72,12 +80,33 @@
   subtitle="{DIFFICULTIES[game.difficulty].label} · No. {game.number + 1}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  {options}
-  current={game.difficulty}
+  onopennew={() => pickDifficulty(game.difficulty)}
   onstart={start}
   finished={game.done}
   onnext={() => (game = newGame(game.difficulty, game.upNext))}
 >
+  {#snippet picker()}
+    <h3 class="pick-title">Difficulty</h3>
+    <div class="pick">
+      {#each options as { value, label, detail } (value)}
+        <button type="button" class="btn" aria-pressed={choice.difficulty === value} onclick={() => pickDifficulty(value)}>
+          <strong>{label}</strong><span>{detail}</span>
+        </button>
+      {/each}
+    </div>
+    <h3 class="pick-title">Puzzle</h3>
+    <div class="blocks-levels">
+      {#each PUZZLES[choice.difficulty] as _, n (n)}
+        <button
+          type="button"
+          class="btn"
+          aria-pressed={choice.number === n}
+          aria-label="No. {n + 1}"
+          onclick={() => (choice = { ...choice, number: n })}
+        >{n + 1}</button>
+      {/each}
+    </div>
+  {/snippet}
   {#snippet status()}
     <span class="blocks-count" aria-label="{game.moves} moves; it can be done in {game.fewest}">{game.moves}<small>/{game.fewest}</small></span>
   {/snippet}

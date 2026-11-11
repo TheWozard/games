@@ -47,8 +47,8 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
 
-Games: `sudoku` (Classic and Killer, one page: `src/sudoku/classic/` and `src/sudoku/killer/`,
-both on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
+Games: `sudoku` (Classic, Killer and Jigsaw, one page: `src/sudoku/classic/`, `src/sudoku/killer/`
+and `src/sudoku/jigsaw/`, all on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
 `mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire` (Klondike and FreeCell, one page:
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
@@ -78,6 +78,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
   Untangle: built from a planar arrangement. Klondike, FreeCell: deals a solver can win. Tests must
   prove this, not assume it.
+- **Difficulty is what a puzzle asks of the player.** Classic Sudoku's is the techniques it needs,
+  not how many givens it has: `src/sudoku/classic/grade.ts` solves like a person, and the
+  generator keeps only puzzles that need the difficulty's own tier.
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
   by `scripts/blocks.ts` (`just blocks`) into `src/blocks/puzzles.ts`, and played in order; its
   tests re-check every stored puzzle.

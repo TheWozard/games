@@ -1,10 +1,12 @@
-<!-- The Sudoku page: Classic or Killer, whichever was played last, switched from the New Game dialog. -->
+<!-- The Sudoku page: Classic, Killer or Jigsaw, whichever was played last, switched from the New Game dialog. -->
 <script lang="ts">
   import GridPlay from '../shared/GridPlay.svelte';
   import { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import * as classic from './classic/game';
   import { DIFFICULTIES as CLASSIC, isDifficulty as isClassic } from './classic/logic';
+  import * as jigsaw from './jigsaw/game';
+  import { DIFFICULTIES as JIGSAW, isDifficulty as isJigsaw } from './jigsaw/logic';
   import * as killer from './killer/game';
   import { DIFFICULTIES as KILLER, isDifficulty as isKiller } from './killer/logic';
   import { GAMES, isVariant, VARIANT_KEY, type Variant } from './variants';
@@ -31,6 +33,17 @@
     create={(d) => classic.newGame(isClassic(d) ? d : 'easy')}
     layout={() => classic.LAYOUT}
     variants={{ games: GAMES, current: 'classic', onswitch }}
+    {first}
+  />
+{:else if variant === 'jigsaw'}
+  <GridPlay
+    title="Sudoku"
+    storageKey={jigsaw.STORAGE_KEY}
+    difficulties={JIGSAW}
+    isValid={jigsaw.isGame}
+    create={(d) => jigsaw.newGame(isJigsaw(d) ? d : 'easy')}
+    layout={jigsaw.layout}
+    variants={{ games: GAMES, current: 'jigsaw', onswitch }}
     {first}
   />
 {:else}

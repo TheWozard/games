@@ -5,7 +5,7 @@ Simple puzzle games as an installable, offline-capable PWA, served by GitHub Pag
 TypeScript, built with [Vite](https://vite.dev) into small static files.
 
 Games:
-- [Sudoku](src/sudoku/): Classic or Killer (colored cages that add up to their sums, almost no givens), picked when you start a game; generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
+- [Sudoku](src/sudoku/): Classic, Killer (colored cages that add up to their sums, almost no givens) or Jigsaw (irregular regions in place of the boxes), picked when you start a game; generated puzzles with a unique solution, rated by the techniques a Classic puzzle needs (Easy: singles; Medium: pointing and pairs; Hard: triples, X-Wing, XY-Wing, Swordfish), pencil marks, undo, and progress saved on the device.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
 - [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network, with optional colored islands, blocks and diagonal bridges; every puzzle has a unique solution.
@@ -14,7 +14,7 @@ Games:
 - [Gradient](src/gradient/): swap color tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color, with optional mystery layers and tall tubes; every deal is checked to be sortable.
 - [Solitaire](src/solitaire/): Klondike (draw 1 or 3) or FreeCell (two to four free cells), picked when you start a game; tap a card to send it to its best move, and every deal is checked winnable.
-- [Sliding Blocks](src/blocks/): slide blocks to free the red one; 300 pre-made puzzles in three difficulties, each played in order, with the fewest moves shown.
+- [Sliding Blocks](src/blocks/): slide blocks to free the red one; 300 pre-made puzzles in three difficulties, played in order or picked by number, with the fewest moves shown.
 - [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 
 ## Installing on a phone

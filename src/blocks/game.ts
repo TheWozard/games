@@ -1,6 +1,7 @@
 // Sliding Blocks game state and moves, as a pure reducer. Puzzles come from the pre-made list in
 // puzzles.ts, played in order: each difficulty remembers which one is next and wraps round to
-// the first after the last.
+// the first after the last. Any puzzle can also be picked by number, and play carries on in order
+// from there.
 import { decode, DIFFICULTIES, isDifficulty, isLayout, isSolved, range, slide, type Block, type Difficulty } from './logic';
 import { PUZZLES } from './puzzles';
 
@@ -26,10 +27,13 @@ export type Action =
 
 export const FIRST: Progress = { easy: 0, medium: 0, hard: 0 };
 
-/** The next puzzle of a difficulty, moving that difficulty on by one. */
-export function newGame(difficulty: Difficulty, upNext: Progress = FIRST): Game {
+/**
+ * A puzzle of a difficulty: the next one, or the one numbered `pick`. The difficulty moves on to
+ * the puzzle after it.
+ */
+export function newGame(difficulty: Difficulty, upNext: Progress = FIRST, pick = upNext[difficulty]): Game {
   const list = PUZZLES[difficulty];
-  const number = upNext[difficulty] % list.length;
+  const number = ((pick % list.length) + list.length) % list.length;
   const [fewest, code] = list[number];
   return {
     difficulty,

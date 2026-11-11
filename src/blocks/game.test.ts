@@ -20,6 +20,16 @@ describe('puzzle order', () => {
     expect(g.upNext.easy).toBe(0);
     expect(newGame('easy', g.upNext).number).toBe(0);
   });
+
+  it('starts a picked puzzle and carries on in order after it', () => {
+    let g = newGame('hard', undefined, 41);
+    expect(g.number).toBe(41);
+    expect(g.upNext).toEqual({ ...FIRST, hard: 42 });
+    g = newGame('hard', g.upNext);
+    expect(g.number).toBe(42);
+    const last = PUZZLES.hard.length - 1;
+    expect(newGame('hard', g.upNext, last).upNext.hard).toBe(0);
+  });
 });
 
 describe('reducer', () => {
