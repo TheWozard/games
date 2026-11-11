@@ -1,10 +1,6 @@
 <script lang="ts">
   import { scale } from 'svelte/transition';
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
@@ -35,8 +31,6 @@
       .sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x),
   );
 
-  let askingNew = $state(false);
-
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(name: string) {
@@ -55,34 +49,38 @@
     }
     dispatch({ type: 'tap', slot: i });
   }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
-  }
 </script>
-
-<svelte:document onkeydown={onKey} />
 
 <TileFaces />
 
-<header class="bar">
-  <BackButton />
-  <h1>Mahjong <small>{layout.name}</small></h1>
-  {#if !game.done}
-    <span class="mj-count" aria-label="{tilesLeft} tiles left">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2" width="9" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
-      {tilesLeft}
-    </span>
-  {/if}
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
+<GameScreen
+  title="Mahjong"
+  subtitle={layout.name}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  onstart={start}
+  finished={game.done}
+  onnext={() => (game = newGame(game.layout))}
+>
+  {#snippet status()}
+    {#if !game.done}
+      <span class="mj-count" aria-label="{tilesLeft} tiles left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2" width="9" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+        {tilesLeft}
+      </span>
+    {/if}
+  {/snippet}
+  {#snippet picker()}
+    <div class="mj-layouts">
+      {#each Object.entries(LAYOUTS) as [key, l] (key)}
+        <button class={['btn', { current: key === game.layout }]} value={key}>
+          <strong>{l.name}</strong><span>{l.slots.length} tiles</span>
+        </button>
+      {/each}
+    </div>
+  {/snippet}
 
-<main class="play">
   <div class="board-area">
     <div class="mj-board" style:--w={box.w} style:--h={box.h} role="group" aria-label="Mahjong tiles">
       {#each order as s (s.i)}
@@ -117,18 +115,4 @@
       <button type="button" class="btn primary" onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</button>
     </div>
   {/if}
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame(game.layout))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  <div class="mj-layouts">
-    {#each Object.entries(LAYOUTS) as [key, l] (key)}
-      <button class={['btn', { current: key === game.layout }]} value={key}>
-        <strong>{l.name}</strong><span>{l.slots.length} tiles</span>
-      </button>
-    {/each}
-  </div>
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

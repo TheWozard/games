@@ -144,9 +144,8 @@ const ARROWS: Record<string, [number, number]> = {
   ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1],
 };
 
-/** Keyboard controls: digits, Backspace/Delete/0 to erase, N for notes, arrows, Ctrl/Cmd+Z. */
+/** Keyboard controls: digits, Backspace/Delete/0 to erase, N for notes, arrows. (GameScreen does Ctrl/Cmd+Z.) */
 export function gridKeyAction(e: KeyboardEvent): GridAction | null {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') return { type: 'undo' };
   if (e.ctrlKey || e.metaKey || e.altKey) return null;
   if (/^[1-9]$/.test(e.key)) return { type: 'enter', digit: Number(e.key) };
   if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') return { type: 'erase' };

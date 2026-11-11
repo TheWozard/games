@@ -1,9 +1,5 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { PALETTE } from '../shared/palette';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, stuck, type Action } from './game';
@@ -64,7 +60,6 @@
     return { x: 0.2 + indent + (t % perRow) * (1 + GAP), y: ROW_GAP + row * (TUBE_H + ROW_GAP) };
   };
 
-  let askingNew = $state(false);
   let shaking = $state<number | null>(null);
   let shakeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -84,27 +79,22 @@
     }
     dispatch({ type: 'tap', tube: t });
   }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
-  }
 </script>
 
-<svelte:document onkeydown={onKey} />
 <svelte:window bind:innerWidth={viewW} bind:innerHeight={viewH} />
 
-<header class="bar">
-  <BackButton />
-  <h1>Color Sort <small>{label}</small></h1>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
-
-<main class="play">
+<!-- Next once sorted, or once stuck with no useful pour left (Undo still backs out of it). -->
+<GameScreen
+  title="Color Sort"
+  subtitle={label}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.colors} colors` }))}
+  onstart={start}
+  finished={game.done || stuck(game)}
+  onnext={() => (game = newGame(game.difficulty))}
+>
   <div class="board-area">
     <svg class={['sort-board', { done: game.done }]} viewBox="0 0 {box.w} {box.h}" style:--w={box.w} style:--h={box.h} role="group" aria-label="Tubes">
       {#each game.tubes as tube, t (t)}
@@ -138,16 +128,4 @@
       {/each}
     </svg>
   </div>
-</main>
-
-<!-- Sorted, or stuck with no useful pour left (Undo still works to back out of it). -->
-<NextButton show={game.done || stuck(game)} onclick={() => (game = newGame(game.difficulty))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {d.colors} colors</button>
-  {/each}
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

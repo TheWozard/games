@@ -1,10 +1,6 @@
 <script lang="ts">
   import { flip } from 'svelte/animate';
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, lines, newGame, reducer, STORAGE_KEY, type Action, type Settings } from './game';
   import { fixedTiles, palette, PATTERNS, SIZES, toCss, type Pattern, type Size } from './logic';
@@ -17,7 +13,6 @@
   const label = $derived(describe(game));
   const marks = $derived(lines(game));
 
-  let askingNew = $state(false);
   // What the New dialog has picked so far; it opens on the current game's settings.
   let choice = $state<Settings>({ ...DEFAULT });
 
@@ -27,7 +22,6 @@
 
   function askNew() {
     choice = { size: game.size, pattern: game.pattern };
-    askingNew = true;
   }
 
   // Tiny previews of each pattern in the dialog (Scattered uses a fixed example).
@@ -66,26 +60,55 @@
     }
     dispatch({ type: 'tap', pos });
   }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
-  }
 </script>
 
-<svelte:document onkeydown={onKey} onpointerup={pointerUp} />
+<svelte:document onpointerup={pointerUp} />
 
-<header class="bar">
-  <BackButton />
-  <h1>Gradient <small>{label}</small></h1>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={askNew} />
-</header>
+<GameScreen
+  title="Gradient"
+  subtitle={label}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  onopennew={askNew}
+  onstart={(value) => { if (value === 'start') start(choice); }}
+  finished={game.done}
+  onnext={() => (game = newGame({ size: game.size, pattern: game.pattern }))}
+>
+  {#snippet picker()}
+    <h3 class="pick-title">Size</h3>
+    <div class="pick sizes">
+      {#each Object.entries(SIZES) as [key, s] (key)}
+        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
+          <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
+        </button>
+      {/each}
+    </div>
 
-<main class="play">
+    <h3 class="pick-title">Fixed tiles</h3>
+    <div class="pick patterns">
+      {#each Object.entries(PATTERNS) as [key, p] (key)}
+        <button type="button" class="btn" aria-pressed={choice.pattern === key} onclick={() => (choice.pattern = key as Pattern)}>
+          <svg viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}" aria-hidden="true">
+            {#each previews[key as Pattern] as fixed, i (i)}
+              <rect
+                x={(i % PREVIEW.cols) * 5 + 0.5}
+                y={Math.floor(i / PREVIEW.cols) * 5 + 0.5}
+                width="4"
+                height="4"
+                rx="1"
+                class={fixed ? 'fixed' : 'loose'}
+              />
+            {/each}
+          </svg>
+          <span>{p.label}</span>
+        </button>
+      {/each}
+    </div>
+
+    <button class="btn primary" value="start">Start · {describe(choice)}</button>
+  {/snippet}
+
   <!-- The board, with a marker beside each row and under each column that lights up when that
        line is all in place. Lines made only of fixed tiles are always right, so they get none. -->
   <div class="board-area">
@@ -113,47 +136,4 @@
     </div>
     </div>
   </div>
-
-
-
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame({ size: game.size, pattern: game.pattern }))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') start(choice); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-
-  <h3 class="pick-title">Size</h3>
-  <div class="pick sizes">
-    {#each Object.entries(SIZES) as [key, s] (key)}
-      <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
-        <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
-      </button>
-    {/each}
-  </div>
-
-  <h3 class="pick-title">Fixed tiles</h3>
-  <div class="pick patterns">
-    {#each Object.entries(PATTERNS) as [key, p] (key)}
-      <button type="button" class="btn" aria-pressed={choice.pattern === key} onclick={() => (choice.pattern = key as Pattern)}>
-        <svg viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}" aria-hidden="true">
-          {#each previews[key as Pattern] as fixed, i (i)}
-            <rect
-              x={(i % PREVIEW.cols) * 5 + 0.5}
-              y={Math.floor(i / PREVIEW.cols) * 5 + 0.5}
-              width="4"
-              height="4"
-              rx="1"
-              class={fixed ? 'fixed' : 'loose'}
-            />
-          {/each}
-        </svg>
-        <span>{p.label}</span>
-      </button>
-    {/each}
-  </div>
-
-  <button class="btn primary" value="start">Start · {describe(choice)}</button>
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

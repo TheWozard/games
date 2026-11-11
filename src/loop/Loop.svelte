@@ -1,9 +1,5 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { CROSS, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action, type Mark } from './game';
   import { strokeEdges, type Point } from './gesture';
@@ -30,7 +26,6 @@
     return out;
   });
 
-  let askingNew = $state(false);
   let dragging = $state(false);
 
   $effect(() => {
@@ -101,26 +96,19 @@
       dispatch({ type: 'commit', before });
     }
   }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
-  }
 </script>
 
-<svelte:document onkeydown={onKey} />
-
-<header class="bar">
-  <BackButton />
-  <h1>Loop <small>{label}</small></h1>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
-
-<main class="play">
+<GameScreen
+  title="Loop"
+  subtitle={label}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cols}×${d.rows}` }))}
+  onstart={start}
+  finished={game.done}
+  onnext={() => (game = newGame(game.difficulty))}
+>
   <div class="board-area">
     <svg
       bind:this={svg}
@@ -177,15 +165,4 @@
       {/each}
     </svg>
   </div>
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame(game.difficulty))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {d.cols}×{d.rows}</button>
-  {/each}
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

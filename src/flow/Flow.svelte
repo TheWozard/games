@@ -1,9 +1,5 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { toastOnFinish } from '../shared/finish.svelte';
   import { PALETTE } from '../shared/palette';
   import { loadJSON, saveJSON } from '../shared/storage';
@@ -24,7 +20,6 @@
   });
   const filled = $derived(fill.filter((k) => k !== -1).length);
 
-  let askingNew = $state(false);
   let drawing = $state(false);
 
   $effect(() => {
@@ -89,27 +84,23 @@
     drawing = false;
     dispatch({ type: 'commit', before });
   }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
-  }
 </script>
 
-<svelte:document onkeydown={onKey} />
+<GameScreen
+  title="Flow"
+  subtitle={label}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.size}×${d.size}, ${d.colors} colors` }))}
+  onstart={start}
+  finished={game.done}
+  onnext={() => (game = newGame(game.difficulty))}
+>
+  {#snippet status()}
+    <span class="flow-count" aria-label="{filled} of {n * n} squares filled">{Math.round((filled / (n * n)) * 100)}%</span>
+  {/snippet}
 
-<header class="bar">
-  <BackButton />
-  <h1>Flow <small>{label}</small></h1>
-  <span class="flow-count" aria-label="{filled} of {n * n} squares filled">{Math.round((filled / (n * n)) * 100)}%</span>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
-
-<main class="play">
   <div class="board-area">
     <svg
       bind:this={svg}
@@ -144,15 +135,4 @@
       {/each}
     </svg>
   </div>
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame(game.difficulty))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {d.size}×{d.size}, {d.colors} colors</button>
-  {/each}
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

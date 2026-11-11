@@ -1,8 +1,5 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { counts, DIFFICULTIES, isDifficulty } from './logic';
@@ -14,8 +11,6 @@
 
   const near = $derived(game.mines ? counts(game.mines, game) : null);
   const label = $derived(DIFFICULTIES[game.difficulty].label);
-
-  let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
@@ -76,14 +71,19 @@
   <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.2" fill="currentColor"/><path d="M8 1.5v13M1.5 8h13M3.4 3.4l9.2 9.2M12.6 3.4l-9.2 9.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
 {/snippet}
 
-<header class="bar">
-  <BackButton />
-  <h1>Mines <small>{label}</small></h1>
-  <span class="mines-left" aria-label="Mines left to flag">{@render flagIcon()} {flagsLeft(game)}</span>
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
+<GameScreen
+  title="Mines"
+  subtitle={label}
+  inProgress={game.status === 'playing' && game.mines !== null}
+  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cols}×${d.rows}, ${d.mines} mines` }))}
+  onstart={start}
+  finished={game.status !== 'playing'}
+  onnext={() => (game = newGame(game.difficulty))}
+>
+  {#snippet status()}
+    <span class="mines-left" aria-label="Mines left to flag">{@render flagIcon()} {flagsLeft(game)}</span>
+  {/snippet}
 
-<main class="play">
   <div class="board-area">
     <div class="mine-board" style:--rows={game.rows} style:--cols={game.cols} aria-label="Mine field">
       {#each game.revealed as open, i (i)}
@@ -119,16 +119,4 @@
       {/each}
     </div>
   </div>
-
-</main>
-
-<NextButton show={game.status !== 'playing'} onclick={() => (game = newGame(game.difficulty))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if game.status === 'playing' && game.mines}<p>This replaces the game in progress.</p>{/if}
-  {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-    <button class="btn" value={key}>{d.label} · {d.cols}×{d.rows}, {d.mines} mines</button>
-  {/each}
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

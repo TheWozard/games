@@ -1,6 +1,6 @@
 <!--
-  The whole screen for a digit-grid game: header, board, Undo/Erase/Notes/New, number pad, the
-  new-game and solved dialogs, keyboard controls and saving. A game supplies how to make and
+  The whole screen for a digit-grid game, inside GameScreen: board, Erase/Notes, number pad,
+  keyboard controls and saving. A game supplies how to make and
   validate its state and how its board looks (`layout`); the moves come from grid.ts.
 -->
 <script lang="ts" module>
@@ -21,11 +21,7 @@
 
 <script lang="ts" generics="G extends GridState">
   import { untrack } from 'svelte';
-  import Dialog from './Dialog.svelte';
-  import BackButton from './BackButton.svelte';
-  import NewButton from './NewButton.svelte';
-  import NextButton from './NextButton.svelte';
-  import UndoButton from './UndoButton.svelte';
+  import GameScreen from './GameScreen.svelte';
   import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import './grid.css';
@@ -45,8 +41,6 @@
   let game = $state.raw(untrack(() => loadJSON(storageKey, isValid) ?? create(Object.keys(difficulties)[0])));
   const shape = $derived(layout(game));
   const dispatch = (action: GridAction) => (game = gridReducer(game, action, shape));
-
-  let askingNew = $state(false);
 
   const digits = $derived(Array.from({ length: shape.size }, (_, k) => k + 1));
   const selValue = $derived(game.selected === null ? 0 : game.values[game.selected]);
@@ -70,14 +64,17 @@
 
 <svelte:document onkeydown={onKey} />
 
-<header class="bar">
-  <BackButton />
-  <h1>{title} <small>{difficulties[game.difficulty]?.label}</small></h1>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
-
-<main class="play">
+<GameScreen
+  {title}
+  subtitle={difficulties[game.difficulty]?.label ?? ''}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  options={Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  onstart={start}
+  finished={game.done}
+  onnext={() => (game = create(game.difficulty))}
+>
   <div class="board-area">
     <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} aria-label="{title} board">
       {#each game.values as v, i (i)}
@@ -124,15 +121,4 @@
       </button>
     {/each}
   </div>
-</main>
-
-<NextButton show={game.done} onclick={() => (game = create(game.difficulty))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-  {#each Object.entries(difficulties) as [key, { label }] (key)}
-    <button class="btn" value={key}>{label}</button>
-  {/each}
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>
