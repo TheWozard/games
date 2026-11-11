@@ -1,6 +1,9 @@
 <!--
   Every tile face as an SVG <symbol> (viewBox 30×40), defined once and drawn with <use>.
-  Kinds: 0–8 dots, 9–17 bamboo, 18–26 characters, 27–30 winds E S W N, 31–33 dragons.
+  Kinds: 0–8 dots, 9–17 bamboo, 18–26 characters, 27–30 winds E S W N, 31–33 dragons,
+  34–37 flowers (plum, orchid, chrysanthemum, bamboo), 38–41 seasons (spring to winter).
+  Drawn after a traditional Chinese set: a framed white dragon, and flowers and seasons shown by
+  picture and character alone.
 -->
 <script lang="ts" module>
   type P = [number, number];
@@ -36,6 +39,18 @@
   const CJK = "'Noto Serif CJK SC', 'Noto Sans CJK SC', 'Songti SC', 'PingFang SC', serif";
   const NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
   const WINDS = ['東', '南', '西', '北'];
+  // Flowers: their character in their own color under a blossom; seasons in blue under a sun.
+  const FLOWER_TILES = [
+    { glyph: '梅', color: '#c8372d' },
+    { glyph: '蘭', color: '#7b4bb3' },
+    { glyph: '菊', color: '#c98a12' },
+    { glyph: '竹', color: '#2e8b57' },
+  ];
+  const SEASON_TILES = ['春', '夏', '秋', '冬'];
+  const PETALS: P[] = [0, 1, 2, 3, 4].map((k) => {
+    const a = (k * 2 * Math.PI) / 5 - Math.PI / 2;
+    return [15 + 3.4 * Math.cos(a), 10.5 + 3.4 * Math.sin(a)];
+  });
 </script>
 
 <svg class="mj-faces" aria-hidden="true" width="0" height="0">
@@ -82,10 +97,27 @@
     <symbol id="mj-k32" viewBox="1.5 1.5 27 37">
       <text x="15" y="27.5" text-anchor="middle" font-weight="700" font-family={CJK} font-size="19.5" fill="#2e8b57">發</text>
     </symbol>
+    <!-- The white dragon: a blue frame. -->
     <symbol id="mj-k33" viewBox="1.5 1.5 27 37">
       <rect x="6" y="7" width="18" height="26" rx="2" fill="none" stroke="#2f6bd8" stroke-width="2" />
       <rect x="9" y="10" width="12" height="20" rx="1" fill="none" stroke="#2f6bd8" stroke-width="1" />
     </symbol>
+
+    {#each FLOWER_TILES as { glyph, color }, n (n)}
+      <symbol id="mj-k{34 + n}" viewBox="1.5 1.5 27 37">
+        {#each PETALS as [x, y], k (k)}<circle cx={x} cy={y} r="2.5" fill={color} />{/each}
+        <circle cx="15" cy="10.5" r="1.7" fill="#f4eedf" />
+        <text x="15" y="32" text-anchor="middle" font-weight="700" font-family={CJK} font-size="17" fill={color}>{glyph}</text>
+      </symbol>
+    {/each}
+
+    {#each SEASON_TILES as glyph, n (n)}
+      <symbol id="mj-k{38 + n}" viewBox="1.5 1.5 27 37">
+        <circle cx="15" cy="10.5" r="3.2" fill="#2f6bd8" />
+        <path d="M15 4.5v1.6M15 14.9v1.6M9 10.5h1.6M19.4 10.5h1.6M10.8 6.3l1.1 1.1M18.1 13.6l1.1 1.1M10.8 14.7l1.1-1.1M18.1 7.4l1.1-1.1" stroke="#2f6bd8" stroke-width="1.1" stroke-linecap="round" />
+        <text x="15" y="32" text-anchor="middle" font-weight="700" font-family={CJK} font-size="17" fill="#2f6bd8">{glyph}</text>
+      </symbol>
+    {/each}
   </defs>
 </svg>
 

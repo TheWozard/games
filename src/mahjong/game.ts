@@ -1,6 +1,6 @@
 // Mahjong solitaire game state and moves, as a pure reducer (apart from Shuffle, which uses
 // Math.random unless a source is passed in).
-import { deal, freePairs, isFree, isLayout, LAYOUTS, neighbors, reshuffle, type LayoutName, type Neighbors } from './logic';
+import { deal, freePairs, isFree, isLayout, LAYOUTS, matches, neighbors, reshuffle, type LayoutName, type Neighbors } from './logic';
 
 export const STORAGE_KEY = 'games.mahjong.v1';
 
@@ -44,7 +44,7 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
       const i = action.slot;
       if (g.done || !free(g, i)) return g;
       if (g.selected === null || g.selected === i) return { ...g, selected: g.selected === i ? null : i };
-      if (g.kinds[g.selected] !== g.kinds[i]) return { ...g, selected: i };
+      if (!matches(g.kinds[g.selected], g.kinds[i])) return { ...g, selected: i };
       const gone = g.gone.slice();
       gone[g.selected] = gone[i] = true;
       return {

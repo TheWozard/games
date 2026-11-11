@@ -32,7 +32,9 @@ function build(parts: (Block | Mask)[]): Slot[] {
   return slots;
 }
 
-// Original layouts, portrait to suit phones (at most 8 tiles across, 10 down), in order of size.
+// Original layouts, in order of tile count. Most fit a phone held upright (at most 8 tiles across,
+// 10 down); Gate, Rampart, Turtle and Lanterns are wider (up to 14 across) and pan sideways there
+// (Mahjong.svelte).
 export const LAYOUTS = {
   diamond: {
     name: 'Diamond',
@@ -58,18 +60,18 @@ export const LAYOUTS = {
   rings: {
     name: 'Rings',
     slots: build([
+      // Two rings round a center; the inner ring and the outer ring's ends are raised.
       [0, 0, 0, ['########', '#......#', '#.####.#', '#.#..#.#', '#.#..#.#', '#.#..#.#', '#.#..#.#', '#.####.#', '#......#', '########']],
       [0, 3, 4, 2, 2],
-      [1, 0.5, 0.5, ['#######', '#.....#', '#.....#', '#.....#', '#.....#', '#.....#', '#.....#', '#.....#', '#######']],
-      [1, 2.5, 2.5, ['###', '#.#', '#.#', '#.#', '###']],
-      [2, 0, 0, ['#......#', '........', '........', '........', '........', '........', '........', '........', '........', '#......#']],
-      [2, 3, 4, 2, 2],
+      [1, 0, 0, 8, 1], [1, 0, 9, 8, 1],
+      [1, 2, 2, ['####', '#..#', '#..#', '#..#', '#..#', '####']],
+      [2, 0.5, 0, 7, 1], [2, 0.5, 9, 7, 1],
     ]),
   },
   butterfly: {
     name: 'Butterfly',
     slots: build([
-      [0, 0, 0, ['##....##', '###..###', '########', '.######.', '..####..', '.######.', '########', '###..###', '##....##']],
+      [0, 0, 0, ['##....##', '########', '########', '.######.', '..####..', '.######.', '########', '########', '##....##']],
       [1, 0.5, 1, 2, 2], [1, 5.5, 1, 2, 2], [1, 0.5, 6, 2, 2], [1, 5.5, 6, 2, 2], [1, 3, 1, 2, 7],
       [2, 1, 1.5, 1, 1], [2, 6, 1.5, 1, 1], [2, 1, 6.5, 1, 1], [2, 6, 6.5, 1, 1], [2, 3, 2, 2, 5],
       [3, 3, 3.5, 2, 2],
@@ -103,19 +105,73 @@ export const LAYOUTS = {
       [3, 0.5, 3.5, 1, 2], [3, 6.5, 3.5, 1, 2],
     ]),
   },
+  gate: {
+    name: 'Gate',
+    // Two pillars under a lintel, stepping up to a crown.
+    slots: build([
+      [0, 0, 0, ['############', '############', '###......###', '###......###', '###......###', '###......###', '###......###', '###......###']],
+      [1, 0.5, 0.5, 11, 1], [1, 0.5, 1.5, 2, 6], [1, 9.5, 1.5, 2, 6],
+      [2, 1, 0.5, 10, 1], [2, 1, 1.5, 1, 5], [2, 10, 1.5, 1, 5],
+      [3, 4.5, 0.5, 3, 1],
+    ]),
+  },
+
   steps: {
     name: 'Steps',
     // Each layer half a tile in from the last.
     slots: build([[0, 0, 0, 7, 8], [1, 0.5, 0.5, 6, 7], [2, 1.5, 1.5, 4, 5], [3, 2.5, 3, 2, 2]]),
   },
+  rampart: {
+    name: 'Rampart',
+    // A long wall with three towers and two raised walks between them.
+    slots: build([
+      [0, 0, 1, 14, 4], [0, 0, 0, 2, 1], [0, 6, 0, 2, 1], [0, 12, 0, 2, 1],
+      [1, 0, 0.5, 2, 4], [1, 6, 0.5, 2, 4], [1, 12, 0.5, 2, 4], [1, 2.5, 1.5, 3, 3], [1, 8.5, 1.5, 3, 3],
+      [2, 0.5, 1, 1, 3], [2, 6.5, 1, 1, 3], [2, 12.5, 1, 1, 3], [2, 3, 2, 2, 2], [2, 9, 2, 2, 2],
+      [3, 0.5, 2, 1, 1], [3, 6.5, 2, 1, 1], [3, 12.5, 2, 1, 1],
+    ]),
+  },
+  turtle: {
+    name: 'Turtle',
+    // Seen from above, heading right: a shell domed in five layers, four legs and a head.
+    slots: build([
+      [0, 0, 0, ['##......##..', '.########...', '##########..', '############', '############', '##########..', '.########...', '##......##..']],
+      [1, 1, 2, ['.######.', '########', '########', '.######.']],
+      [2, 2, 2.5, 6, 3],
+      [3, 3, 3, 4, 2],
+      [4, 4, 3.5, 2, 1],
+    ]),
+  },
+  lanterns: {
+    name: 'Lanterns',
+    // Two hanging lanterns, joined by a short bar.
+    slots: build([
+      [0, 0, 1, 5, 6], [0, 8, 1, 5, 6], [0, 5, 3, 3, 2], [0, 2, 0, 1, 1], [0, 10, 0, 1, 1],
+      [1, 0.5, 1.5, 4, 5], [1, 8.5, 1.5, 4, 5],
+      [2, 1, 2, 3, 4], [2, 9, 2, 3, 4],
+      [3, 2, 3.5, 1, 1], [3, 10, 3.5, 1, 1],
+    ]),
+  },
   fortress: {
     name: 'Fortress',
-    // Corner towers round a central keep: 136 tiles, the full set.
+    // Corner towers round a central keep: 136 tiles.
     slots: build([
       [0, 0, 0, 8, 10],
       [1, 0, 0, 2, 2], [1, 6, 0, 2, 2], [1, 0, 8, 2, 2], [1, 6, 8, 2, 2], [1, 2, 2, 4, 6],
       [2, 0.5, 0.5, 1, 1], [2, 6.5, 0.5, 1, 1], [2, 0.5, 8.5, 1, 1], [2, 6.5, 8.5, 1, 1], [2, 3, 3, 2, 4],
       [3, 3, 4, 2, 2],
+    ]),
+  },
+  dragon: {
+    name: 'Dragon',
+    // Upright: from the tail at the bottom left the body climbs, crosses over the top, runs down
+    // the middle, crosses the bottom and climbs again to the head at the top right. Raised along
+    // its length with a ridge down each stretch, the head highest. All 144 tiles.
+    slots: build([
+      [0, 0, 0, ['#####.##', '#####.##', '##.##.##', '##.##.##', '##.##.##', '##.##.##', '##.##.##', '##.#####', '##.#####', '##......']],
+      [1, 0, 0, 2, 9], [1, 3, 0, 2, 9], [1, 6, 0, 2, 9], [1, 2, 0, 1, 2], [1, 5, 7, 1, 2],
+      [2, 0.5, 0.5, 1, 8], [2, 3.5, 0.5, 1, 8], [2, 6.5, 0.5, 1, 8],
+      [3, 6.5, 1, 1, 2],
     ]),
   },
 } as const;
@@ -140,9 +196,24 @@ export const isLayout = (value: unknown): value is LayoutName =>
 
 /**
  * Tile faces: 0–8 dots 1–9, 9–17 bamboo 1–9, 18–26 characters 1–9, 27–30 winds (E S W N),
- * 31–33 dragons (red, green, white). A full set has four of each.
+ * 31–33 dragons (red, green, white), four of each; then 34–37 flowers (plum, orchid,
+ * chrysanthemum, bamboo) and 38–41 seasons (spring, summer, autumn, winter), one of each. That's
+ * the full set of 144.
  */
-export const KINDS = 34;
+export const KINDS = 42;
+export const FLOWERS = 34;
+export const SEASONS = 38;
+
+/** What a face matches as: itself, or any flower or any season (each set of four is one group). */
+export const group = (kind: number) => (kind < FLOWERS ? kind : kind < SEASONS ? FLOWERS : SEASONS);
+export const matches = (a: number, b: number) => group(a) === group(b);
+
+/** The 36 groups of four faces a full set is made of. */
+const GROUPS: number[][] = [
+  ...Array.from({ length: FLOWERS }, (_, k) => [k, k, k, k]),
+  [34, 35, 36, 37],
+  [38, 39, 40, 41],
+];
 
 type Random = () => number;
 
@@ -181,7 +252,7 @@ export function freePairs(kinds: readonly number[], near: Neighbors, gone: reado
   const pairs: [number, number][] = [];
   for (let a = 0; a < free.length; a++) {
     for (let b = a + 1; b < free.length; b++) {
-      if (kinds[free[a]] === kinds[free[b]]) pairs.push([free[a], free[b]]);
+      if (matches(kinds[free[a]], kinds[free[b]])) pairs.push([free[a], free[b]]);
     }
   }
   return pairs;
@@ -190,24 +261,32 @@ export function freePairs(kinds: readonly number[], near: Neighbors, gone: reado
 // ---- Dealing ----
 
 /**
- * Faces for the slots not yet `gone`, using `faces` (an even count of each kind), such that the
+ * Faces for the slots not yet `gone`, using `faces` (an even count of each group), such that the
  * board can be cleared: or null if this ordering hit a dead end (try again).
  */
 function assign(near: Neighbors, gone: readonly boolean[], faces: number[], random: Random): Dealt | null {
-  // Pair up the faces at random, then deal pairs onto tiles that would be free together.
-  const byKind = new Map<number, number>();
-  for (const f of faces) byKind.set(f, (byKind.get(f) ?? 0) + 1);
-  const pairs = shuffle([...byKind].flatMap(([k, n]) => Array(n / 2).fill(k) as number[]), random);
+  // Pair up the faces at random within their groups (two flowers make a pair), then deal pairs
+  // onto tiles that would be free together.
+  const byGroup = new Map<number, number[]>();
+  for (const f of faces) byGroup.set(group(f), [...(byGroup.get(group(f)) ?? []), f]);
+  const pairs = shuffle(
+    [...byGroup.values()].flatMap((fs) => {
+      shuffle(fs, random);
+      return Array.from({ length: fs.length / 2 }, (_, k) => [fs[2 * k], fs[2 * k + 1]] as const);
+    }),
+    random,
+  );
   const left = gone.slice();
   const kinds = new Array<number>(gone.length).fill(-1);
   const order: [number, number][] = [];
-  for (const kind of pairs) {
+  for (const [first, second] of pairs) {
     const free = shuffle(left.flatMap((g, i) => (!g && isFree(i, near, left) ? [i] : [])), random);
     if (free.length < 2) return null;
     // Prefer taking from the top, so deep tiles aren't left stranded with no partner.
     free.sort((a, b) => near[b].above.length - near[a].above.length);
     const [a, b] = free;
-    kinds[a] = kinds[b] = kind;
+    kinds[a] = first;
+    kinds[b] = second;
     left[a] = left[b] = true;
     order.push([a, b]);
   }
@@ -220,13 +299,16 @@ export interface Dealt {
   order: [number, number][];
 }
 
-/** The faces for a layout's slot count: kinds picked at random, four of each, two of the last. */
-function facesFor(count: number, random: Random): number[] {
-  const kinds = shuffle([...Array(KINDS).keys()], random);
+/**
+ * The faces for a layout's slot count (even, at most 144): groups of four picked at random (the
+ * flowers and the seasons are a group each), and two of the last if the count needs it.
+ */
+export function facesFor(count: number, random: Random = Math.random): number[] {
+  const groups = shuffle(GROUPS.map((g) => shuffle(g.slice(), random)), random);
   const faces: number[] = [];
-  for (let k = 0; faces.length < count; k = (k + 1) % KINDS) {
-    const take = Math.min(4, count - faces.length);
-    for (let n = 0; n < take; n++) faces.push(kinds[k]);
+  for (const g of groups) {
+    if (faces.length >= count) break;
+    faces.push(...g.slice(0, Math.min(4, count - faces.length)));
   }
   return faces;
 }

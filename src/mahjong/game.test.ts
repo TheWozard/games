@@ -15,7 +15,7 @@ function stuck(): Game {
   }
   throw new Error('never got stuck');
 }
-import { deal } from './logic';
+import { deal, FLOWERS, matches, SEASONS } from './logic';
 
 describe('reducer', () => {
   it('removes a free matching pair, and undoes it', () => {
@@ -30,13 +30,25 @@ describe('reducer', () => {
     expect(g.gone[a] || g.gone[b]).toBe(false);
   });
 
+  it('takes two different flowers (or seasons) as a pair', () => {
+    for (const [first, second] of [[FLOWERS, FLOWERS + 2], [SEASONS + 3, SEASONS]]) {
+      const g = newGame('pyramid');
+      const [a, b] = g.kinds.flatMap((_, i) => (free(g, i) ? [i] : []));
+      const kinds = g.kinds.slice();
+      kinds[a] = first;
+      kinds[b] = second;
+      const after = reducer(reducer({ ...g, kinds }, { type: 'tap', slot: a }), { type: 'tap', slot: b });
+      expect(after.gone[a] && after.gone[b]).toBe(true);
+    }
+  });
+
   it('ignores blocked tiles, and switches selection on a non-match', () => {
     let g = newGame('fortress');
     const blocked = g.kinds.findIndex((_, i) => !free(g, i));
     expect(reducer(g, { type: 'tap', slot: blocked })).toBe(g);
     const freeTiles = g.kinds.flatMap((_, i) => (free(g, i) ? [i] : []));
     const a = freeTiles[0];
-    const b = freeTiles.find((i) => g.kinds[i] !== g.kinds[a])!;
+    const b = freeTiles.find((i) => !matches(g.kinds[i], g.kinds[a]))!;
     g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
     expect(g.selected).toBe(b);
     expect(g.gone.some(Boolean)).toBe(false);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { scale } from 'svelte/transition';
   import GameScreen from '../shared/GameScreen.svelte';
+  import { attachPan } from '../shared/pan';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
@@ -24,13 +25,43 @@
     return { w: maxX * 1.5 + DEPTH + maxZ * LIFT, h: maxY * 2 + DEPTH + maxZ * LIFT, maxZ };
   });
 
+  // Size, in pixels per unit: fit the board to the space, but never smaller than an 8-wide layout
+  // gets on an upright phone (PHONE_W). Wide layouts keep that tile size and pan sideways
+  // (scrollX, null: centered) when they don't fit; a wider screen (a tablet, a desktop) uses its
+  // extra width and only pans if it must.
+  const NARROW_W = 8 * 3 + DEPTH + 3 * LIFT; // about the widest layout that fits a phone upright
+  const PHONE_W = 400;
+  let areaW = $state(360);
+  let areaH = $state(560);
+  const u = $derived(Math.min(areaH / box.h, Math.max(areaW / box.w, Math.min(areaW, PHONE_W) / NARROW_W)));
+  const maxScroll = $derived(Math.max(0, box.w * u - areaW));
+  let scrollX = $state<number | null>(null);
+  const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
+
+  let area = $state<HTMLElement>();
+  let panning = $state(false);
+  $effect(() => {
+    if (!area) return;
+    return attachPan(area, {
+      max: () => maxScroll,
+      get: () => sx,
+      set: (x) => (scrollX = x),
+      onPanning: (on) => (panning = on),
+    });
+  });
+
   // Back to front, so each tile's side and shadow land under the neighbors that should cover them.
   const order = $derived(drawOrder(layout.slots).map((i) => ({ ...layout.slots[i], i })));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(name: string) {
-    if (isLayout(name)) game = newGame(name);
+    if (isLayout(name)) deal(newGame(name));
+  }
+
+  function deal(next: typeof game) {
+    game = next;
+    scrollX = null; // a new deal opens centered
   }
 
   // A tap on a blocked tile gives it a little shake instead of doing nothing at all.
@@ -50,6 +81,7 @@
 <TileFaces />
 
 <GameScreen
+  wide
   title="Mahjong"
   subtitle={layout.name}
   onundo={() => dispatch({ type: 'undo' })}
@@ -57,7 +89,7 @@
   inProgress={!game.done && game.history.length > 0}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.layout))}
+  onnext={() => deal(newGame(game.layout))}
 >
   {#snippet status()}
     {#if !game.done}
@@ -77,8 +109,16 @@
     </div>
   {/snippet}
 
-  <div class="board-area">
-    <div class="mj-board" style:--w={box.w} style:--h={box.h} role="group" aria-label="Mahjong tiles">
+  <div class={['board-area mj-area', { pannable: maxScroll > 0, panning }]} bind:this={area} bind:clientWidth={areaW} bind:clientHeight={areaH}>
+    <div
+      class="mj-board"
+      style:width="{box.w * u}px"
+      style:height="{box.h * u}px"
+      style:--u="{u}px"
+      style:translate="{maxScroll / 2 - sx}px 0"
+      role="group"
+      aria-label="Mahjong tiles"
+    >
       {#each order as s (s.i)}
         {#if !game.gone[s.i]}
           <button

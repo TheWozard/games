@@ -2,12 +2,9 @@
 .mj-count svg { width: 1em; height: 1em; }
 
 .mj-board {
-  /* --w × --h is the board in tile units (a tile is 3 × 4). */
-  --u: calc(100cqi / var(--w));
+  /* Sized in pixels by Mahjong.svelte; --u is one unit (a tile is 3 × 4). */
   position: relative;
-  width: min(100cqw, 100cqh * var(--w) / var(--h));
-  aspect-ratio: var(--w) / var(--h);
-  container-type: inline-size;
+  flex: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -15,7 +12,7 @@
 
 .mj-tile {
   position: absolute;
-  padding: 2% 3%;
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 0.7); /* from the tile, not the board: boards vary in width */
   border: 0;
   border-radius: calc(var(--u) * 0.45);
   background: linear-gradient(160deg, #fbf7ec, #ece3cc);
@@ -53,3 +50,10 @@
 .mj-layouts .btn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 6px; }
 .mj-layouts .btn span { color: var(--muted); font-size: 0.8rem; }
 .mj-layouts .btn.current { border-color: var(--accent); }
+
+/* A board wider than its space overflows it evenly on both sides (one column the area's width),
+   and is then panned into place. */
+.mj-area { grid-template-columns: minmax(0, 1fr); }
+/* Wide layouts pan sideways (src/shared/pan.ts); keep the browser from panning too. Not clipped:
+   like the card games, tiles run on to the screen's edges (the page itself never scrolls). */
+.mj-area.pannable { touch-action: none; }
