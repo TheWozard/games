@@ -55,11 +55,14 @@ button {
 .bar h1, .bar h1 small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Game pages (<body class="game">) are exactly one screen tall and never scroll: header at the
-   top, controls at the bottom, and the board filling the space between. */
+   top, controls at the bottom, and the board filling the space between. Pinned to the screen's
+   edges rather than height: 100dvh, which Android can make taller than the visible screen (with
+   its font-size page zoom), pushing the controls off the bottom. */
 body.game {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
 }
