@@ -17,9 +17,12 @@
 
   // ---- Dragging ----
   // Press a block and drag it along its length; it follows the finger as far as it's free to go,
-  // then settles on the nearest square when let go.
+  // then settles on the nearest square when let go. With its way clear, the key block can be
+  // dragged on out through the exit; let go at or past the edge and it's free.
 
   let svg: SVGSVGElement;
+  // How far past the edge the key block was let go, so it carries on out from there.
+  let pastEdge = $state(0);
   let held = $state<{ id: number; index: number; from: number; at: number; lo: number; hi: number; offset: number } | null>(null);
 
   function along(e: PointerEvent, across: boolean): number {
@@ -30,7 +33,8 @@
   function pointerDown(e: PointerEvent, index: number) {
     if (game.done || held || (e.pointerType === 'mouse' && e.button !== 0)) return;
     const b = game.blocks[index];
-    const [lo, hi] = range(game.blocks, index);
+    let [lo, hi] = range(game.blocks, index);
+    if (index === 0 && hi === SIZE - b.len) hi = SIZE;
     svg.setPointerCapture?.(e.pointerId);
     held = { id: e.pointerId, index, from: along(e, b.across), at: b.across ? b.c : b.r, lo, hi, offset: 0 };
   }
@@ -46,25 +50,15 @@
     if (!held || e.pointerId !== held.id) return;
     const { index, at, offset } = held;
     held = null;
-    dispatch({ type: 'slide', index, to: Math.round(at + offset) });
+    const b = game.blocks[index];
+    pastEdge = index === 0 ? Math.max(0, at + offset - (SIZE - b.len)) : 0;
+    dispatch({ type: 'slide', index, to: Math.min(Math.round(at + offset), SIZE - b.len) });
   }
 
   const INSET = 0.07;
 
-  // The tray reaches EDGE past the squares, with rounded corners. Its wall is one path that runs
-  // from just below the exit all the way round to just above it, leaving the gap open.
+  // The exit arrow sits just past the right-hand edge, level with the key block's row.
   const EDGE = 0.15;
-  const CORNER = 0.3;
-  const wall = (() => {
-    const [lo, hi, r] = [-EDGE, SIZE + EDGE, CORNER];
-    const [top, bottom] = [EXIT_ROW + 0.03, EXIT_ROW + 0.97];
-    return [
-      `M${hi} ${bottom}V${hi - r}A${r} ${r} 0 0 1 ${hi - r} ${hi}`,
-      `H${lo + r}A${r} ${r} 0 0 1 ${lo} ${hi - r}`,
-      `V${lo + r}A${r} ${r} 0 0 1 ${lo + r} ${lo}`,
-      `H${hi - r}A${r} ${r} 0 0 1 ${hi} ${lo + r}V${top}`,
-    ].join('');
-  })();
 
   /** The New dialog's choices, with the range of moves each difficulty's puzzles take. */
   const options = (Object.keys(DIFFICULTIES) as Difficulty[]).map((value) => {
@@ -99,17 +93,14 @@
       onpointerup={pointerUp}
       onpointercancel={pointerUp}
     >
-      <rect class="tray" x={-EDGE} y={-EDGE} width={SIZE + EDGE * 2} height={SIZE + EDGE * 2} rx={CORNER} />
       {#each { length: SIZE * SIZE } as _, sq (sq)}
         <circle class="spot" cx={(sq % SIZE) + 0.5} cy={Math.floor(sq / SIZE) + 0.5} r="0.05" />
       {/each}
-      <!-- The wall round the board, open where the key block's row meets the right-hand edge. -->
-      <path class="wall" d={wall} />
       <path class="exit-mark" d="M{SIZE + EDGE + 0.1} {EXIT_ROW + 0.36}l0.14 0.14l-0.14 0.14" />
 
       {#each game.blocks as b, i (i)}
         {@const moving = held?.index === i}
-        {@const shift = moving ? held!.offset : 0}
+        {@const shift = moving ? held!.offset : i === 0 && game.done ? pastEdge : 0}
         <g
           class={['block', { key: i === 0, moving }]}
           style:transform="translate({b.c + (b.across ? shift : 0)}px, {b.r + (b.across ? 0 : shift)}px)"

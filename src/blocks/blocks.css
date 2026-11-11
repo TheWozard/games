@@ -11,10 +11,8 @@
   touch-action: none; /* dragging a block must not pan the page */
 }
 
-.blocks-board .tray { fill: var(--surface); }
 .blocks-board .spot { fill: var(--line); }
-/* The wall, open at the exit; a small arrow beyond the gap points the way out. */
-.blocks-board .wall { fill: none; stroke: var(--line-strong); stroke-opacity: 0.5; stroke-width: 0.06; }
+/* A small arrow past the right-hand edge points the way out. */
 .blocks-board .exit-mark { fill: none; stroke: var(--muted); stroke-width: 0.07; stroke-linecap: round; stroke-linejoin: round; }
 
 .blocks-board .block { cursor: grab; outline: none; transition: transform 0.15s ease; }
