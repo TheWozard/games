@@ -2,3 +2,7 @@
 .fc-board .card { touch-action: none; }
 /* Free cells: a solid outline, to tell them from the dashed foundation and column places. */
 .fc-board .slot.cell { border-style: solid; }
+
+/* Columns wider than the screen pan sideways (src/shared/pan.ts); the browser mustn't pan too. */
+.fc-board.pannable { touch-action: none; }
+.fc-board.panning .card { transition: none; }

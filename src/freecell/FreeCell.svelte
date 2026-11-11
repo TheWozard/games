@@ -2,6 +2,7 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import CardFace from '../shared/CardFace.svelte';
   import { cardName, isRed, SUITS, type Card } from '../shared/cards';
+  import { attachPan } from '../shared/pan';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { bestTarget, canMove, COLUMNS, DIFFICULTIES, isDifficulty, lifted, type Source, type Target } from './logic';
@@ -17,23 +18,46 @@
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(value: string) {
-    if (isDifficulty(value)) game = newGame(value);
+    if (isDifficulty(value)) deal(newGame(value));
+  }
+
+  function deal(next: typeof game) {
+    game = next;
+    scrollX = null; // a new deal opens with the columns centered
   }
 
   // ---- Layout, in pixels, from the space the board has ----
-  // Free cells on the left of the top row and foundations on the right; eight columns below.
+  // Laid out for a phone held upright, like Solitaire: the foundations centered along the top, the
+  // columns below, and the free cells centered along the bottom, where a thumb reaches. Cards are
+  // sized for five columns across, so they're big enough to read and drag; the eight columns then
+  // come out wider than the screen and pan sideways (scrollX), while the foundations and free
+  // cells stay put. On a short screen cards shrink to leave the columns room, but never below
+  // eight across.
 
   let width = $state(360);
   let height = $state(560);
   const gap = $derived(Math.max(3, width * 0.012));
-  const cw = $derived((width - gap * (COLUMNS - 1)) / COLUMNS);
+  const across = (n: number) => (width - gap * (n - 1)) / n;
+  const cw = $derived(Math.max(across(COLUMNS), Math.min(across(5), height / (5.5 * 1.4))));
   const ch = $derived(cw * 1.4);
-  const colX = (col: number) => col * (cw + gap);
-  // Centered as a block about as tall as a game usually needs, so it doesn't jump about as
-  // columns grow; long columns use the space below, squeezed to fit if they must.
-  const TABLE_H = 5.5; // in card heights
-  const rowY = $derived(Math.max(0, (height - ch * TABLE_H) / 2));
-  const tableauY = $derived(rowY + ch + gap * 2.5);
+  const maxScroll = $derived(Math.max(0, COLUMNS * cw + (COLUMNS - 1) * gap - width));
+  // null: not panned since the deal, so the columns sit centered.
+  let scrollX = $state<number | null>(null);
+  const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
+  const colX = (col: number) => col * (cw + gap) - sx;
+  // On a tall screen the table is centered as a block: the top row, room for columns about as
+  // long as a game usually gets (COLUMNS_H card heights), and the bottom row. It's a fixed size
+  // rather than fitted to the cards, so it doesn't jump about as columns grow.
+  const COLUMNS_H = 4;
+  const blockH = $derived(ch * (2 + COLUMNS_H) + gap * 5);
+  const topY = $derived(Math.max(0, (height - blockH) / 2));
+  const bottomY = $derived(Math.max(0, height - topY - ch));
+  const tableauY = $derived(topY + ch + gap * 2.5);
+  const foundationX = (suit: number) => (width - (4 * cw + 3 * gap)) / 2 + suit * (cw + gap);
+  const cellX = (i: number) => {
+    const n = game.table.cells.length;
+    return (width - (n * cw + (n - 1) * gap)) / 2 + i * (cw + gap);
+  };
 
   interface Placed {
     card: Card;
@@ -41,23 +65,26 @@
     y: number;
     z: number;
     source: Source | null; // where a tap or drag picks it up from (null: not movable)
+    buried?: boolean; // in a column under cards that aren't a run off it: can't be picked up yet
   }
 
   const placed = $derived.by(() => {
     const t = game.table;
     const out: Placed[] = [];
     t.cells.forEach((card, i) => {
-      if (card !== null) out.push({ card, x: colX(i), y: rowY, z: 1, source: { from: 'cell', i } });
+      if (card !== null) out.push({ card, x: cellX(i), y: bottomY, z: 1, source: { from: 'cell', i } });
     });
     t.foundations.forEach((n, suit) => {
-      for (let r = 0; r < n; r++) out.push({ card: suit * 13 + r, x: colX(COLUMNS - 4 + suit), y: rowY, z: 1 + r, source: null });
+      for (let r = 0; r < n; r++) out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 1 + r, source: null });
     });
-    const room = Math.max(0, height - tableauY - ch);
+    // Columns end above the free cells, squeezed to fit if they must.
+    const room = Math.max(0, bottomY - gap * 2.5 - tableauY - ch);
     t.columns.forEach((col, c) => {
       const step = Math.min(ch * 0.3, room / Math.max(1, col.length - 1));
       col.forEach((card, k) => {
         const source: Source = { from: 'column', col: c, index: k };
-        out.push({ card, x: colX(c), y: tableauY + k * step, z: 10 + k, source: lifted(t, source) ? source : null });
+        const free = lifted(t, source) !== null;
+        out.push({ card, x: colX(c), y: tableauY + k * step, z: 10 + k, source: free ? source : null, buried: !free });
       });
     });
     return out.sort((a, b) => a.card - b.card); // stable order, so cards animate between places
@@ -67,11 +94,15 @@
   // A tap sends cards to their best place; dragging puts them exactly where they're dropped.
   // A press must move a little before it counts as a drag, and the click after a drag is ignored.
 
-  let board: HTMLDivElement;
+  let board = $state<HTMLDivElement>();
   let shaking = $state<Card | null>(null);
   let shakeTimer: ReturnType<typeof setTimeout> | undefined;
   let press: { id: number; source: Source; card: Card; x: number; y: number } | null = null;
-  let drag = $state<{ cards: Card[]; dx: number; dy: number } | null>(null);
+  // sx0: the pan when the drag began. Cards lifted from a column stay under the finger as the
+  // columns pan beneath them.
+  let drag = $state<{ cards: Card[]; dx: number; dy: number; sx0: number; fromColumn: boolean } | null>(null);
+  let pointerX = 0; // where the finger is, across the board, while dragging
+  const dragShift = $derived(drag?.fromColumn ? sx - drag.sx0 : 0);
   let swallowClick = false;
 
   function shake(card: Card) {
@@ -100,10 +131,11 @@
     if (!press || e.pointerId !== press.id) return;
     const dx = e.clientX - press.x;
     const dy = e.clientY - press.y;
+    pointerX = e.clientX - (board?.getBoundingClientRect().left ?? 0);
     if (!drag) {
       if (Math.hypot(dx, dy) < 8) return;
-      board.setPointerCapture?.(e.pointerId);
-      drag = { cards: lifted(game.table, press.source) ?? [], dx, dy };
+      board?.setPointerCapture?.(e.pointerId);
+      drag = { cards: lifted(game.table, press.source) ?? [], dx, dy, sx0: sx, fromColumn: press.source.from === 'column' };
     } else {
       drag = { ...drag, dx, dy };
     }
@@ -114,15 +146,18 @@
     if (!press || !drag) return null;
     const p = placed.find((q) => q.card === press!.card);
     if (!p) return null;
-    const cx = p.x + drag.dx + cw / 2;
+    const cx = p.x + dragShift + drag.dx + cw / 2;
     const cy = p.y + drag.dy + ch / 2;
-    const col = Math.min(COLUMNS - 1, Math.max(0, Math.floor((cx + gap / 2) / (cw + gap))));
-    if (cy >= tableauY - gap) return { to: 'column', col };
-    if (col >= COLUMNS - 4) return { to: 'foundation' };
-    // Over the free cells: the one under it if it's empty, else any empty one.
+    // The top row is the foundations.
+    if (cy < tableauY - gap) return { to: 'foundation' };
+    // The bottom row is the free cells: the one under it if that's empty, else any empty one.
     const cells = game.table.cells;
-    const i = col < cells.length && cells[col] === null ? col : cells.indexOf(null);
-    return i === -1 ? null : { to: 'cell', i };
+    if (cy > bottomY - gap) {
+      const under = Math.min(cells.length - 1, Math.max(0, Math.floor((cx - cellX(0) + gap / 2) / (cw + gap))));
+      const i = cells[under] === null ? under : cells.indexOf(null);
+      return i === -1 ? null : { to: 'cell', i };
+    }
+    return { to: 'column', col: Math.min(COLUMNS - 1, Math.max(0, Math.floor((cx + sx + gap / 2) / (cw + gap)))) };
   }
 
   function pointerUp(e: PointerEvent) {
@@ -141,6 +176,31 @@
     press = null;
     drag = null;
   }
+
+  // While a card is dragged near either edge, the columns pan to bring the hidden ones in.
+  $effect(() => {
+    if (!drag) return;
+    let frame = requestAnimationFrame(function step() {
+      const edge = Math.min(40, width * 0.1);
+      if (pointerX < edge) scrollX = Math.max(0, sx - 8);
+      else if (pointerX > width - edge) scrollX = Math.min(maxScroll, sx + 8);
+      frame = requestAnimationFrame(step);
+    });
+    return () => cancelAnimationFrame(frame);
+  });
+
+  // Panning the columns: a press anywhere but on a card that can be dragged.
+  let panning = $state(false);
+  $effect(() => {
+    if (!board) return;
+    return attachPan(board, {
+      max: () => maxScroll,
+      get: () => sx,
+      set: (x) => (scrollX = x),
+      onPanning: (on) => (panning = on),
+      startsPan: (e) => !(e.target instanceof Element && e.target.closest('.card.live')),
+    });
+  });
 </script>
 
 <GameScreen
@@ -152,12 +212,12 @@
   options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cells} free cells` }))}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty))}
+  onnext={() => deal(newGame(game.difficulty))}
 >
   <div class="board-area">
     <div
       bind:this={board}
-      class={['card-table fc-board', { animate }]}
+      class={['card-table fc-board', { animate, pannable: maxScroll > 0, panning: panning || (drag !== null && maxScroll > 0) }]}
       bind:clientWidth={width}
       bind:clientHeight={height}
       style:--cw="{cw}px"
@@ -170,10 +230,10 @@
     >
       <!-- Empty places: free cells, foundations (marked with their suit) and columns. -->
       {#each game.table.cells as _, i (i)}
-        <div class="slot cell" style:transform="translate({colX(i)}px, {rowY}px)" aria-hidden="true"></div>
+        <div class="slot cell" style:transform="translate({cellX(i)}px, {bottomY}px)" aria-hidden="true"></div>
       {/each}
       {#each SUITS as suit, s (s)}
-        <div class="slot" style:transform="translate({colX(COLUMNS - 4 + s)}px, {rowY}px)" aria-hidden="true">{suit}</div>
+        <div class="slot" style:transform="translate({foundationX(s)}px, {topY}px)" aria-hidden="true">{suit}</div>
       {/each}
       {#each { length: COLUMNS } as _, col (col)}
         <div class="slot" style:transform="translate({colX(col)}px, {tableauY}px)" aria-hidden="true"></div>
@@ -183,8 +243,8 @@
         {@const lifting = drag?.cards.includes(p.card) ?? false}
         <button
           type="button"
-          class={['card', { red: isRed(p.card), live: p.source !== null, shake: shaking === p.card, dragging: lifting }]}
-          style:transform="translate({p.x + (lifting ? drag!.dx : 0)}px, {p.y + (lifting ? drag!.dy : 0)}px)"
+          class={['card', { red: isRed(p.card), live: p.source !== null, buried: p.buried, shake: shaking === p.card, dragging: lifting }]}
+          style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y + (lifting ? drag!.dy : 0)}px)"
           style:z-index={lifting ? 1000 + p.z : p.z}
           aria-label={cardName(p.card)}
           onpointerdown={(e) => pointerDown(e, p)}

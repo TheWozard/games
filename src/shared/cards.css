@@ -44,6 +44,10 @@
 .card-table:not(.animate) .card { transition: none; }
 .card-table .card.live { cursor: pointer; }
 
+/* FreeCell: a card still buried under others that aren't a run off it sits back a little. Only
+   whether it can be picked up at all, never whether a move is open. */
+.card-table .card.buried { filter: brightness(0.82); }
+
 /* Face down: a quiet pattern in the accent color. */
 .card-table .card.down {
   border-color: #2b3a5a;

@@ -118,6 +118,9 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `<div class="board-area">`, which fills the space left between header and controls, and size
   it with container units: `width: min(100cqw, 100cqh * cols / rows); aspect-ratio: cols / rows`. For grids, set both `grid-template-columns` and
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
+  One exception: on thin screens Solitaire's and FreeCell's columns are wider than the screen so
+  the cards stay large, and pan sideways under a finger (`src/shared/pan.ts`; not page scrolling:
+  the page itself never moves).
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
