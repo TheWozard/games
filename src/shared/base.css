@@ -207,3 +207,27 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 }
 .next-fab svg { width: 18px; height: 18px; }
 
+
+/* The hidden screen readout (src/shared/debug.ts): tap the version on the launcher. */
+.debug-readout {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 60px);
+  left: 8px;
+  right: 8px;
+  z-index: 1000;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.8);
+  color: #fff;
+  font: 11px/1.35 ui-monospace, monospace;
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+.debug-probe {
+  position: fixed;
+  visibility: hidden;
+  pointer-events: none;
+  padding: env(safe-area-inset-top, 0px) var(--safe-bottom) env(safe-area-inset-bottom, 0px) env(safe-area-max-inset-bottom, 0px);
+}
