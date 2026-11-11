@@ -4,6 +4,7 @@
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import CardFace from '../shared/CardFace.svelte';
   import { cardName, isRed, SUITS } from '../shared/cards';
+  import { attachPan } from '../shared/pan';
   import { bestTarget, type Card, type Draw, type Source } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame(1));
@@ -21,15 +22,32 @@
   let width = $state(360);
   let height = $state(560);
   const gap = $derived(Math.max(4, width * 0.014));
-  const cw = $derived((width - gap * 6) / 7);
+  // Cards are sized for five columns across the screen, so they're big enough to read and tap;
+  // the seven columns then come out wider than the screen and pan sideways under a finger
+  // (scrollX), while the foundations, stock and waste stay put. On a short screen the cards
+  // shrink so the columns still have room to grow, but never below seven across.
+  const across = (n: number) => (width - gap * (n - 1)) / n;
+  const cw = $derived(Math.max(across(7), Math.min(across(5), height / (5.5 * 1.4))));
   const ch = $derived(cw * 1.4);
-  const colX = (col: number) => col * (cw + gap);
-  // The stock, waste and foundations along the top, the columns fanning down below. The table is
-  // centered on the screen as a fixed-size block (about what a game usually needs), rather than
-  // on the cards out, so it doesn't jump about as columns grow; long columns use the space below.
-  const TABLE_H = 5.5; // in card heights
-  const rowY = $derived(Math.max(0, (height - ch * TABLE_H) / 2));
-  const tableauY = $derived(rowY + ch + gap * 2.5);
+  const maxScroll = $derived(Math.max(0, 7 * cw + 6 * gap - width));
+  // null: not panned since the deal, so the columns sit centered.
+  let scrollX = $state<number | null>(null);
+  const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
+  const colX = (col: number) => col * (cw + gap) - sx;
+  // Laid out for a phone held upright: the four foundations centered along the top, the columns
+  // fanning down below them, and the stock in the bottom-right corner with the waste just left of
+  // it, where a thumb reaches. Long columns squeeze to stay clear of the bottom row.
+  // On a tall screen the table is centered as a block: the top row, room for columns about as
+  // long as a game usually gets (COLUMNS_H card heights), and the bottom row. It's a fixed size
+  // rather than fitted to the cards, so it doesn't jump about as columns grow.
+  const COLUMNS_H = 4;
+  const blockH = $derived(ch * (2 + COLUMNS_H) + gap * 5);
+  const topY = $derived(Math.max(0, (height - blockH) / 2));
+  const bottomY = $derived(Math.max(0, height - topY - ch));
+  const tableauY = $derived(topY + ch + gap * 2.5);
+  const foundationX = (suit: number) => (width - (4 * cw + 3 * gap)) / 2 + suit * (cw + gap);
+  const stockX = $derived(width - cw);
+  const wasteX = $derived(stockX - cw - gap);
 
   interface Placed {
     card: Card;
@@ -43,23 +61,25 @@
   const placed = $derived.by(() => {
     const t = game.table;
     const out: Placed[] = [];
-    // Stock: face down in the first slot.
-    t.stock.forEach((card, k) => out.push({ card, x: colX(0), y: rowY, z: k, up: false, source: 'stock' }));
-    // Waste: the top one (or three, fanned) in the second slot.
+    // Stock: face down in the bottom-right corner.
+    t.stock.forEach((card, k) => out.push({ card, x: stockX, y: bottomY, z: k, up: false, source: 'stock' }));
+    // Waste: just left of the stock. The top one (or three) fans out leftward, so the card you
+    // can play is always the one nearest the stock.
     const fan = game.draw === 3 ? 3 : 1;
     t.waste.forEach((card, k) => {
       const fromTop = t.waste.length - 1 - k;
-      const shift = fromTop < fan ? (Math.min(fan, t.waste.length) - 1 - fromTop) * cw * 0.42 : 0;
-      out.push({ card, x: colX(1) + shift, y: rowY, z: 100 + k, up: true, source: fromTop === 0 ? { from: 'waste' } : null });
+      const shift = Math.min(fromTop, fan - 1, t.waste.length - 1) * cw * 0.42;
+      out.push({ card, x: wasteX - shift, y: bottomY, z: 100 + k, up: true, source: fromTop === 0 ? { from: 'waste' } : null });
     });
-    // Foundations: one slot per suit, in the last four columns.
+    // Foundations: one slot per suit, centered along the top.
     t.foundations.forEach((n, suit) => {
       for (let r = 0; r < n; r++) {
-        out.push({ card: suit * 13 + r, x: colX(3 + suit), y: rowY, z: 200 + r, up: true, source: r === n - 1 ? { from: 'foundation', suit } : null });
+        out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 200 + r, up: true, source: r === n - 1 ? { from: 'foundation', suit } : null });
       }
     });
-    // Tableau: face-down cards tightly stacked, face-up ones fanned; squeezed to fit if long.
-    const room = Math.max(0, height - tableauY - ch);
+    // Tableau: face-down cards tightly stacked, face-up ones fanned; squeezed to end above the
+    // stock and waste.
+    const room = Math.max(0, bottomY - gap * 2.5 - tableauY - ch);
     t.tableau.forEach(({ down, up }, col) => {
       let downStep = ch * 0.13;
       let upStep = ch * 0.3;
@@ -75,6 +95,20 @@
       }));
     });
     return out.sort((a, b) => a.card - b.card);
+  });
+
+  // ---- Panning the columns sideways (only when they're wider than the screen) ----
+
+  let table = $state<HTMLElement>();
+  let panning = $state(false);
+  $effect(() => {
+    if (!table) return;
+    return attachPan(table, {
+      max: () => maxScroll,
+      get: () => sx,
+      set: (x) => (scrollX = x),
+      onPanning: (on) => (panning = on),
+    });
   });
 
   // ---- Taps ----
@@ -95,7 +129,12 @@
   }
 
   function start(value: string) {
-    if (value === '1' || value === '3') game = newGame(Number(value) as Draw);
+    if (value === '1' || value === '3') deal(newGame(Number(value) as Draw));
+  }
+
+  function deal(next: typeof game) {
+    game = next;
+    scrollX = null; // a new deal opens with the columns centered
   }
 
   function onKey(e: KeyboardEvent) {
@@ -119,22 +158,29 @@
   options={[{ value: '1', label: 'Draw 1 · easier' }, { value: '3', label: 'Draw 3 · classic' }]}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.draw))}
+  onnext={() => deal(newGame(game.draw))}
 >
   <div class="board-area">
-    <div class={['card-table sol-board', { animate }]} bind:clientWidth={width} bind:clientHeight={height} style:--cw="{cw}px" style:--ch="{ch}px">
+    <div
+      class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}
+      bind:this={table}
+      bind:clientWidth={width}
+      bind:clientHeight={height}
+      style:--cw="{cw}px"
+      style:--ch="{ch}px"
+    >
       <!-- Empty slots: the stock (tap to turn the waste over), foundations, and columns. -->
       <button
         type="button"
         class="slot stock"
-        style:transform="translate({colX(0)}px, {rowY}px)"
+        style:transform="translate({stockX}px, {bottomY}px)"
         aria-label={game.table.stock.length ? 'Draw' : 'Turn the waste over'}
         onclick={() => dispatch({ type: 'stock' })}
       >
         {#if !game.table.stock.length && game.table.waste.length}↻{/if}
       </button>
       {#each SUITS as suit, s (s)}
-        <div class="slot" style:transform="translate({colX(3 + s)}px, {rowY}px)" aria-hidden="true">{suit}</div>
+        <div class="slot" style:transform="translate({foundationX(s)}px, {topY}px)" aria-hidden="true">{suit}</div>
       {/each}
       {#each { length: 7 } as _, col (col)}
         <div class="slot" style:transform="translate({colX(col)}px, {tableauY}px)" aria-hidden="true"></div>

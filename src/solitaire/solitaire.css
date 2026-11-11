@@ -1,1 +1,5 @@
 .sol-board .slot.stock { cursor: pointer; color: var(--muted); }
+
+/* Columns wider than the screen pan sideways under a finger (Solitaire.svelte). */
+.sol-board.pannable { touch-action: none; }
+.sol-board.panning .card { transition: none; }
