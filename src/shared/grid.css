@@ -12,7 +12,8 @@
   background: var(--grid-line);
   border: 2px solid var(--line-strong);
   border-radius: 6px;
-  overflow: hidden;
+  /* Not clipped, so a cage sum on the top row can sit across the board's edge; the corner cells
+     are rounded to match the border instead. */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -52,10 +53,23 @@
 .grid-board .cell.conflict { color: var(--danger); background: var(--danger-soft); }
 .grid-board .cell.conflict.selected { box-shadow: inset 0 0 0 2px var(--danger); }
 
+.grid-board .cell.corner-tl { border-top-left-radius: 4px; }
+.grid-board .cell.corner-tr { border-top-right-radius: 4px; }
+.grid-board .cell.corner-bl { border-bottom-left-radius: 4px; }
+.grid-board .cell.corner-br { border-bottom-right-radius: 4px; }
+
+/* A cage sum sits on its cage's top edge, in the gap above the colored shape (centered on the line
+   between this cell and the one above), on a small tag, so the cell's pencil marks keep the same
+   full grid as every other cell. It sits above the thick box lines. */
 .grid-board .label {
   position: absolute;
-  top: 2px;
+  top: -0.5px;
   left: 3px;
+  z-index: 2;
+  transform: translateY(-50%);
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--surface);
   color: var(--text);
   font-size: calc(22cqi / var(--n));
   font-weight: 600;
@@ -87,9 +101,6 @@
 .grid-board .zone-4 { --zone: #3fb67a; }
 /* Positioned, so it paints above the fill. */
 .grid-board .value { position: relative; }
-
-/* Keep pencil marks clear of a corner label. */
-.grid-board .cell:has(.label) .notes { top: 28%; }
 
 .grid-board .notes span { display: grid; place-items: center; }
 
