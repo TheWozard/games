@@ -6,7 +6,7 @@
   import { generateInBackground } from './background';
   import { gameOf, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
-    bridgeWay, connected, DIFFICULTIES, dirOf, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES,
+    bridgeWay, connected, DIFFICULTIES, dirOf, dotColor, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES,
     settle, startStroke, type Difficulty, type Path, type Rule, type Rules,
   } from './logic';
 
@@ -50,18 +50,25 @@
   }
 
   /**
-   * The outer edge pieces a path can wrap across, as lines: one per square along each side, left
-   * out where the square or the one it wraps to is a hole.
+   * The outer edge pieces a path can wrap across, as lines: one per square along each side, where
+   * a path can leave that square over the edge into the square on the opposite side. Left out when
+   * either square is a hole, or the one it would come into is a dot (only a dot's own path ends
+   * there, and a dot is plain to see).
    */
   const wrapEdges = $derived.by(() => {
     if (!board.wrap) return [];
     const out: string[] = [];
     const i = 0.02; // inset, so the line sits just inside the board
-    const across = (k: number) => !isHole(k, board) && !isHole((n - 1) * n + k, board); // top and bottom of column k
-    const down = (k: number) => !isHole(k * n, board) && !isHole(k * n + n - 1, board); // ends of row k
+    const into = (cell: number) => !isHole(cell, board) && dotColor(game.dots, cell) === -1;
+    // Leaving `from` over its edge into `to`.
+    const way = (from: number, to: number) => !isHole(from, board) && into(to);
     for (let k = 0; k < n; k++) {
-      if (across(k)) out.push(`M${k} ${i}H${k + 1}`, `M${k} ${n - i}H${k + 1}`);
-      if (down(k)) out.push(`M${i} ${k}V${k + 1}`, `M${n - i} ${k}V${k + 1}`);
+      const [top, bottom] = [k, (n - 1) * n + k];
+      const [left, right] = [k * n, k * n + n - 1];
+      if (way(top, bottom)) out.push(`M${k} ${i}H${k + 1}`);
+      if (way(bottom, top)) out.push(`M${k} ${n - i}H${k + 1}`);
+      if (way(left, right)) out.push(`M${i} ${k}V${k + 1}`);
+      if (way(right, left)) out.push(`M${n - i} ${k}V${k + 1}`);
     }
     return out;
   });
