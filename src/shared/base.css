@@ -196,7 +196,8 @@ dialog p { margin: 0 0 16px; color: var(--muted); }
 dialog h2 { padding-right: 40px; }
 
 /* The Play button at the bottom of a New Game dialog, set apart from the choices above it. */
-.new-start { margin-top: 14px; }
+.new-start { margin-top: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; }
+.new-start svg { width: 18px; height: 18px; }
 
 /* In a dialog, a picked choice is outlined (solid accent is kept for Play). */
 dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }

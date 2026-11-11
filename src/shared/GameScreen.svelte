@@ -98,7 +98,10 @@
       {/each}
     </div>
   {/if}
-  <button class="btn primary new-start" value={picker ? 'start' : picked}>Play</button>
+  <button class="btn primary new-start" value={picker ? 'start' : picked}>
+    Play
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5L15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </button>
   <!-- Last in the form, so Enter starts rather than closes; drawn in the top corner. -->
   <button class="dialog-close" value="" aria-label="Close">
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
