@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
@@ -13,6 +14,17 @@ const pages = Object.fromEntries([
     .filter((d) => d.isDirectory() && existsSync(resolve(root, d.name, 'index.html')))
     .map((d) => [d.name, resolve(root, d.name, 'index.html')]),
 ]);
+
+// The commit this build came from, shown on the launcher as %VITE_VERSION% so a phone can tell
+// which deploy it's running.
+function version() {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  } catch {
+    return 'dev';
+  }
+}
+process.env.VITE_VERSION ??= version();
 
 export default defineConfig({
   root,
