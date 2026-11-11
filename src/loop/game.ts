@@ -1,6 +1,6 @@
 // Loop game state and moves, as a pure reducer. Each edge is empty, a line, or a cross (the
 // player's note that the loop doesn't go there). Tapping a side cycles it: empty, line, cross, empty.
-import { DARK, DIFFICULTIES, edgeCount, generate, isDifficulty, isSolved, LIGHT, type Difficulty, type Grid, type Square } from './logic';
+import { DARK, DIFFICULTIES, edgeCount, generate, isDifficulty, isRules, isSolved, LIGHT, NO_RULES, type Difficulty, type Grid, type Rules, type Square } from './logic';
 
 export const STORAGE_KEY = 'games.loop.v1';
 const HISTORY_LIMIT = 300;
@@ -15,6 +15,7 @@ export const next = (m: Mark): Mark => (m === EMPTY ? LINE : m === LINE ? CROSS 
 
 export interface Game extends Grid {
   difficulty: Difficulty;
+  rules: Rules;
   clues: (number | null)[];
   squares: (Square | null)[]; // per cell
   rings: boolean[]; // per dot
@@ -27,20 +28,25 @@ export type Action =
   | { type: 'cycle'; edge: number }
   | { type: 'undo' };
 
-export function newGame(difficulty: Difficulty): Game {
+export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
   const { rows, cols } = DIFFICULTIES[difficulty];
-  const { clues, squares, rings } = generate(difficulty);
-  return { difficulty, rows, cols, clues, squares, rings, marks: new Array<Mark>(edgeCount({ rows, cols })).fill(EMPTY), history: [], done: false };
+  const { clues, squares, rings } = generate(difficulty, rules);
+  return { difficulty, rules: { ...rules }, rows, cols, clues, squares, rings, marks: new Array<Mark>(edgeCount({ rows, cols })).fill(EMPTY), history: [], done: false };
 }
 
-/** Validates a save. Saves from before squares and rings get none, so a game in progress carries on. */
+/**
+ * Validates a save. Older saves carry on: from before squares and rings, with none; from before
+ * the rules could be picked, with the rules its clues show.
+ */
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   if (!isDifficulty(g?.difficulty)) return false;
   const { rows, cols } = DIFFICULTIES[g.difficulty];
   g.squares ??= new Array(rows * cols).fill(null);
   g.rings ??= new Array((rows + 1) * (cols + 1)).fill(false);
+  g.rules ??= { squares: g.squares.some((k) => k !== null), rings: g.rings.some(Boolean) };
   return (
+    isRules(g.rules) &&
     g.squares.length === rows * cols && g.squares.every((k) => k === null || k === LIGHT || k === DARK) &&
     g.rings.length === (rows + 1) * (cols + 1) && g.rings.every((x) => typeof x === 'boolean') &&
     g.rows === rows && g.cols === cols &&

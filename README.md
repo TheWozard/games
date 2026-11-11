@@ -8,7 +8,7 @@ Games:
 - [Sudoku](src/sudoku/): generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
 - [Killer Sudoku](src/killer/): Sudoku plus colored cages that add up to their sums; every puzzle has a unique solution and almost no givens.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
-- [Loop](src/loop/): draw one closed loop along the dots to match the numbers, keep solid and hollow squares on opposite sides, and pass through the ringed dots; every puzzle has exactly one loop.
+- [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network, with optional colored islands, blocks and diagonal bridges; every puzzle has a unique solution.
 - [Flow](src/flow/): join matching dots with paths that fill the board; each puzzle is built from a real covering of paths.
 - [Untangle](src/untangle/): drag dots until no lines cross (a dot on a line counts); 10–36 dots in three styles, each built from an untangled layout so every puzzle is solvable.

@@ -1,13 +1,16 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
+  import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { CROSS, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty } from './logic';
+  import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty, NO_RULES, RULES, type Difficulty, type Rule, type Rules } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(
+    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+  );
   const edges = $derived(game.marks.map((_, e) => edgeEnds(game, e)));
 
   // Clue cells: how many of their sides are lines so far.
@@ -23,8 +26,18 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  const sizes = Object.fromEntries(
+    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.cols}×${d.rows}` }]),
+  ) as Record<Difficulty, { label: string; detail: string }>;
+
+  // The New dialog's picks, starting from the current game's settings.
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  function askNew() {
+    choice = { difficulty: game.difficulty, rules: { ...game.rules } };
+  }
+
+  function start(value: string) {
+    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
   }
 </script>
 
@@ -34,11 +47,15 @@
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
   inProgress={!game.done && game.history.length > 0}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cols}×${d.rows}` }))}
+  onopennew={askNew}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty))}
+  onnext={() => (game = newGame(game.difficulty, game.rules))}
 >
+  {#snippet picker()}
+    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+  {/snippet}
+
   <div class="board-area">
     <svg
       class={['loop-board', { done: game.done }]}

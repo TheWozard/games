@@ -1,9 +1,10 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
+  import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { center, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
-  import { DIFFICULTIES, isDifficulty, RULES, type Difficulty, type Rule, type Rules } from './logic';
+  import { DIFFICULTIES, isDifficulty, NO_RULES, RULES, type Difficulty, type Rule, type Rules } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
@@ -17,8 +18,12 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
+  const sizes = Object.fromEntries(
+    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.cols}×${d.rows}` }]),
+  ) as Record<Difficulty, { label: string; detail: string }>;
+
   // The New dialog's picks, starting from the current game's settings.
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { colors: false, blocks: false, diagonals: false } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
   function askNew() {
     choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
@@ -109,26 +114,7 @@
   onnext={() => (game = newGame(game.difficulty, game.rules))}
 >
   {#snippet picker()}
-    <h3 class="pick-title">Size</h3>
-    <div class="pick">
-      {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
-        <button type="button" class="btn" aria-pressed={choice.difficulty === key} onclick={() => (choice.difficulty = key as Difficulty)}>
-          <strong>{d.label}</strong>
-          <span>{d.cols}×{d.rows}</span>
-        </button>
-      {/each}
-    </div>
-
-    <h3 class="pick-title">Rules</h3>
-    <div class="pick">
-      {#each Object.entries(RULES) as [key, r] (key)}
-        <button type="button" class="btn" aria-pressed={choice.rules[key as Rule]} onclick={() => (choice.rules[key as Rule] = !choice.rules[key as Rule])}>
-          <strong>{r.label}</strong>
-        </button>
-      {/each}
-    </div>
-
-    <button class="btn primary" value="start">Start</button>
+    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
   <div class="board-area">

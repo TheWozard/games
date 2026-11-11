@@ -1,20 +1,36 @@
 // Loop: draw a single closed loop along the grid lines between dots. The loop never branches or
-// crosses itself. Three kinds of clue:
-// - a number in a cell: how many of that cell's four sides the loop uses;
-// - a square in a cell, light or dark: every light square ends up on one side of the loop (inside
-//   or outside) and every dark square on the other;
-// - a ringed dot: the loop passes through it.
+// crosses itself. A number in a cell says how many of that cell's four sides the loop uses.
+// Optional rules add two more kinds of clue:
+// - squares: a square in a cell, light or dark; every light square ends up on one side of the loop
+//   (inside or outside) and every dark square on the other;
+// - rings: a ringed dot, which the loop passes through.
 //
 // Puzzles start from a real loop: the outline of a random blob of cells with no holes and no
-// pinches. A few cells get squares and a few of the loop's dots get rings, every other cell gets
-// its count, then counts are taken away in random order for as long as a solver still finds
-// exactly one loop.
+// pinches. With the rules on, a few cells get squares and a few of the loop's dots get rings; every
+// other cell gets its count, then counts are taken away in random order for as long as a solver
+// still finds exactly one loop.
 
 export const DIFFICULTIES = {
-  easy: { label: 'Easy', rows: 5, cols: 5, keep: 0.6, squares: 0.12, rings: 0.12 },
-  medium: { label: 'Medium', rows: 7, cols: 6, keep: 0.4, squares: 0.12, rings: 0.12 },
+  easy: { label: 'Easy', rows: 5, cols: 5, keep: 0.7, squares: 0.12, rings: 0.12 },
+  medium: { label: 'Medium', rows: 7, cols: 6, keep: 0.5, squares: 0.12, rings: 0.12 },
   hard: { label: 'Hard', rows: 9, cols: 7, keep: 0, squares: 0.1, rings: 0.1 },
 } as const;
+
+/** Squares and rings do some of the numbers' work, so with either on a puzzle keeps fewer numbers. */
+const KEEP_WITH_RULES = 0.1;
+
+export const RULES = {
+  squares: { label: 'Squares' },
+  rings: { label: 'Rings' },
+} as const;
+
+export type Rule = keyof typeof RULES;
+export type Rules = Record<Rule, boolean>;
+export const NO_RULES: Rules = { squares: false, rings: false };
+
+export const isRules = (value: unknown): value is Rules =>
+  typeof value === 'object' && value !== null &&
+  (Object.keys(RULES) as Rule[]).every((k) => typeof (value as Rules)[k] === 'boolean');
 
 export type Difficulty = keyof typeof DIFFICULTIES;
 
@@ -228,8 +244,9 @@ function blob(g: Grid, random: Random): boolean[] {
 
 const SOLVE_BUDGET = 1000;
 
-export function generate(difficulty: Difficulty, random: Random = Math.random): Puzzle {
-  const { rows, cols, keep, squares: squareShare, rings: ringShare } = DIFFICULTIES[difficulty];
+export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
+  const { rows, cols, squares: squareShare, rings: ringShare } = DIFFICULTIES[difficulty];
+  const keep = Math.max(0, DIFFICULTIES[difficulty].keep - (rules.squares || rules.rings ? KEEP_WITH_RULES : 0));
   const g = { rows, cols };
   for (;;) {
     const inside = blob(g, random);
@@ -241,12 +258,14 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
     // Squares: light inside and dark outside, or the other way round; at least one of each.
     const lightInside = random() < 0.5;
     const squares = new Array<Square | null>(rows * cols).fill(null);
-    const want = Math.max(2, Math.round(rows * cols * squareShare));
+    const want = rules.squares ? Math.max(2, Math.round(rows * cols * squareShare)) : 0;
     const pickIn = shuffle([...inside.keys()].filter((i) => inside[i]), random);
     const pickOut = shuffle([...inside.keys()].filter((i) => !inside[i]), random);
-    const inCount = Math.max(1, Math.min(pickIn.length, Math.round(want * pickIn.length / (rows * cols))));
-    for (const i of pickIn.slice(0, inCount)) squares[i] = lightInside ? LIGHT : DARK;
-    for (const i of pickOut.slice(0, Math.max(1, want - inCount))) squares[i] = lightInside ? DARK : LIGHT;
+    if (want > 0) {
+      const inCount = Math.max(1, Math.min(pickIn.length, Math.round(want * pickIn.length / (rows * cols))));
+      for (const i of pickIn.slice(0, inCount)) squares[i] = lightInside ? LIGHT : DARK;
+      for (const i of pickOut.slice(0, Math.max(1, want - inCount))) squares[i] = lightInside ? DARK : LIGHT;
+    }
 
     // Rings on a few of the dots the loop passes through.
     const rings = new Array<boolean>((rows + 1) * (cols + 1)).fill(false);
@@ -254,7 +273,8 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
     for (let r = 0; r <= rows; r++) {
       for (let c = 0; c <= cols; c++) if (dotEdges(g, r, c).some((e) => solution[e])) onLoop.push(dotIndex(g, r, c));
     }
-    for (const d of shuffle(onLoop, random).slice(0, Math.max(1, Math.round(onLoop.length * ringShare)))) rings[d] = true;
+    const ringCount = rules.rings ? Math.max(1, Math.round(onLoop.length * ringShare)) : 0;
+    for (const d of shuffle(onLoop, random).slice(0, ringCount)) rings[d] = true;
 
     const clues: (number | null)[] = [];
     for (let r = 0; r < rows; r++) {
