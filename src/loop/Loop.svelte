@@ -51,8 +51,12 @@
     >
       {#each game.clues as clue, i (i)}
         {#if clue !== null}
+          {#if around[i] > clue}
+            <rect class="over" x={(i % game.cols) + 0.2} y={Math.floor(i / game.cols) + 0.2} width="0.6" height="0.6" rx="0.12" />
+          {/if}
           <text
-            class={['clue', { met: clue > 0 && around[i] === clue, over: around[i] > clue }]}
+            class={['clue', { met: clue > 0 && around[i] === clue }]}
+            data-n={clue}
             x={(i % game.cols) + 0.5}
             y={Math.floor(i / game.cols) + 0.53}
           >{clue}</text>

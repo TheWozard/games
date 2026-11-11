@@ -1,9 +1,6 @@
 .loop-board {
   width: min(100cqw, 100cqh * (var(--cols) + 0.9) / (var(--rows) + 0.9));
   aspect-ratio: calc(var(--cols) + 0.9) / calc(var(--rows) + 0.9);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -17,10 +14,16 @@
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
-  transition: fill 0.2s ease;
+  transition: opacity 0.2s ease;
 }
-.loop-board .clue.met { fill: var(--muted); opacity: 0.6; }
-.loop-board .clue.over { fill: var(--danger); }
+/* The same colors as Mines' numbers. */
+.loop-board .clue[data-n="1"] { fill: #7aa5f5; }
+.loop-board .clue[data-n="2"] { fill: #6cc58a; }
+.loop-board .clue[data-n="3"] { fill: #f07b70; }
+.loop-board .clue[data-n="4"] { fill: #b58cf0; }
+.loop-board .clue.met { opacity: 0.35; }
+/* Too many lines: a red tile behind the number (3 is already red, so the number can't just turn red). */
+.loop-board .over { fill: var(--danger-soft); stroke: var(--danger); stroke-width: 0.04; pointer-events: none; }
 
 .loop-board .line { stroke: var(--accent); stroke-width: 0.11; stroke-linecap: round; pointer-events: none; }
 .loop-board .cross { stroke: var(--muted); stroke-width: 0.05; stroke-linecap: round; pointer-events: none; }
