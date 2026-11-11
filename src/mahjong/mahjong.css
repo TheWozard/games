@@ -19,10 +19,11 @@
   border: 0;
   border-radius: calc(var(--u) * 0.45);
   background: linear-gradient(160deg, #fbf7ec, #ece3cc);
-  /* The tile's side, then a soft shadow on the layer below. */
+  /* The tile's side: a thin ivory face over the traditional green back, then a soft shadow on the
+     layer below. */
   box-shadow:
-    calc(var(--u) * 0.2) calc(var(--u) * 0.2) 0 #cdbf98,
-    calc(var(--u) * 0.42) calc(var(--u) * 0.42) 0 #a8996f,
+    calc(var(--u) * 0.2) calc(var(--u) * 0.2) 0 #d8cba6,
+    calc(var(--u) * 0.42) calc(var(--u) * 0.42) 0 #2f7a52,
     calc(var(--u) * 0.55) calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgb(0 0 0 / 0.45);
   transition: filter 0.2s ease, transform 0.12s ease, box-shadow 0.12s ease;
   touch-action: manipulation;
