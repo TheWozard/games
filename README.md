@@ -6,7 +6,7 @@ TypeScript, built with [Vite](https://vite.dev) into small static files.
 
 Games:
 - [Sudoku](src/sudoku/): generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
-- [Killer Sudoku](src/killer/): Sudoku plus textured cages that add up to their sums; every puzzle has a unique solution and almost no givens.
+- [Killer Sudoku](src/killer/): Sudoku plus colored cages that add up to their sums; every puzzle has a unique solution and almost no givens.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
 - [Loop](src/loop/): draw one closed loop along the dots to match the numbers; every puzzle has exactly one loop.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network; every puzzle has a unique solution.

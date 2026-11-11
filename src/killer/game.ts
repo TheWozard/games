@@ -1,5 +1,5 @@
 // Killer Sudoku on top of the shared grid mechanics (../shared/grid.ts). Cells can't repeat a
-// digit with their row, column, box or cage; each cage is a textured zone with its sum in the
+// digit with their row, column, box or cage; each cage is a colored zone with its sum in the
 // corner, and boxes are thick lines.
 import type { GridLayout } from '../shared/GridPlay.svelte';
 import { gridStart, isGridState, type GridState } from '../shared/grid';
@@ -29,7 +29,7 @@ const cache = new WeakMap<Cage[], { cageOf: number[]; peers: number[][]; sumAt: 
 export const ZONES = 5;
 
 /**
- * A zone texture (0..ZONES-1) per cage such that cages that touch never share one. Any map can be
+ * A zone color (0..ZONES-1) per cage such that cages that touch never share one. Any map can be
  * colored with four, so five always works: a small backtracking search, most-constrained cage
  * first. Deterministic, so a puzzle keeps its colors across reloads.
  */
@@ -59,7 +59,7 @@ export function cageColors(cages: readonly Cage[], cageOf: readonly number[]): n
       }
     }
     const taken = new Set([...touching[k]].map((n) => colorOf[n]));
-    // Start each search at a different texture, so they spread across the board.
+    // Start each search at a different color, so they spread across the board.
     for (let n = 0; n < ZONES; n++) {
       const c = (k + n) % ZONES;
       if (taken.has(c)) continue;

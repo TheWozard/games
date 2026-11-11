@@ -57,6 +57,7 @@
   top: 2px;
   left: 3px;
   color: var(--text);
+  opacity: 0.4;
   font-size: calc(22cqi / var(--n));
   font-weight: 600;
   line-height: 1;
@@ -74,27 +75,19 @@
   line-height: 1;
 }
 
-/* Zone textures (Killer's cages): faint light marks over the cell's own background, so selection,
-   peer and conflict highlights still show through. Each pattern tiles a whole number of times per
-   cell, so it runs on from cell to cell across a cage. Plain counts as one of the five. The color
-   is --zone-ink (base.css); each texture picks its own strength. */
-.grid-board .cell.zone-0 { background-image: none; }                                  /* plain */
-.grid-board .cell.zone-1 {                                                             /* checks: 4 × 4 per cell */
-  background-image: conic-gradient(rgb(var(--zone-ink) / 0.08) 0 25%, transparent 0 50%, rgb(var(--zone-ink) / 0.08) 0 75%, transparent 0);
-  background-size: 50% 50%;
-}
-.grid-board .cell.zone-2 { background-image: linear-gradient(rgb(var(--zone-ink) / 0.07), rgb(var(--zone-ink) / 0.07)); } /* solid */
-.grid-board .cell.zone-3 {                                                             /* polka dots, rows offset */
-  /* Each quarter-cell tile holds two dots on a diagonal, so alternate rows sit half a step over. */
-  background-image:
-    radial-gradient(circle 0.62cqi at 25% 25%, rgb(var(--zone-ink) / 0.18) 80%, transparent 100%),
-    radial-gradient(circle 0.62cqi at 75% 75%, rgb(var(--zone-ink) / 0.18) 80%, transparent 100%);
-  background-size: 50% 50%;
-}
-.grid-board .cell.zone-4 {                                                             /* stripes ↗ */
-  background-image: linear-gradient(45deg, rgb(var(--zone-ink) / 0.11) 0 12%, transparent 12% 50%, rgb(var(--zone-ink) / 0.11) 50% 62%, transparent 62%);
-  background-size: 33.334% 33.334%;
-}
+/* Zone colors (Killer's cages): a translucent fill per zone, over the cell's own background so
+   selection, peer and conflict highlights still show through. GridPlay insets it --zone-gap from
+   the zone's outline, so each cage reads as one shape with a margin of plain cell around it. The
+   first is blank; the other four are the start of PALETTE (palette.ts). */
+.grid-board { --zone-gap: 5px; }
+.grid-board .zone-fill { position: absolute; pointer-events: none; background: color-mix(in srgb, var(--zone) 20%, transparent); }
+.grid-board .zone-0 { --zone: transparent; }
+.grid-board .zone-1 { --zone: #e5534b; }
+.grid-board .zone-2 { --zone: #4f8ef7; }
+.grid-board .zone-3 { --zone: #e8c547; }
+.grid-board .zone-4 { --zone: #3fb67a; }
+/* Positioned, so it paints above the fill. */
+.grid-board .value { position: relative; }
 
 /* Keep pencil marks clear of a corner label. */
 .grid-board .cell:has(.label) .notes { top: 28%; }

@@ -8,8 +8,7 @@
   --muted: #9095a3;
   --line: #353943;
   --line-strong: #9aa0ad;
-  --grid-line: #4c525e; /* thin lines between grid cells: clear against cells and zone textures */
-  --zone-ink: 200 216 255; /* Killer's cage textures, as R G B (each sets its own opacity): a pale blue-white */
+  --grid-line: #4c525e; /* thin lines between grid cells: clear against cells and zone colors */
   --accent: #7aa5f5;
   --accent-soft: #2a3a5c;
   --peer: #262a32;

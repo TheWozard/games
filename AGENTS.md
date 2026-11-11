@@ -65,7 +65,7 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
 - **Digit-grid games** (Sudoku-like) don't need their own component: mount `GridPlay` from
   `main.ts` with a `layout(game)` that gives size, peers (cells that can't share a digit), thick
-  walls, zone textures (0–4; touching zones must differ) and corner labels. See
+  walls, zone colors (0–4, drawn inset from each zone's outline; touching zones must differ) and corner labels. See
   `src/killer/`.
 
 ### Puzzle quality rules
