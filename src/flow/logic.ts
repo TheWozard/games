@@ -335,6 +335,9 @@ export function extend(dots: readonly [number, number][], paths: readonly Path[]
   const last = p[p.length - 1];
   if (last === undefined || !adjacent(last, cell, board)) return paths as Path[];
   const at = p.indexOf(cell);
+  // Back onto its own path: cut back to there. Not onto a bridge it crosses from another side
+  // (a path can't cross itself): only a step straight back onto it counts.
+  if (at !== -1 && isBridge(cell, board) && at !== p.length - 2) return paths as Path[];
   if (at !== -1) return paths.map((q, j) => (j === k ? q.slice(0, at + 1) : q));
   if (connected(dots, paths, k)) return paths as Path[];
   // Leaving a bridge: straight on only.

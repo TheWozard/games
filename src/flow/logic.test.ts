@@ -140,6 +140,16 @@ describe('rules', () => {
     expect(settle(dots, off, 0, board)).toBe(off);
   });
 
+  it('won’t let a path cross itself on a bridge, but lets it step straight back off one', () => {
+    const board: Board = { ...plainBoard(5), bridges: [12] };
+    const dots: [number, number][] = [[10, 4]];
+    // Across the bridge and round: stepping down onto it from above is blocked, not a cut-back.
+    const round = [[10, 11, 12, 13, 8, 7]];
+    expect(extend(dots, round, 0, 12, board)).toBe(round);
+    // Straight back off the square past it is a cut-back as usual.
+    expect(extend(dots, [[10, 11, 12, 13]], 0, 12, board)).toEqual([[10, 11, 12]]);
+  });
+
   it('counts a bridge filled only when one path crosses it each way', () => {
     // The same, with the corners as holes so the two paths fill the board.
     const board: Board = { ...plainBoard(3), bridges: [4], holes: [0, 2, 6, 8] };

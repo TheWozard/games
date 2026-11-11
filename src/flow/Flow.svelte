@@ -148,11 +148,11 @@
     const { before, color } = stroke;
     stroke = null;
     drawing = false;
-    // A stroke that never left its dot leaves no path behind (and, if nothing else changed, no undo
-    // step); one let go on a bridge carries on through it (see `settle`).
-    if (game.paths[color].length === 1) dispatch({ type: 'draw', paths: game.paths.map((p, k) => (k === color ? [] : p)) });
+    // One let go on a bridge carries on through it, or backs off it (see `settle`); then a stroke
+    // left with nothing but its dot leaves no path behind (and, if nothing else changed, no undo step).
     const settled = settle(game.dots, game.paths, color, board);
     if (settled !== game.paths) dispatch({ type: 'draw', paths: settled });
+    if (game.paths[color].length === 1) dispatch({ type: 'draw', paths: game.paths.map((p, k) => (k === color ? [] : p)) });
     dispatch({ type: 'commit', before });
   }
 </script>
