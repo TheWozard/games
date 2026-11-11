@@ -3,6 +3,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
+  import { toastOnFinish } from '../shared/finish.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, lines, newGame, reducer, STORAGE_KEY, type Action, type Settings } from './game';
@@ -21,6 +22,7 @@
   let choice = $state<Settings>({ ...DEFAULT });
 
   $effect(() => saveJSON(STORAGE_KEY, game));
+  toastOnFinish(() => game.done, () => `Settled in ${game.history.length} ${game.history.length === 1 ? 'swap' : 'swaps'}.`);
 
   const start = (settings: Settings) => (game = newGame(settings));
 
@@ -87,34 +89,34 @@
 <main class="play">
   <!-- The board, with a marker beside each row and under each column that lights up when that
        line is all in place. Lines made only of fixed tiles are always right, so they get none. -->
-  <div class={['gradient-wrap', { done: game.done }]} style:--cols={game.cols} style:--rows={game.rows}>
-  <div class="gradient-board" role="group" aria-label="Gradient tiles">
-    {#each game.order as id, pos (id)}
-      <button
-        type="button"
-        class={['tile', { fixed: game.fixed[pos], selected: game.selected === pos }]}
-        style:background={colors[id]}
-        data-pos={pos}
-        aria-label={game.fixed[pos] ? 'Fixed tile' : 'Tile'}
-        aria-pressed={game.selected === pos}
-        onpointerdown={(e) => pointerDown(e, pos)}
-        onclick={() => click(pos)}
-        animate:flip={{ duration: 260 }}
-      ></button>
-    {/each}
-  </div>
-  <div class="marks rows" aria-hidden="true">
-    {#each marks.rows as line, r (r)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
-  </div>
-  <div class="marks cols" aria-hidden="true">
-    {#each marks.cols as line, c (c)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
-  </div>
+  <div class="board-area">
+    <div class={['gradient-wrap', { done: game.done }]} style:--cols={game.cols} style:--rows={game.rows}>
+    <div class="gradient-board" role="group" aria-label="Gradient tiles">
+      {#each game.order as id, pos (id)}
+        <button
+          type="button"
+          class={['tile', { fixed: game.fixed[pos], selected: game.selected === pos }]}
+          style:background={colors[id]}
+          data-pos={pos}
+          aria-label={game.fixed[pos] ? 'Fixed tile' : 'Tile'}
+          aria-pressed={game.selected === pos}
+          onpointerdown={(e) => pointerDown(e, pos)}
+          onclick={() => click(pos)}
+          animate:flip={{ duration: 260 }}
+        ></button>
+      {/each}
+    </div>
+    <div class="marks rows" aria-hidden="true">
+      {#each marks.rows as line, r (r)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
+    </div>
+    <div class="marks cols" aria-hidden="true">
+      {#each marks.cols as line, c (c)}<span class={['mark', { on: line.correct, none: line.fixed }]}></span>{/each}
+    </div>
+    </div>
   </div>
 
 
-  {#if game.done}
-    <p class="status">Settled in {game.history.length} {game.history.length === 1 ? 'swap' : 'swaps'}.</p>
-  {/if}
+
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') start(choice); }}>

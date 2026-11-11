@@ -2,6 +2,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
+  import { toastOnFinish } from '../shared/finish.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { counts, DIFFICULTIES, isDifficulty } from './logic';
@@ -17,6 +18,8 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
+  toastOnFinish(() => game.status === 'won', () => 'Cleared.');
+  toastOnFinish(() => game.status === 'lost', () => 'That one was a mine.', { tone: 'error' });
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
@@ -83,45 +86,42 @@
 </header>
 
 <main class="play">
-  <div class="mine-board" style:--rows={game.rows} style:--cols={game.cols} aria-label="Mine field">
-    {#each game.revealed as open, i (i)}
-      {@const flagged = game.flagged[i]}
-      {@const mine = game.mines?.[i] ?? false}
-      {@const lost = game.status === 'lost'}
-      {@const n = near?.[i] ?? 0}
-      <button
-        type="button"
-        class={['tile', {
-          open,
-          flagged,
-          exploded: game.exploded === i,
-          'show-mine': lost && mine && !flagged,
-          'wrong-flag': lost && flagged && !mine,
-        }]}
-        data-n={open && !mine ? n : undefined}
-        aria-label={open ? (mine ? 'Mine' : n ? `${n}` : 'Empty') : flagged ? 'Flagged' : 'Hidden'}
-        onpointerdown={(e) => pointerDown(e, i)}
-        onpointermove={pointerMove}
-        onpointerup={cancelPress}
-        onpointerleave={cancelPress}
-        onpointercancel={cancelPress}
-        onclick={() => click(i)}
-        oncontextmenu={(e) => contextMenu(e, i)}
-      >
-        {#if open && mine}{@render mineIcon()}
-        {:else if open}{n || ''}
-        {:else if flagged}{@render flagIcon()}
-        {:else if lost && mine}{@render mineIcon()}
-        {/if}
-      </button>
-    {/each}
+  <div class="board-area">
+    <div class="mine-board" style:--rows={game.rows} style:--cols={game.cols} aria-label="Mine field">
+      {#each game.revealed as open, i (i)}
+        {@const flagged = game.flagged[i]}
+        {@const mine = game.mines?.[i] ?? false}
+        {@const lost = game.status === 'lost'}
+        {@const n = near?.[i] ?? 0}
+        <button
+          type="button"
+          class={['tile', {
+            open,
+            flagged,
+            exploded: game.exploded === i,
+            'show-mine': lost && mine && !flagged,
+            'wrong-flag': lost && flagged && !mine,
+          }]}
+          data-n={open && !mine ? n : undefined}
+          aria-label={open ? (mine ? 'Mine' : n ? `${n}` : 'Empty') : flagged ? 'Flagged' : 'Hidden'}
+          onpointerdown={(e) => pointerDown(e, i)}
+          onpointermove={pointerMove}
+          onpointerup={cancelPress}
+          onpointerleave={cancelPress}
+          onpointercancel={cancelPress}
+          onclick={() => click(i)}
+          oncontextmenu={(e) => contextMenu(e, i)}
+        >
+          {#if open && mine}{@render mineIcon()}
+          {:else if open}{n || ''}
+          {:else if flagged}{@render flagIcon()}
+          {:else if lost && mine}{@render mineIcon()}
+          {/if}
+        </button>
+      {/each}
+    </div>
   </div>
 
-  {#if game.status === 'won'}
-    <p class="status">Cleared.</p>
-  {:else if game.status === 'lost'}
-    <p class="status lost">That one was a mine.</p>
-  {/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>

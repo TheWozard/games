@@ -3,6 +3,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
+  import { toastOnFinish } from '../shared/finish.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
@@ -37,6 +38,7 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
+  toastOnFinish(() => game.done, () => 'Cleared.');
 
   function start(name: string) {
     if (isLayout(name)) game = newGame(name);
@@ -82,34 +84,34 @@
 </header>
 
 <main class="play">
-  <div class="mj-board" style:--w={box.w} style:--h={box.h} role="group" aria-label="Mahjong tiles">
-    {#each order as s (s.i)}
-      {#if !game.gone[s.i]}
-        <button
-          type="button"
-          class={['mj-tile', {
-            blocked: !free(game, s.i),
-            selected: game.selected === s.i,
-            shake: shaking === s.i,
-          }]}
-          style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
-          style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"
-          style:width="{(3 / box.w) * 100}%"
-          style:height="{(4 / box.h) * 100}%"
-          data-slot={s.i}
-          aria-label="Tile"
-          onclick={() => tap(s.i)}
-          transition:scale={{ duration: 180, start: 0.7 }}
-        >
-          <svg viewBox="0 0 30 40" aria-hidden="true"><use href="#mj-k{game.kinds[s.i]}" /></svg>
-        </button>
-      {/if}
-    {/each}
+  <div class="board-area">
+    <div class="mj-board" style:--w={box.w} style:--h={box.h} role="group" aria-label="Mahjong tiles">
+      {#each order as s (s.i)}
+        {#if !game.gone[s.i]}
+          <button
+            type="button"
+            class={['mj-tile', {
+              blocked: !free(game, s.i),
+              selected: game.selected === s.i,
+              shake: shaking === s.i,
+            }]}
+            style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
+            style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"
+            style:width="{(3 / box.w) * 100}%"
+            style:height="{(4 / box.h) * 100}%"
+            data-slot={s.i}
+            aria-label="Tile"
+            onclick={() => tap(s.i)}
+            transition:scale={{ duration: 180, start: 0.7 }}
+          >
+            <svg viewBox="0 0 30 40" aria-hidden="true"><use href="#mj-k{game.kinds[s.i]}" /></svg>
+          </button>
+        {/if}
+      {/each}
+    </div>
   </div>
 
-  {#if game.done}
-    <p class="status">Cleared.</p>
-  {:else if moves === 0}
+  {#if !game.done && moves === 0}
     <!-- Stuck: the only time Shuffle appears. -->
     <p class="status">No matching pairs are free.</p>
     <div class="tools">

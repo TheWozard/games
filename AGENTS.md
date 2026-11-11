@@ -59,7 +59,7 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
 - **Digit-grid games** (Sudoku-like) don't need their own component: mount `GridPlay` from
   `main.ts` with a `layout(game)` that gives size, peers (cells that can't share a digit), thick
-  walls, zone tints (0–4; touching zones must differ) and corner labels. See
+  walls, zone textures (0–4; touching zones must differ) and corner labels. See
   `src/killer/`.
 
 ### Puzzle quality rules
@@ -88,18 +88,23 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
      are in the header; leave the row out if nothing's left.
   2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
      buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
-  3. A `.status` note only when there's a state to report (finished, lost, stuck). No how-to text
-     on the game screen: instructions live behind the card's **i** button in `src/index.html`.
+  3. A `.status` note only for a state the player must act on (Mahjong stuck → Shuffle). Wins and
+     losses are announced with a toast (`toastOnFinish` in `src/shared/finish.svelte.ts`). No how-to text on the game
+     screen: instructions live behind the card's **i** button in `src/index.html`.
 - **Toggles** use `aria-pressed`. `base.css` styles `[aria-pressed="true"]` as selected.
-- **Fit the phone:** size boards with
-  `width: min(100%, calc((100dvh - <chrome>px) * cols / rows)); aspect-ratio: cols / rows`, so
-  they fit both width and height. For grids, set both `grid-template-columns` and
+- **Toasts:** `toast('message')` from `src/shared/toast.ts` shows a short note at the bottom of
+  the screen (about 2.5s, tap to dismiss, announced to screen readers, above dialogs); pass
+  `{ tone: 'error' }` for the red version (a loss, a refused move). Use it for brief, passing
+  feedback, not for anything the player has to act on or read again.
+- **Never scroll:** game pages are exactly one screen tall (`body.game`). Put the board inside
+  `<div class="board-area">`, which fills the space left between header and controls, and size
+  it with container units: `width: min(100cqw, 100cqh * cols / rows); aspect-ratio: cols / rows`. For grids, set both `grid-template-columns` and
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
-- **Calm by default:** no timers, and no pop-ups when a game ends. The finished board stays on
-  screen with a `.status` note (e.g. "Solved."), and the player taps **+** (New) when they want
+- **Calm by default:** no timers, and no pop-ups when a game ends. A toast says "Solved." (or
+  similar), the finished board stays on screen, and the player taps **+** (New) when they want
   another. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
 - **Relative URLs only.** The site lives under `/games/`. Link between pages with `../`. Reference
   files in `public/` root-relative (`/icons/icon.svg`); the build rewrites them.

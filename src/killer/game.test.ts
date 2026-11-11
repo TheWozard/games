@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gridReducer, type GridAction } from '../shared/grid';
-import { isGame, layout, newGame, TINTS, type Game } from './game';
+import { isGame, layout, newGame, ZONES, type Game } from './game';
 
 const play = (g: Game, ...actions: GridAction[]) => actions.reduce((s, a) => gridReducer(s, a, layout(s)), g);
 
@@ -36,23 +36,23 @@ describe('layout', () => {
   });
 });
 
-describe('tints', () => {
-  it('give touching cages different colours, and stay the same for a puzzle', () => {
+describe('zones', () => {
+  it('give touching cages different textures, and stay the same for a puzzle', () => {
     for (let run = 0; run < 30; run++) {
       const g = newGame(run % 3 === 0 ? 'easy' : run % 3 === 1 ? 'medium' : 'hard');
-      const tint = layout(g).tint!;
+      const zone = layout(g).zone!;
       const cageOf = (i: number) => g.cages.findIndex((c) => c.cells.includes(i));
       for (let i = 0; i < 81; i++) {
-        expect(tint(i)).toBeGreaterThanOrEqual(0);
-        expect(tint(i)).toBeLessThan(TINTS);
+        expect(zone(i)).toBeGreaterThanOrEqual(0);
+        expect(zone(i)).toBeLessThan(ZONES);
         for (const j of [i % 9 < 8 ? i + 1 : -1, i < 72 ? i + 9 : -1]) {
           if (j < 0) continue;
-          if (cageOf(i) === cageOf(j)) expect(tint(j)).toBe(tint(i));
-          else expect(tint(j)).not.toBe(tint(i));
+          if (cageOf(i) === cageOf(j)) expect(zone(j)).toBe(zone(i));
+          else expect(zone(j)).not.toBe(zone(i));
         }
       }
-      const again = layout(JSON.parse(JSON.stringify(g))).tint!;
-      expect([...Array(81).keys()].map(again)).toEqual([...Array(81).keys()].map(tint));
+      const again = layout(JSON.parse(JSON.stringify(g))).zone!;
+      expect([...Array(81).keys()].map(again)).toEqual([...Array(81).keys()].map(zone));
     }
   });
 });

@@ -1,7 +1,6 @@
 .bridges-board {
   /* As wide as the column allows, but short enough to leave room for the header and buttons. */
-  width: min(100%, calc((100dvh - 230px) * (var(--cols) + 0.5) / (var(--rows) + 0.5)));
-  align-self: center;
+  width: min(100cqw, 100cqh * (var(--cols) + 0.5) / (var(--rows) + 0.5));
   /* The viewBox has a quarter-cell margin all round, so edge islands clear the rounded corners. */
   aspect-ratio: calc(var(--cols) + 0.5) / calc(var(--rows) + 0.5);
   background: var(--surface);

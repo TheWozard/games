@@ -5,8 +5,7 @@
   /* --w × --h is the board in tile units (a tile is 3 × 4). */
   --u: calc(100cqi / var(--w));
   position: relative;
-  width: min(100%, calc((100dvh - 250px) * var(--w) / var(--h)));
-  align-self: center;
+  width: min(100cqw, 100cqh * var(--w) / var(--h));
   aspect-ratio: var(--w) / var(--h);
   container-type: inline-size;
   user-select: none;

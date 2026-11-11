@@ -2,9 +2,7 @@
 .mines-left svg { width: 1em; height: 1em; }
 
 .mine-board {
-  /* As wide as the column allows, but short enough to leave room for the header and buttons. */
-  width: min(100%, calc((100dvh - 210px) * var(--cols) / var(--rows)));
-  align-self: center;
+  width: min(100cqw, 100cqh * var(--cols) / var(--rows));
   aspect-ratio: var(--cols) / var(--rows);
   container-type: inline-size;
   display: grid;

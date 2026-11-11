@@ -2,8 +2,7 @@
 .tangle-count svg { width: 0.9em; height: 0.9em; }
 
 .untangle-board {
-  width: min(100%, calc((100dvh - 230px) * 100 / 130));
-  align-self: center;
+  width: min(100cqw, 100cqh * 100 / 130);
   aspect-ratio: 100 / 130;
   background: var(--surface);
   border-radius: 12px;

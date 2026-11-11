@@ -1,8 +1,7 @@
 .gradient-wrap {
   /* Board plus a 6px marker gutter (and 6px gap) to the right and below. */
   --gutter: 12px;
-  width: min(100%, calc((100dvh - 250px) * var(--cols) / var(--rows) + var(--gutter)));
-  align-self: center;
+  width: min(100cqw, (100cqh - var(--gutter)) * var(--cols) / var(--rows) + var(--gutter));
   display: grid;
   grid-template-columns: 1fr 6px;
   grid-template-rows: auto 6px;

@@ -2,6 +2,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
+  import { toastOnFinish } from '../shared/finish.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, newGame, reducer, STORAGE_KEY, type Action } from './game';
@@ -31,6 +32,7 @@
   $effect(() => {
     if (dragging === null) saveJSON(STORAGE_KEY, game);
   });
+  toastOnFinish(() => game.done, () => `Untangled in ${game.moves} ${game.moves === 1 ? 'move' : 'moves'}.`);
 
   function toBoard(e: PointerEvent): Point {
     const m = svg.getScreenCTM()!.inverse();
@@ -93,43 +95,43 @@
 </header>
 
 <main class="play">
-  <svg
-    bind:this={svg}
-    class={['untangle-board', { done: game.done, dragging: dragging !== null }]}
-    viewBox="0 0 {WIDTH} {HEIGHT}"
-    role="group"
-    aria-label="Untangle board"
-    onpointermove={pointerMove}
-    onpointerup={pointerUp}
-    onpointercancel={pointerUp}
-  >
-    {#each game.edges as [a, b], k (k)}
-      <line
-        class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}
-        x1={game.points[a][0]}
-        y1={game.points[a][1]}
-        x2={game.points[b][0]}
-        y2={game.points[b][1]}
-      />
-    {/each}
-    {#each game.points as [x, y], i (i)}
-      <g
-        class={['dot', { held: dragging === i, near: neighbours.has(i), touching: tangle.touching[i] }]}
-        role="button"
-        tabindex="-1"
-        aria-label="Dot {i + 1}"
-        onpointerdown={(e) => pointerDown(e, i)}
-      >
-        <circle class="hit" cx={x} cy={y} r="7" />
-        <circle class="mark" cx={x} cy={y} r={dragging === i ? r * 1.3 : r} />
-      </g>
-    {/each}
-  </svg>
+  <div class="board-area">
+    <svg
+      bind:this={svg}
+      class={['untangle-board', { done: game.done, dragging: dragging !== null }]}
+      viewBox="0 0 {WIDTH} {HEIGHT}"
+      role="group"
+      aria-label="Untangle board"
+      onpointermove={pointerMove}
+      onpointerup={pointerUp}
+      onpointercancel={pointerUp}
+    >
+      {#each game.edges as [a, b], k (k)}
+        <line
+          class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}
+          x1={game.points[a][0]}
+          y1={game.points[a][1]}
+          x2={game.points[b][0]}
+          y2={game.points[b][1]}
+        />
+      {/each}
+      {#each game.points as [x, y], i (i)}
+        <g
+          class={['dot', { held: dragging === i, near: neighbours.has(i), touching: tangle.touching[i] }]}
+          role="button"
+          tabindex="-1"
+          aria-label="Dot {i + 1}"
+          onpointerdown={(e) => pointerDown(e, i)}
+        >
+          <circle class="hit" cx={x} cy={y} r="7" />
+          <circle class="mark" cx={x} cy={y} r={dragging === i ? r * 1.3 : r} />
+        </g>
+      {/each}
+    </svg>
+  </div>
 
 
-  {#if game.done}
-    <p class="status">Untangled in {game.moves} {game.moves === 1 ? 'move' : 'moves'}.</p>
-  {/if}
+
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') game = newGame(choice); }}>

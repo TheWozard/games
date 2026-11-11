@@ -10,8 +10,8 @@
     /** Thick line on the cell's right / bottom edge (box or cage boundaries). */
     wallRight?: (i: number) => boolean;
     wallBottom?: (i: number) => boolean;
-    /** A muted background tint (0–5) for the cell's zone, e.g. its cage. */
-    tint?: (i: number) => number;
+    /** A faint texture (0–4) marking the cell's zone, e.g. its cage. Touching zones should differ. */
+    zone?: (i: number) => number;
     /** Small text in the cell's top-left corner (cage clues). */
     label?: (i: number) => string;
     /** Extra error highlighting beyond repeated digits (e.g. a full cage that doesn't add up). */
@@ -24,6 +24,7 @@
   import Dialog from './Dialog.svelte';
   import BackButton from './BackButton.svelte';
   import NewButton from './NewButton.svelte';
+  import { toastOnFinish } from './finish.svelte';
   import UndoButton from './UndoButton.svelte';
   import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
   import { loadJSON, saveJSON } from './storage';
@@ -53,6 +54,7 @@
 
   // Save after every change (the reducer returns a new object only when something changed).
   $effect(() => saveJSON(storageKey, game));
+  toastOnFinish(() => game.done, () => 'Solved.');
 
   function start(difficulty: string) {
     if (Object.hasOwn(difficulties, difficulty)) game = create(difficulty);
@@ -77,35 +79,37 @@
 </header>
 
 <main class="play">
-  <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} aria-label="{title} board">
-    {#each game.values as v, i (i)}
-      {@const r = Math.floor(i / shape.size)}
-      {@const c = i % shape.size}
-      {@const given = game.puzzle[i] !== 0}
-      {@const mask = v ? 0 : game.notes[i]}
-      {@const label = shape.label?.(i)}
-      <button
-        type="button"
-        class={['cell', {
-          'wall-r': shape.wallRight?.(i),
-          'wall-b': shape.wallBottom?.(i),
-          [`tint-${shape.tint?.(i)}`]: shape.tint !== undefined,
-          given,
-          selected: i === game.selected,
-          peer: game.selected !== null && shape.peers[game.selected].includes(i),
-          same: v !== 0 && v === selValue && i !== game.selected,
-          conflict: !given && (hasConflict(game.values, shape.peers, i) || shape.error?.(i)),
-        }]}
-        aria-label="{label ? `${label}, ` : ''}row {r + 1}, column {c + 1}: {v || 'empty'}"
-        onclick={() => dispatch({ type: 'select', index: i })}
-      >
-        {#if label}<span class="label">{label}</span>{/if}
-        <span class="value">{v || ''}</span>
-        <span class="notes">
-          {#each digits as d (d)}<span>{mask & (1 << d) ? d : ''}</span>{/each}
-        </span>
-      </button>
-    {/each}
+  <div class="board-area">
+    <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} aria-label="{title} board">
+      {#each game.values as v, i (i)}
+        {@const r = Math.floor(i / shape.size)}
+        {@const c = i % shape.size}
+        {@const given = game.puzzle[i] !== 0}
+        {@const mask = v ? 0 : game.notes[i]}
+        {@const label = shape.label?.(i)}
+        <button
+          type="button"
+          class={['cell', {
+            'wall-r': shape.wallRight?.(i),
+            'wall-b': shape.wallBottom?.(i),
+            [`zone-${shape.zone?.(i)}`]: shape.zone !== undefined,
+            given,
+            selected: i === game.selected,
+            peer: game.selected !== null && shape.peers[game.selected].includes(i),
+            same: v !== 0 && v === selValue && i !== game.selected,
+            conflict: !given && (hasConflict(game.values, shape.peers, i) || shape.error?.(i)),
+          }]}
+          aria-label="{label ? `${label}, ` : ''}row {r + 1}, column {c + 1}: {v || 'empty'}"
+          onclick={() => dispatch({ type: 'select', index: i })}
+        >
+          {#if label}<span class="label">{label}</span>{/if}
+          <span class="value">{v || ''}</span>
+          <span class="notes">
+            {#each digits as d (d)}<span>{mask & (1 << d) ? d : ''}</span>{/each}
+          </span>
+        </button>
+      {/each}
+    </div>
   </div>
 
   <div class="tools">
@@ -121,7 +125,6 @@
       </button>
     {/each}
   </div>
-  {#if game.done}<p class="status">Solved.</p>{/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>

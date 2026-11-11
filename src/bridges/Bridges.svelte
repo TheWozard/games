@@ -2,6 +2,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
+  import { toastOnFinish } from '../shared/finish.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
@@ -19,6 +20,7 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
+  toastOnFinish(() => game.done, () => 'Connected.');
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
@@ -112,81 +114,82 @@
 </header>
 
 <main class="play">
-  <svg
-    bind:this={svg}
-    class="bridges-board"
-    viewBox="-0.25 -0.25 {game.cols + 0.5} {game.rows + 0.5}"
-    style:--cols={game.cols}
-    style:--rows={game.rows}
-    role="group"
-    aria-label="Bridges board"
-    onpointerdown={pointerDown}
-    onpointermove={pointerMove}
-    onpointerup={pointerUp}
-    onpointercancel={pointerCancel}
-  >
-    <!-- Faint dots on every cell, to make rows and columns easy to follow. -->
-    {#each { length: game.rows } as _, r (r)}
-      {#each { length: game.cols } as _, c (c)}
-        <circle class="dot" cx={c + 0.5} cy={r + 0.5} r="0.035" />
+  <div class="board-area">
+    <svg
+      bind:this={svg}
+      class="bridges-board"
+      viewBox="-0.25 -0.25 {game.cols + 0.5} {game.rows + 0.5}"
+      style:--cols={game.cols}
+      style:--rows={game.rows}
+      role="group"
+      aria-label="Bridges board"
+      onpointerdown={pointerDown}
+      onpointermove={pointerMove}
+      onpointerup={pointerUp}
+      onpointercancel={pointerCancel}
+    >
+      <!-- Faint dots on every cell, to make rows and columns easy to follow. -->
+      {#each { length: game.rows } as _, r (r)}
+        {#each { length: game.cols } as _, c (c)}
+          <circle class="dot" cx={c + 0.5} cy={r + 0.5} r="0.035" />
+        {/each}
       {/each}
-    {/each}
 
-    {#each edges as e, k (k)}
-      {@const a = at(e.a)}
-      {@const b = at(e.b)}
-      {@const n = game.bridges[k]}
-      {#if n === 1}
-        <line class="bridge" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
-      {:else if n === 2}
-        {@const dx = e.horizontal ? 0 : 0.1}
-        {@const dy = e.horizontal ? 0.1 : 0}
-        <line class="bridge" x1={a.x - dx} y1={a.y - dy} x2={b.x - dx} y2={b.y - dy} />
-        <line class="bridge" x1={a.x + dx} y1={a.y + dy} x2={b.x + dx} y2={b.y + dy} />
+      {#each edges as e, k (k)}
+        {@const a = at(e.a)}
+        {@const b = at(e.b)}
+        {@const n = game.bridges[k]}
+        {#if n === 1}
+          <line class="bridge" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+        {:else if n === 2}
+          {@const dx = e.horizontal ? 0 : 0.1}
+          {@const dy = e.horizontal ? 0.1 : 0}
+          <line class="bridge" x1={a.x - dx} y1={a.y - dy} x2={b.x - dx} y2={b.y - dy} />
+          <line class="bridge" x1={a.x + dx} y1={a.y + dy} x2={b.x + dx} y2={b.y + dy} />
+        {/if}
+        <!-- Wide invisible target: tap the gap between two islands to cycle its bridges. -->
+        <line
+          class="hit"
+          x1={a.x}
+          y1={a.y}
+          x2={b.x}
+          y2={b.y}
+          role="button"
+          tabindex="-1"
+          aria-label="Bridge between islands, {n} built"
+          onclick={() => tapEdge(k)}
+          onkeydown={() => {}}
+        />
+      {/each}
+
+      <!-- Gesture feedback: where a drag will build, or the trail of a swipe. -->
+      {#if gesture?.kind === 'build'}
+        {@const from = centre(game, gesture.from)}
+        {@const e = edges[gesture.edge]}
+        {#if e}
+          {@const to = centre(game, e.a === gesture.from ? e.b : e.a)}
+          <line class="preview" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />
+        {:else}
+          <line class="preview loose" x1={from.x} y1={from.y} x2={gesture.to.x} y2={gesture.to.y} />
+        {/if}
+      {:else if gesture?.kind === 'swipe'}
+        <polyline class="trail" points={gesture.trail.map((p) => `${p.x},${p.y}`).join(' ')} />
       {/if}
-      <!-- Wide invisible target: tap the gap between two islands to cycle its bridges. -->
-      <line
-        class="hit"
-        x1={a.x}
-        y1={a.y}
-        x2={b.x}
-        y2={b.y}
-        role="button"
-        tabindex="-1"
-        aria-label="Bridge between islands, {n} built"
-        onclick={() => tapEdge(k)}
-        onkeydown={() => {}}
-      />
-    {/each}
 
-    <!-- Gesture feedback: where a drag will build, or the trail of a swipe. -->
-    {#if gesture?.kind === 'build'}
-      {@const from = centre(game, gesture.from)}
-      {@const e = edges[gesture.edge]}
-      {#if e}
-        {@const to = centre(game, e.a === gesture.from ? e.b : e.a)}
-        <line class="preview" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />
-      {:else}
-        <line class="preview loose" x1={from.x} y1={from.y} x2={gesture.to.x} y2={gesture.to.y} />
-      {/if}
-    {:else if gesture?.kind === 'swipe'}
-      <polyline class="trail" points={gesture.trail.map((p) => `${p.x},${p.y}`).join(' ')} />
-    {/if}
+      {#each game.islands as s, i (i)}
+        <g
+          class={['island', { full: have[i] === s.n, over: have[i] > s.n }]}
+          role="img"
+          aria-label="Island {s.n}, {have[i]} bridges"
+        >
+          <circle class="hit-island" cx={s.c + 0.5} cy={s.r + 0.5} r="0.5" />
+          <circle class="ring" cx={s.c + 0.5} cy={s.r + 0.5} r="0.37" />
+          <text x={s.c + 0.5} y={s.r + 0.53}>{s.n}</text>
+        </g>
+      {/each}
+    </svg>
+  </div>
 
-    {#each game.islands as s, i (i)}
-      <g
-        class={['island', { full: have[i] === s.n, over: have[i] > s.n }]}
-        role="img"
-        aria-label="Island {s.n}, {have[i]} bridges"
-      >
-        <circle class="hit-island" cx={s.c + 0.5} cy={s.r + 0.5} r="0.5" />
-        <circle class="ring" cx={s.c + 0.5} cy={s.r + 0.5} r="0.37" />
-        <text x={s.c + 0.5} y={s.r + 0.53}>{s.n}</text>
-      </g>
-    {/each}
-  </svg>
-
-  {#if game.done}<p class="status">Connected.</p>{/if}
 </main>
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>

@@ -8,7 +8,8 @@
   --muted: #9095a3;
   --line: #353943;
   --line-strong: #9aa0ad;
-  --grid-line: #4c525e; /* thin lines between grid cells: clear against cells and tints */
+  --grid-line: #4c525e; /* thin lines between grid cells: clear against cells and zone textures */
+  --zone-ink: 200 216 255; /* Killer's cage textures, as R G B (each sets its own opacity): a pale blue-white */
   --accent: #7aa5f5;
   --accent-soft: #2a3a5c;
   --peer: #262a32;
@@ -53,21 +54,41 @@ button {
 .bar h1 small { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
 .bar h1, .bar h1 small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Game pages (<body class="game">): header pinned to the top, game centred in the space below
-   it, so it sits comfortably on tall phones instead of hugging the header. */
-body.game { display: flex; flex-direction: column; }
-body.game #root { flex: 1; display: flex; flex-direction: column; }
+/* Game pages (<body class="game">) are exactly one screen tall and never scroll: header at the
+   top, controls at the bottom, and the board filling the space between. */
+body.game {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 .play {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   width: 100%;
   gap: 16px;
   max-width: 520px;
   margin: 0 auto;
-  padding: 0 16px 24px;
+  padding: 0 16px 20px;
+}
+
+/* A short note under the board for a state the player must act on (Mahjong: stuck, Shuffle).
+   Wins and losses are toasts instead. */
+.status { margin: 0; color: var(--text); font-size: 0.95rem; text-align: center; }
+
+/* The space the board may use. Boards size themselves to fit it with container units:
+   width: min(100cqw, 100cqh * <width ÷ height>), so they never push the page past one screen. */
+.board-area {
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
 }
 
 .back { text-decoration: none; }
@@ -130,3 +151,29 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 .pick .btn strong { font-size: 0.85rem; }
 .pick .btn span { font-size: 0.75rem; color: var(--muted); }
 .pick .btn[aria-pressed="true"] span { color: inherit; }
+
+/* Toast (src/shared/toast.ts): a short note that pops up at the bottom of the screen. The
+   popover reset (inset, margin, border, padding) undoes the browser's centred-popover default. */
+.toast {
+  position: fixed;
+  inset: auto auto calc(20px + env(safe-area-inset-bottom)) 50%;
+  margin: 0;
+  width: max-content; /* size to the text, not to the half-screen left of centre */
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px; /* a pill on one line, a soft box when it wraps */
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  text-align: center;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  translate: -50% 8px;
+  pointer-events: none;
+  transition: opacity 0.2s ease, translate 0.2s ease;
+}
+.toast.show { opacity: 1; translate: -50% 0; pointer-events: auto; }
+/* For a loss or a failed action: toast(message, { tone: 'error' }). */
+.toast.error { border-color: var(--danger); background: var(--danger-soft); color: #ffd9d4; }
+

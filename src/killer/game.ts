@@ -1,5 +1,5 @@
 // Killer Sudoku on top of the shared grid mechanics (../shared/grid.ts). Cells can't repeat a
-// digit with their row, column, box or cage; each cage is a tinted zone with its sum in the
+// digit with their row, column, box or cage; each cage is a textured zone with its sum in the
 // corner, and boxes are thick lines.
 import type { GridLayout } from '../shared/GridPlay.svelte';
 import { gridStart, isGridState, type GridState } from '../shared/grid';
@@ -26,10 +26,10 @@ export function isGame(value: unknown): value is Game {
 /** Layout derived from the cages, cached per game (cages never change during a game). */
 const cache = new WeakMap<Cage[], { cageOf: number[]; peers: number[][]; sumAt: Map<number, number>; colourOf: number[] }>();
 
-export const TINTS = 5;
+export const ZONES = 5;
 
 /**
- * A tint (0..TINTS-1) per cage such that cages that touch never share one. Any map can be
+ * A zone texture (0..ZONES-1) per cage such that cages that touch never share one. Any map can be
  * coloured with four, so five always works: a small backtracking search, most-constrained cage
  * first. Deterministic, so a puzzle keeps its colours across reloads.
  */
@@ -52,16 +52,16 @@ export function cageColours(cages: readonly Cage[], cageOf: readonly number[]): 
     for (let c = 0; c < cages.length; c++) {
       if (colourOf[c] !== -1) continue;
       const used = new Set([...touching[c]].map((n) => colourOf[n]));
-      const free = TINTS - [...used].filter((x) => x >= 0).length;
+      const free = ZONES - [...used].filter((x) => x >= 0).length;
       if (free < bestFree || (free === bestFree && touching[c].size > touching[k].size)) {
         k = c;
         bestFree = free;
       }
     }
     const taken = new Set([...touching[k]].map((n) => colourOf[n]));
-    // Start each search at a different colour, so the tints spread across the board.
-    for (let n = 0; n < TINTS; n++) {
-      const c = (k + n) % TINTS;
+    // Start each search at a different texture, so they spread across the board.
+    for (let n = 0; n < ZONES; n++) {
+      const c = (k + n) % ZONES;
       if (taken.has(c)) continue;
       colourOf[k] = c;
       if (colour(left - 1)) return true;
@@ -99,7 +99,7 @@ export function layout(g: Game): GridLayout {
     wallRight: (i) => colOf(i) % 3 === 2 && colOf(i) < 8,
     wallBottom: (i) => rowOf(i) % 3 === 2 && rowOf(i) < 8,
     label: (i) => (sumAt.has(i) ? String(sumAt.get(i)) : ''),
-    tint: (i) => colourOf[cageOf[i]],
+    zone: (i) => colourOf[cageOf[i]],
     error: (i) => wrong.has(i),
   };
 }
