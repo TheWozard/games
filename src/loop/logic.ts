@@ -1,14 +1,19 @@
-// Loop: draw a single closed loop along the grid lines between dots. A number in a cell says how
-// many of that cell's four sides the loop uses. The loop never branches or crosses itself.
+// Loop: draw a single closed loop along the grid lines between dots. The loop never branches or
+// crosses itself. Three kinds of clue:
+// - a number in a cell: how many of that cell's four sides the loop uses;
+// - a square in a cell, light or dark: every light square ends up on one side of the loop (inside
+//   or outside) and every dark square on the other;
+// - a ringed dot: the loop passes through it.
 //
 // Puzzles start from a real loop: the outline of a random blob of cells with no holes and no
-// pinches. Every cell gets its count, then clues are taken away in random order for as long as a
-// solver still finds exactly one loop.
+// pinches. A few cells get squares and a few of the loop's dots get rings, every other cell gets
+// its count, then counts are taken away in random order for as long as a solver still finds
+// exactly one loop.
 
 export const DIFFICULTIES = {
-  easy: { label: 'Easy', rows: 5, cols: 5, keep: 0.7 },
-  medium: { label: 'Medium', rows: 7, cols: 6, keep: 0.5 },
-  hard: { label: 'Hard', rows: 9, cols: 7, keep: 0 },
+  easy: { label: 'Easy', rows: 5, cols: 5, keep: 0.6, squares: 0.12, rings: 0.12 },
+  medium: { label: 'Medium', rows: 7, cols: 6, keep: 0.4, squares: 0.12, rings: 0.12 },
+  hard: { label: 'Hard', rows: 9, cols: 7, keep: 0, squares: 0.1, rings: 0.1 },
 } as const;
 
 export type Difficulty = keyof typeof DIFFICULTIES;
@@ -73,12 +78,52 @@ export function edgeBetween(g: Grid, [r1, c1]: [number, number], [r2, c2]: [numb
   return -1;
 }
 
+/** The two kinds of square. */
+export const LIGHT = 0;
+export const DARK = 1;
+export type Square = typeof LIGHT | typeof DARK;
+
+/** Everything a puzzle shows. `squares` is per cell; `rings` is per dot, row by row (rows + 1 by cols + 1). */
+export interface Clues {
+  clues: readonly (number | null)[];
+  squares: readonly (Square | null)[];
+  rings: readonly boolean[];
+}
+
+export const dotIndex = (g: Grid, r: number, c: number) => r * (g.cols + 1) + c;
+
+/** Per cell, whether it's inside the loop drawn by `on` (by counting the sides crossed from the left). */
+export function insideCells(g: Grid, on: readonly boolean[]): boolean[] {
+  const out: boolean[] = [];
+  for (let r = 0; r < g.rows; r++) {
+    let inside = false;
+    for (let c = 0; c < g.cols; c++) {
+      if (on[vEdge(g, r, c)]) inside = !inside;
+      out.push(inside);
+    }
+  }
+  return out;
+}
+
+/** Whether no light square shares a side of the loop with a dark one. */
+export function squaresSorted(g: Grid, squares: readonly (Square | null)[], on: readonly boolean[]): boolean {
+  const inside = insideCells(g, on);
+  const side: (boolean | undefined)[] = [undefined, undefined];
+  for (let i = 0; i < squares.length; i++) {
+    const k = squares[i];
+    if (k === null) continue;
+    side[k] ??= inside[i];
+    if (side[k] !== inside[i]) return false;
+  }
+  return side[LIGHT] === undefined || side[DARK] === undefined || side[LIGHT] !== side[DARK];
+}
+
 const ON = 1;
 const OFF = 0;
 const UNKNOWN = -1;
 
 /** Whether `on` (true per edge) is exactly one closed loop matching every clue. */
-export function isSolved(g: Grid, clues: readonly (number | null)[], on: readonly boolean[]): boolean {
+export function isSolved(g: Grid, { clues, squares, rings }: Clues, on: readonly boolean[]): boolean {
   for (let r = 0; r < g.rows; r++) {
     for (let c = 0; c < g.cols; c++) {
       const clue = clues[r * g.cols + c];
@@ -90,7 +135,7 @@ export function isSolved(g: Grid, clues: readonly (number | null)[], on: readonl
   for (let r = 0; r <= g.rows; r++) {
     for (let c = 0; c <= g.cols; c++) {
       const d = dotEdges(g, r, c).filter((e) => on[e]).length;
-      if (d !== 0 && d !== 2) return false;
+      if ((d !== 0 && d !== 2) || (rings[dotIndex(g, r, c)] && d !== 2)) return false;
       if (d === 2 && start === -1) start = dotEdges(g, r, c).find((e) => on[e])!;
     }
   }
@@ -108,13 +153,15 @@ export function isSolved(g: Grid, clues: readonly (number | null)[], on: readonl
       }
     }
   }
-  return seen.size === total;
+  return seen.size === total && squaresSorted(g, squares, on);
 }
 
 // ---- Generation ----
 
-export interface Puzzle {
+export interface Puzzle extends Clues {
   clues: (number | null)[]; // per cell, row by row
+  squares: (Square | null)[];
+  rings: boolean[];
   solution: boolean[]; // per edge
 }
 
@@ -179,10 +226,10 @@ function blob(g: Grid, random: Random): boolean[] {
   return inside;
 }
 
-const SOLVE_BUDGET = 4000;
+const SOLVE_BUDGET = 1000;
 
 export function generate(difficulty: Difficulty, random: Random = Math.random): Puzzle {
-  const { rows, cols, keep } = DIFFICULTIES[difficulty];
+  const { rows, cols, keep, squares: squareShare, rings: ringShare } = DIFFICULTIES[difficulty];
   const g = { rows, cols };
   for (;;) {
     const inside = blob(g, random);
@@ -190,23 +237,43 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
     const at = (r: number, c: number) => r >= 0 && r < rows && c >= 0 && c < cols && inside[r * cols + c];
     for (let r = 0; r <= rows; r++) for (let c = 0; c < cols; c++) solution[hEdge(g, r, c)] = at(r - 1, c) !== at(r, c);
     for (let r = 0; r < rows; r++) for (let c = 0; c <= cols; c++) solution[vEdge(g, r, c)] = at(r, c - 1) !== at(r, c);
+
+    // Squares: light inside and dark outside, or the other way round; at least one of each.
+    const lightInside = random() < 0.5;
+    const squares = new Array<Square | null>(rows * cols).fill(null);
+    const want = Math.max(2, Math.round(rows * cols * squareShare));
+    const pickIn = shuffle([...inside.keys()].filter((i) => inside[i]), random);
+    const pickOut = shuffle([...inside.keys()].filter((i) => !inside[i]), random);
+    const inCount = Math.max(1, Math.min(pickIn.length, Math.round(want * pickIn.length / (rows * cols))));
+    for (const i of pickIn.slice(0, inCount)) squares[i] = lightInside ? LIGHT : DARK;
+    for (const i of pickOut.slice(0, Math.max(1, want - inCount))) squares[i] = lightInside ? DARK : LIGHT;
+
+    // Rings on a few of the dots the loop passes through.
+    const rings = new Array<boolean>((rows + 1) * (cols + 1)).fill(false);
+    const onLoop: number[] = [];
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) if (dotEdges(g, r, c).some((e) => solution[e])) onLoop.push(dotIndex(g, r, c));
+    }
+    for (const d of shuffle(onLoop, random).slice(0, Math.max(1, Math.round(onLoop.length * ringShare)))) rings[d] = true;
+
     const clues: (number | null)[] = [];
     for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) clues.push(cellEdges(g, r, c).filter((e) => solution[e]).length);
+      for (let c = 0; c < cols; c++) clues.push(squares[r * cols + c] === null ? cellEdges(g, r, c).filter((e) => solution[e]).length : null);
     }
-    const first = solve(g, clues, 2, SOLVE_BUDGET);
-    if (first?.length !== 1) continue;
-    // Take clues away while the answer stays unique, down to the difficulty's share.
+    const puzzle = { clues, squares, rings };
+    if (solve(g, puzzle, 2, SOLVE_BUDGET)?.length !== 1) continue;
+    // Take numbers away while the answer stays unique, down to the difficulty's share of cells.
     const floor = Math.round(rows * cols * keep);
-    let shown = rows * cols;
+    let shown = clues.filter((x) => x !== null).length;
     for (const i of shuffle([...clues.keys()], random)) {
       if (shown <= floor) break;
       const value = clues[i];
+      if (value === null) continue;
       clues[i] = null;
-      if (solve(g, clues, 2, SOLVE_BUDGET)?.length === 1) shown--;
+      if (solve(g, puzzle, 2, SOLVE_BUDGET)?.length === 1) shown--;
       else clues[i] = value;
     }
-    return { clues, solution };
+    return { clues, squares, rings, solution };
   }
 }
 
@@ -217,8 +284,17 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
  * runs past `budget` steps. Propagates clue counts, dot degrees (0 or 2) and "no early loop",
  * then guesses an edge that extends an open path.
  */
-export function solve(g: Grid, clues: readonly (number | null)[], limit: number, budget = Infinity): boolean[][] | null {
+export function solve(g: Grid, puzzle: Clues, limit: number, budget = Infinity): boolean[][] | null {
+  const { clues, squares, rings } = puzzle;
   const E = edgeCount(g);
+  const n = g.rows * g.cols;
+  // The two cells each edge separates (n stands for everything outside the grid).
+  const sides = Array.from({ length: E }, (_, e) => {
+    const [[r1, c1], [r2]] = edgeEnds(g, e);
+    const cell = (r: number, c: number) => (r >= 0 && r < g.rows && c >= 0 && c < g.cols ? r * g.cols + c : n);
+    return r1 === r2 ? [cell(r1 - 1, c1), cell(r1, c1)] : [cell(r1, c1 - 1), cell(r1, c1)];
+  });
+  const squareCells = [...squares.keys()].filter((i) => squares[i] !== null);
   const cells: { edges: number[]; clue: number }[] = [];
   for (let r = 0; r < g.rows; r++) {
     for (let c = 0; c < g.cols; c++) {
@@ -228,6 +304,7 @@ export function solve(g: Grid, clues: readonly (number | null)[], limit: number,
   }
   const dots: number[][] = [];
   for (let r = 0; r <= g.rows; r++) for (let c = 0; c <= g.cols; c++) dots.push(dotEdges(g, r, c));
+  const ringed = dots.filter((_, d) => rings[d]);
   const ends = Array.from({ length: E }, (_, e) => edgeEnds(g, e).map(([r, c]) => r * (g.cols + 1) + c));
   const found: boolean[][] = [];
   let steps = 0;
@@ -265,6 +342,50 @@ export function solve(g: Grid, clues: readonly (number | null)[], limit: number,
         if (on === 2 || (on === 0 && unknown === 1)) edges.forEach((e) => set(e, OFF));
         else if (on === 1 && unknown === 1) edges.forEach((e) => set(e, ON));
       }
+      for (const edges of ringed) {
+        let on = 0;
+        let unknown = 0;
+        for (const e of edges) {
+          if (s[e] === ON) on++;
+          else if (s[e] === UNKNOWN) unknown++;
+        }
+        if (on + unknown < 2) return false;
+        if (unknown && on + unknown === 2) edges.forEach((e) => set(e, ON));
+      }
+      if (!changed) {
+        // Inside and outside: a line between two cells puts them on different sides, no line on the
+        // same side; squares of one kind share a side, the two kinds differ. Whenever that already
+        // ties two neighboring cells together, the side between them follows.
+        const parent = Array.from({ length: n + 1 }, (_, i) => i);
+        const flip = new Array<number>(n + 1).fill(0); // parity relative to parent
+        const find = (x: number): [number, number] => {
+          if (parent[x] === x) return [x, 0];
+          const [root, p] = find(parent[x]);
+          flip[x] ^= p;
+          parent[x] = root;
+          return [root, flip[x]];
+        };
+        const relate = (a: number, b: number, differ: number): boolean => {
+          const [ra, pa] = find(a);
+          const [rb, pb] = find(b);
+          if (ra === rb) return (pa ^ pb) === differ;
+          parent[ra] = rb;
+          flip[ra] = pa ^ pb ^ differ;
+          return true;
+        };
+        for (let e = 0; e < E; e++) if (s[e] !== UNKNOWN && !relate(sides[e][0], sides[e][1], s[e] === ON ? 1 : 0)) return false;
+        for (let k = 1; k < squareCells.length; k++) {
+          const a = squareCells[0];
+          const b = squareCells[k];
+          if (!relate(a, b, squares[a] === squares[b] ? 0 : 1)) return false;
+        }
+        for (let e = 0; e < E; e++) {
+          if (s[e] !== UNKNOWN) continue;
+          const [ra, pa] = find(sides[e][0]);
+          const [rb, pb] = find(sides[e][1]);
+          if (ra === rb) set(e, pa ^ pb ? ON : OFF);
+        }
+      }
       if (!changed) {
         // An edge joining the two ends of one path would close a loop. That's only allowed if the
         // loop would then be the whole answer; otherwise the edge must be off.
@@ -276,7 +397,7 @@ export function solve(g: Grid, clues: readonly (number | null)[], limit: number,
           const trial = s.slice();
           trial[e] = ON;
           for (let k = 0; k < E; k++) if (trial[k] === UNKNOWN) trial[k] = OFF;
-          if (!isSolved(g, clues, trial.map((v) => v === ON))) set(e, OFF);
+          if (!isSolved(g, puzzle, trial.map((v) => v === ON))) set(e, OFF);
         }
       }
     }
@@ -313,7 +434,7 @@ export function solve(g: Grid, clues: readonly (number | null)[], limit: number,
     // If the lines already drawn make a complete, valid loop, that's this branch's only answer:
     // any further line would be a second piece.
     const closed = s.map((v) => v === ON);
-    if (closed.includes(true) && isSolved(g, clues, closed)) {
+    if (closed.includes(true) && isSolved(g, puzzle, closed)) {
       found.push(closed);
       return;
     }

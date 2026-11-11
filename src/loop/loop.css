@@ -7,7 +7,7 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  touch-action: none; /* finger drags draw on the board, never scroll or zoom the page */
+  touch-action: manipulation;
 }
 
 .loop-board .clue {
@@ -27,6 +27,14 @@
 .loop-board .hit { stroke: transparent; stroke-width: 0.42; cursor: pointer; outline: none; }
 
 .loop-board .dot { fill: var(--line-strong); pointer-events: none; }
+
+/* Squares: light ones solid, dark ones hollow, so the two kinds differ by more than color. */
+.loop-board .square { fill: var(--text); pointer-events: none; }
+.loop-board .square.dark { fill: var(--bg); stroke: var(--text); stroke-width: 0.06; }
+
+/* Ringed dots the loop must pass through; they dim once it does. */
+.loop-board .ring { fill: none; stroke: var(--text); stroke-width: 0.05; pointer-events: none; transition: opacity 0.2s ease; }
+.loop-board .ring.met { opacity: 0.35; }
 .loop-board .dot.bad { fill: var(--danger); r: 0.12; }
 
 /* Closed: the loop glows a little brighter. */

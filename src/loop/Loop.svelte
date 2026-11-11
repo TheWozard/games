@@ -1,9 +1,8 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { CROSS, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action, type Mark } from './game';
-  import { strokeEdges, type Point } from './gesture';
-  import { cellEdges, DIFFICULTIES, dotEdges, edgeEnds, isDifficulty } from './logic';
+  import { CROSS, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
@@ -15,86 +14,17 @@
   const around = $derived(
     game.clues.map((_, i) => cellEdges(game, Math.floor(i / game.cols), i % game.cols).filter((e) => game.marks[e] === LINE).length),
   );
-  // Dots where more than two lines meet: the loop would branch there.
-  const branching = $derived.by(() => {
-    const out: [number, number][] = [];
-    for (let r = 0; r <= game.rows; r++) {
-      for (let c = 0; c <= game.cols; c++) {
-        if (dotEdges(game, r, c).filter((e) => game.marks[e] === LINE).length > 2) out.push([r, c]);
-      }
-    }
-    return out;
-  });
+  // Lines meeting at each dot: more than two would branch; a ring is met at exactly two.
+  const degree = $derived(
+    Array.from({ length: (game.rows + 1) * (game.cols + 1) }, (_, d) =>
+      dotEdges(game, Math.floor(d / (game.cols + 1)), d % (game.cols + 1)).filter((e) => game.marks[e] === LINE).length,
+    ),
+  );
 
-  let dragging = $state(false);
-
-  $effect(() => {
-    if (!dragging) saveJSON(STORAGE_KEY, game);
-  });
+  $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
-  }
-
-  // Mouse: left-click a side to add a line (or clear a cross); right-click to remove a line, or to
-  // cross out an empty side.
-  function add(edge: number) {
-    if (!swallowClick) dispatch({ type: 'add', edge });
-  }
-
-  function remove(e: MouseEvent, edge: number) {
-    e.preventDefault();
-    if (!swallowClick) dispatch({ type: 'remove', edge });
-  }
-
-  // Touch: drag along a side to add it, drag across a line to remove it (or cross out an empty
-  // side). Each side reacts once per drag, and the whole drag is one undo step. The finger must
-  // move a little between checks so small wobbles don't count.
-  const STEP = 0.14;
-  let svg: SVGSVGElement;
-  let touch: { id: number; anchor: Point; seen: Set<number>; before: Mark[] } | null = null;
-  let swallowClick = false;
-
-  function toBoard(e: PointerEvent): Point {
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
-    return { x: p.x, y: p.y };
-  }
-
-  function pointerDown(e: PointerEvent) {
-    swallowClick = false;
-    if (e.pointerType === 'mouse' || game.done || touch) return;
-    touch = { id: e.pointerId, anchor: toBoard(e), seen: new Set(), before: game.marks };
-  }
-
-  function pointerMove(e: PointerEvent) {
-    if (!touch || e.pointerId !== touch.id) return;
-    const p = toBoard(e);
-    if (Math.hypot(p.x - touch.anchor.x, p.y - touch.anchor.y) < STEP) return;
-    if (!dragging) {
-      svg.setPointerCapture?.(e.pointerId);
-      dragging = true;
-      swallowClick = true;
-    }
-    const { along, across } = strokeEdges(game, touch.anchor, p);
-    for (const edge of along) {
-      if (!touch.seen.has(edge)) dispatch({ type: 'add', edge, live: true });
-      touch.seen.add(edge);
-    }
-    for (const edge of across) {
-      if (!touch.seen.has(edge)) dispatch({ type: 'remove', edge, live: true });
-      touch.seen.add(edge);
-    }
-    touch.anchor = p;
-  }
-
-  function pointerUp(e: PointerEvent) {
-    if (!touch || e.pointerId !== touch.id) return;
-    const before = touch.before;
-    touch = null;
-    if (dragging) {
-      dragging = false;
-      dispatch({ type: 'commit', before });
-    }
   }
 </script>
 
@@ -111,7 +41,6 @@
 >
   <div class="board-area">
     <svg
-      bind:this={svg}
       class={['loop-board', { done: game.done }]}
       viewBox="-0.45 -0.45 {game.cols + 0.9} {game.rows + 0.9}"
       style:--cols={game.cols}
@@ -119,10 +48,6 @@
       role="group"
       aria-label="Loop board"
       oncontextmenu={(e) => e.preventDefault()}
-      onpointerdown={pointerDown}
-      onpointermove={pointerMove}
-      onpointerup={pointerUp}
-      onpointercancel={pointerUp}
     >
       {#each game.clues as clue, i (i)}
         {#if clue !== null}
@@ -134,6 +59,19 @@
         {/if}
       {/each}
 
+      {#each game.squares as kind, i (i)}
+        {#if kind !== null}
+          <rect
+            class={['square', { dark: kind === DARK }]}
+            x={(i % game.cols) + 0.32}
+            y={Math.floor(i / game.cols) + 0.32}
+            width="0.36"
+            height="0.36"
+            rx="0.07"
+          />
+        {/if}
+      {/each}
+
       {#each edges as [[r1, c1], [r2, c2]], e (e)}
         {#if game.marks[e] === LINE}
           <line class="line" x1={c1} y1={r1} x2={c2} y2={r2} />
@@ -142,7 +80,7 @@
           {@const y = (r1 + r2) / 2}
           <path class="cross" d="M{x - 0.09} {y - 0.09}l0.18 0.18M{x + 0.09} {y - 0.09}l-0.18 0.18" />
         {/if}
-        <!-- Wide invisible target: left-click adds a line, right-click removes it or crosses out. -->
+        <!-- Wide invisible target: a tap cycles the side through empty, line and cross. -->
         <line
           class="hit"
           x1={c1}
@@ -152,15 +90,18 @@
           role="button"
           tabindex="-1"
           aria-label="Side"
-          onclick={() => add(e)}
-          oncontextmenu={(event) => remove(event, e)}
+          onclick={() => dispatch({ type: 'cycle', edge: e })}
           onkeydown={() => {}}
         />
       {/each}
 
       {#each { length: game.rows + 1 } as _, r (r)}
         {#each { length: game.cols + 1 } as _, c (c)}
-          <circle class={['dot', { bad: branching.some(([y, x]) => y === r && x === c) }]} cx={c} cy={r} r="0.08" />
+          {@const d = dotIndex(game, r, c)}
+          {#if game.rings[d]}
+            <circle class={['ring', { met: degree[d] === 2 }]} cx={c} cy={r} r="0.17" />
+          {/if}
+          <circle class={['dot', { bad: degree[d] > 2 }]} cx={c} cy={r} r="0.08" />
         {/each}
       {/each}
     </svg>
