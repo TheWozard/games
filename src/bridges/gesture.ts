@@ -22,22 +22,23 @@ export function islandAt(g: Game, p: Point, reach = 0.5): number | null {
 }
 
 /**
- * The possible bridge a drag from island `from` is heading along: the neighbor in the drag's main
- * direction, once it has moved at least `min` along it. -1 when there isn't one.
+ * The possible bridge a drag from island `from` is heading along: the neighbor in the drag's
+ * direction (the nearest of four, or of eight with diagonal bridges), once it has moved at least
+ * `min` that way. -1 when there isn't one.
  */
 export function dragEdge(g: Game, from: number, to: Point, min = 0.5): number {
   const c = center(g, from);
   const dx = to.x - c.x;
   const dy = to.y - c.y;
-  const horizontal = Math.abs(dx) >= Math.abs(dy);
-  const along = horizontal ? dx : dy;
-  if (Math.abs(along) < min) return -1;
+  const sectors = g.rules.diagonals ? 8 : 4;
+  const angle = Math.round((Math.atan2(dy, dx) / (2 * Math.PI)) * sectors) * ((2 * Math.PI) / sectors);
+  const ux = Math.round(Math.cos(angle));
+  const uy = Math.round(Math.sin(angle));
+  if (dx * ux + dy * uy < min * Math.hypot(ux, uy)) return -1;
   const { edges } = edgesFor(g);
-  return edges.findIndex((e) => {
-    if (e.horizontal !== horizontal) return false;
-    // Edges run from a (above / left) to b (below / right).
-    return along > 0 ? e.a === from : e.b === from;
-  });
+  // Edges run from a to b in the direction (dc, dr).
+  return edges.findIndex((e) =>
+    (e.a === from && e.dc === ux && e.dr === uy) || (e.b === from && e.dc === -ux && e.dr === -uy));
 }
 
 const orient = (a: Point, b: Point, c: Point) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);

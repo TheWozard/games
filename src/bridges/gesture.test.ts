@@ -13,18 +13,21 @@ describe('islandAt', () => {
 });
 
 describe('dragEdge', () => {
-  it('follows the drag toward the neighbor in its main direction', () => {
-    const g = newGame('hard');
-    const { edges } = edgesFor(g);
-    edges.forEach((e, k) => {
-      const a = center(g, e.a);
-      const b = center(g, e.b);
-      // From either end, dragging most of a cell toward the other end picks this edge...
-      const toward = (p: typeof a, q: typeof a) => ({ x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.1, y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.1 });
-      expect(dragEdge(g, e.a, toward(a, b))).toBe(k);
-      expect(dragEdge(g, e.b, toward(b, a))).toBe(k);
+  for (const diagonals of [false, true]) {
+    it(`follows the drag toward the neighbor in its direction${diagonals ? ', diagonals included' : ''}`, () => {
+      const g = newGame('hard', { colors: false, blocks: false, diagonals });
+      const { edges } = edgesFor(g);
+      if (diagonals) expect(edges.some((e) => e.dr !== 0 && e.dc !== 0)).toBe(true);
+      edges.forEach((e, k) => {
+        const a = center(g, e.a);
+        const b = center(g, e.b);
+        // From either end, dragging most of a cell toward the other end (a little off) picks this edge.
+        const toward = (p: typeof a, q: typeof a) => ({ x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.08, y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.08 });
+        expect(dragEdge(g, e.a, toward(a, b))).toBe(k);
+        expect(dragEdge(g, e.b, toward(b, a))).toBe(k);
+      });
     });
-  });
+  }
 
   it('needs a real drag, and finds nothing where there is no neighbor', () => {
     const g = newGame('easy');
@@ -49,7 +52,7 @@ describe('swipedEdges', () => {
     const b = center(g, e.b);
     const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     // A short stroke straight across the middle of the bridge.
-    const across = e.horizontal
+    const across = e.dr === 0
       ? [{ x: mid.x, y: mid.y - 0.3 }, { x: mid.x, y: mid.y + 0.3 }]
       : [{ x: mid.x - 0.3, y: mid.y }, { x: mid.x + 0.3, y: mid.y }];
     expect(swipedEdges(g, across[0], across[1])).toEqual([]); // nothing built yet

@@ -1,5 +1,5 @@
 // Bridges game state and moves, as a pure reducer.
-import { DIFFICULTIES, edgesOf, generate, isDifficulty, isSolved, type Difficulty, type Edge, type Island } from './logic';
+import { DIFFICULTIES, edgesOf, generate, isDifficulty, isRules, isSolved, NO_RULES, type Difficulty, type Edge, type Island, type Rules } from './logic';
 
 export const STORAGE_KEY = 'games.bridges.v1';
 const HISTORY_LIMIT = 500;
@@ -8,8 +8,10 @@ export interface Game {
   difficulty: Difficulty;
   cols: number;
   rows: number;
+  rules: Rules;
   islands: Island[];
-  bridges: number[]; // per edge of edgesOf(islands): 0, 1 or 2
+  blocks: number[]; // cells
+  bridges: number[]; // per edge of edgesFor(game): 0, 1 or 2
   solution: number[];
   history: number[][]; // earlier `bridges`, for undo
   done: boolean;
@@ -21,29 +23,33 @@ export type Action =
   | { type: 'cycle'; edge: number } // a tap on the gap: 0 → 1 → 2 → 0
   | { type: 'undo' };
 
-export function newGame(difficulty: Difficulty): Game {
+export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
   const { cols, rows } = DIFFICULTIES[difficulty];
-  const { islands, solution } = generate(difficulty);
-  return { difficulty, cols, rows, islands, bridges: solution.map(() => 0), solution, history: [], done: false };
+  const { islands, blocks, solution } = generate(difficulty, rules);
+  return { difficulty, rules: { ...rules }, cols, rows, islands, blocks, bridges: solution.map(() => 0), solution, history: [], done: false };
 }
 
 /** Possible bridges for a game's islands (cached: islands never change during a game). */
 const cache = new WeakMap<Island[], { edges: Edge[]; crosses: number[][] }>();
-export function edgesFor(g: Pick<Game, 'islands' | 'cols' | 'rows'>) {
+export function edgesFor(g: Pick<Game, 'islands' | 'cols' | 'rows' | 'blocks' | 'rules'>) {
   let found = cache.get(g.islands);
   if (!found) {
-    found = edgesOf(g.islands, g.cols, g.rows);
+    found = edgesOf(g.islands, g.cols, g.rows, { blocks: g.blocks, diagonals: g.rules.diagonals });
     cache.set(g.islands, found);
   }
   return found;
 }
 
+/** Validates a save. Saves from before the optional rules play with none. */
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   if (!isDifficulty(g?.difficulty) || !Array.isArray(g.islands) || !Array.isArray(g.history)) return false;
   const { cols, rows } = DIFFICULTIES[g.difficulty];
   if (g.cols !== cols || g.rows !== rows) return false;
-  const edges = edgesOf(g.islands, cols, rows).edges.length;
+  g.rules ??= { ...NO_RULES };
+  g.blocks ??= [];
+  if (!isRules(g.rules) || !g.blocks.every((x) => Number.isInteger(x) && x >= 0 && x < cols * rows)) return false;
+  const edges = edgesOf(g.islands, cols, rows, { blocks: g.blocks, diagonals: g.rules.diagonals }).edges.length;
   return g.bridges?.length === edges && g.solution?.length === edges;
 }
 

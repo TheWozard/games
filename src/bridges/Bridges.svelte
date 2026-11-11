@@ -3,20 +3,28 @@
   import { loadJSON, saveJSON } from '../shared/storage';
   import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { center, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
-  import { DIFFICULTIES, isDifficulty } from './logic';
+  import { DIFFICULTIES, isDifficulty, RULES, type Difficulty, type Rule, type Rules } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const edges = $derived(edgesFor(game).edges);
   const have = $derived(counts(game));
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(
+    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+  );
   const at = (i: number) => ({ x: game.islands[i].c + 0.5, y: game.islands[i].r + 0.5 });
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  // The New dialog's picks, starting from the current game's settings.
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { colors: false, blocks: false, diagonals: false } });
+  function askNew() {
+    choice = { difficulty: game.difficulty, rules: { ...game.rules } };
+  }
+
+  function start(value: string) {
+    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
   }
 
   // ---- Gestures ----
@@ -95,11 +103,34 @@
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
   inProgress={!game.done && game.history.length > 0}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cols}×${d.rows}` }))}
+  onopennew={askNew}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty))}
+  onnext={() => (game = newGame(game.difficulty, game.rules))}
 >
+  {#snippet picker()}
+    <h3 class="pick-title">Size</h3>
+    <div class="pick">
+      {#each Object.entries(DIFFICULTIES) as [key, d] (key)}
+        <button type="button" class="btn" aria-pressed={choice.difficulty === key} onclick={() => (choice.difficulty = key as Difficulty)}>
+          <strong>{d.label}</strong>
+          <span>{d.cols}×{d.rows}</span>
+        </button>
+      {/each}
+    </div>
+
+    <h3 class="pick-title">Rules</h3>
+    <div class="pick">
+      {#each Object.entries(RULES) as [key, r] (key)}
+        <button type="button" class="btn" aria-pressed={choice.rules[key as Rule]} onclick={() => (choice.rules[key as Rule] = !choice.rules[key as Rule])}>
+          <strong>{r.label}</strong>
+        </button>
+      {/each}
+    </div>
+
+    <button class="btn primary" value="start">Start</button>
+  {/snippet}
+
   <div class="board-area">
     <svg
       bind:this={svg}
@@ -121,6 +152,12 @@
         {/each}
       {/each}
 
+      {#each game.blocks as x (x)}
+        {@const r = Math.floor(x / game.cols)}
+        {@const c = x % game.cols}
+        <rect class="block" x={c + 0.2} y={r + 0.2} width="0.6" height="0.6" rx="0.06" />
+      {/each}
+
       {#each edges as e, k (k)}
         {@const a = at(e.a)}
         {@const b = at(e.b)}
@@ -128,8 +165,10 @@
         {#if n === 1}
           <line class="bridge" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
         {:else if n === 2}
-          {@const dx = e.horizontal ? 0 : 0.1}
-          {@const dy = e.horizontal ? 0.1 : 0}
+          <!-- Two bridges side by side, 0.1 either side of the line between the islands. -->
+          {@const len = Math.hypot(e.dr, e.dc)}
+          {@const dx = (e.dr / len) * 0.1}
+          {@const dy = (-e.dc / len) * 0.1}
           <line class="bridge" x1={a.x - dx} y1={a.y - dy} x2={b.x - dx} y2={b.y - dy} />
           <line class="bridge" x1={a.x + dx} y1={a.y + dy} x2={b.x + dx} y2={b.y + dy} />
         {/if}
@@ -164,7 +203,7 @@
 
       {#each game.islands as s, i (i)}
         <g
-          class={['island', { full: have[i] === s.n, over: have[i] > s.n }]}
+          class={['island', s.color !== undefined && `color-${s.color}`, { full: have[i] === s.n, over: have[i] > s.n }]}
           role="img"
           aria-label="Island {s.n}, {have[i]} bridges"
         >
