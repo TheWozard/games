@@ -28,4 +28,6 @@
 .flow-board .bridge-body { fill: var(--surface); pointer-events: none; }
 .flow-board .bridge-side { stroke: var(--line-strong); stroke-width: 0.05; pointer-events: none; }
 .flow-board .wrap-edge { fill: none; stroke: var(--muted); stroke-width: 0.04; stroke-dasharray: 0.2 0.133; stroke-dashoffset: -0.033; pointer-events: none; }
+/* Beside a dot, or into one on the opposite side: only that dot's path crosses there, so it's drawn in its color, a bit bolder. */
+.flow-board .wrap-edge.dot { stroke-width: 0.06; }
 .flow-board .dot.joined { stroke: var(--text); stroke-width: 0.06; }

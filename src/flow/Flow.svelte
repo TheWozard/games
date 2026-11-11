@@ -52,23 +52,28 @@
   /**
    * The outer edge pieces a path can wrap across, as lines: one per square along each side, where
    * a path can leave that square over the edge into the square on the opposite side. Left out when
-   * either square is a hole, or the one it would come into is a dot (only a dot's own path ends
-   * there, and a dot is plain to see).
+   * either square is a hole. Where either square is a dot, only that dot's own path can cross
+   * there, so the piece takes the dot's color; with a dot of each of two colors, no path can, and
+   * it's left out.
    */
   const wrapEdges = $derived.by(() => {
     if (!board.wrap) return [];
-    const out: string[] = [];
+    const out: { d: string; color: number }[] = [];
     const i = 0.02; // inset, so the line sits just inside the board
-    const into = (cell: number) => !isHole(cell, board) && dotColor(game.dots, cell) === -1;
-    // Leaving `from` over its edge into `to`.
-    const way = (from: number, to: number) => !isHole(from, board) && into(to);
+    // Leaving `from` over its edge into `to`: the piece, colored for a dot on either side (-1: none).
+    const add = (from: number, to: number, d: string) => {
+      if (isHole(from, board) || isHole(to, board)) return;
+      const [a, b] = [dotColor(game.dots, from), dotColor(game.dots, to)];
+      if (a !== -1 && b !== -1 && a !== b) return;
+      out.push({ d, color: a !== -1 ? a : b });
+    };
     for (let k = 0; k < n; k++) {
       const [top, bottom] = [k, (n - 1) * n + k];
       const [left, right] = [k * n, k * n + n - 1];
-      if (way(top, bottom)) out.push(`M${k} ${i}H${k + 1}`);
-      if (way(bottom, top)) out.push(`M${k} ${n - i}H${k + 1}`);
-      if (way(left, right)) out.push(`M${i} ${k}V${k + 1}`);
-      if (way(right, left)) out.push(`M${n - i} ${k}V${k + 1}`);
+      add(top, bottom, `M${k} ${i}H${k + 1}`);
+      add(bottom, top, `M${k} ${n - i}H${k + 1}`);
+      add(left, right, `M${i} ${k}V${k + 1}`);
+      add(right, left, `M${n - i} ${k}V${k + 1}`);
     }
     return out;
   });
@@ -212,8 +217,8 @@
         <line class="grid" x1="0" y1={i + 1} x2={n} y2={i + 1} />
       {/each}
       <!-- Wrapping: the outer edge is dashed wherever a path can wrap to the opposite side. -->
-      {#each wrapEdges as d (d)}
-        <path class="wrap-edge" {d} />
+      {#each wrapEdges as { d, color } (d)}
+        <path class={['wrap-edge', { dot: color !== -1 }]} {d} style:stroke={color === -1 ? undefined : PALETTE[color]} />
       {/each}
       <!-- Holes are hatched, inside their usual grid lines, so they read as missing squares. -->
       {#if board.holes.length}
