@@ -3,6 +3,9 @@
 // lands it installs in the background and open pages reload onto the new version.
 import './base.css';
 import { Workbox } from 'workbox-window';
+import { trackViewportHeight } from './viewport';
+
+trackViewportHeight();
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   // This module is built into assets/, so the site root (where sw.js lives) is one level up.
