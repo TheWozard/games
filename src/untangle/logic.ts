@@ -364,7 +364,7 @@ export function delaunay(points: readonly Point[]): Edge[] {
   return [...edges.values()];
 }
 
-/** Scales and centres points to fill the board inside the margin, keeping their shape. */
+/** Scales and centers points to fill the board inside the margin, keeping their shape. */
 function fit(points: Point[]): Point[] {
   const xs = points.map((p) => p[0]);
   const ys = points.map((p) => p[1]);

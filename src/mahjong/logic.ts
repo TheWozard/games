@@ -144,7 +144,7 @@ function shuffle<T>(a: T[], random: Random): T[] {
 // ---- Rules ----
 
 /** For each slot, the slots lying on it and the slots touching its left and right sides. */
-export function neighbours(slots: readonly Slot[]) {
+export function neighbors(slots: readonly Slot[]) {
   const overlapY = (a: Slot, b: Slot) => Math.abs(a.y - b.y) < 2;
   return slots.map((s) => ({
     above: slots.flatMap((t, j) => (t.z === s.z + 1 && Math.abs(t.x - s.x) < 2 && overlapY(s, t) ? [j] : [])),
@@ -153,17 +153,17 @@ export function neighbours(slots: readonly Slot[]) {
   }));
 }
 
-export type Neighbours = ReturnType<typeof neighbours>;
+export type Neighbors = ReturnType<typeof neighbors>;
 
 /** Whether the tile in slot `i` can be taken, given which slots are already empty. */
-export function isFree(i: number, near: Neighbours, gone: readonly boolean[]): boolean {
+export function isFree(i: number, near: Neighbors, gone: readonly boolean[]): boolean {
   const { above, left, right } = near[i];
   if (above.some((j) => !gone[j])) return false;
   return left.every((j) => gone[j]) || right.every((j) => gone[j]);
 }
 
 /** Pairs of free tiles with the same face, as slot indices. */
-export function freePairs(kinds: readonly number[], near: Neighbours, gone: readonly boolean[]): [number, number][] {
+export function freePairs(kinds: readonly number[], near: Neighbors, gone: readonly boolean[]): [number, number][] {
   const free = kinds.flatMap((_, i) => (!gone[i] && isFree(i, near, gone) ? [i] : []));
   const pairs: [number, number][] = [];
   for (let a = 0; a < free.length; a++) {
@@ -180,7 +180,7 @@ export function freePairs(kinds: readonly number[], near: Neighbours, gone: read
  * Faces for the slots not yet `gone`, using `faces` (an even count of each kind), such that the
  * board can be cleared: or null if this ordering hit a dead end (try again).
  */
-function assign(near: Neighbours, gone: readonly boolean[], faces: number[], random: Random): Dealt | null {
+function assign(near: Neighbors, gone: readonly boolean[], faces: number[], random: Random): Dealt | null {
   // Pair up the faces at random, then deal pairs onto tiles that would be free together.
   const byKind = new Map<number, number>();
   for (const f of faces) byKind.set(f, (byKind.get(f) ?? 0) + 1);
@@ -220,7 +220,7 @@ function facesFor(count: number, random: Random): number[] {
 
 export function deal(layout: LayoutName, random: Random = Math.random): Dealt {
   const { slots } = LAYOUTS[layout];
-  const near = neighbours(slots);
+  const near = neighbors(slots);
   const gone = slots.map(() => false);
   for (;;) {
     const dealt = assign(near, gone, facesFor(slots.length, random), random);
@@ -232,7 +232,7 @@ export function deal(layout: LayoutName, random: Random = Math.random): Dealt {
  * New faces for the tiles still on the board, keeping the same set of faces and, where the
  * remaining stack allows it, a way to clear the board.
  */
-export function reshuffle(kinds: readonly number[], near: Neighbours, gone: readonly boolean[], random: Random = Math.random): number[] {
+export function reshuffle(kinds: readonly number[], near: Neighbors, gone: readonly boolean[], random: Random = Math.random): number[] {
   const faces = kinds.filter((_, i) => !gone[i]);
   for (let attempt = 0; attempt < 200; attempt++) {
     const next = assign(near, gone, faces, random);

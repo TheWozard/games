@@ -2,7 +2,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
+  import NextButton from '../shared/NextButton.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, newGame, reducer, STORAGE_KEY, type Action } from './game';
@@ -24,7 +24,7 @@
   let grab: Point = [0, 0];
   let before: Point[] = [];
 
-  const neighbours = $derived(
+  const neighbors = $derived(
     dragging === null ? new Set<number>() : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
   );
 
@@ -32,7 +32,6 @@
   $effect(() => {
     if (dragging === null) saveJSON(STORAGE_KEY, game);
   });
-  toastOnFinish(() => game.done, () => `Untangled in ${game.moves} ${game.moves === 1 ? 'move' : 'moves'}.`);
 
   function toBoard(e: PointerEvent): Point {
     const m = svg.getScreenCTM()!.inverse();
@@ -117,7 +116,7 @@
       {/each}
       {#each game.points as [x, y], i (i)}
         <g
-          class={['dot', { held: dragging === i, near: neighbours.has(i), touching: tangle.touching[i] }]}
+          class={['dot', { held: dragging === i, near: neighbors.has(i), touching: tangle.touching[i] }]}
           role="button"
           tabindex="-1"
           aria-label="Dot {i + 1}"
@@ -133,6 +132,8 @@
 
 
 </main>
+
+<NextButton show={game.done} onclick={() => (game = newGame({ size: game.size, style: game.style, start: game.start }))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') game = newGame(choice); }}>
   <h2>New game</h2>

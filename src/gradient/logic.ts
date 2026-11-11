@@ -1,6 +1,6 @@
-// Gradient: a grid of tiles blended between four corner colours. Some tiles are fixed in place
+// Gradient: a grid of tiles blended between four corner colors. Some tiles are fixed in place
 // (marked with a dot); the rest are shuffled, and the player swaps them back into a smooth blend.
-// Colours are mixed in OKLab, where equal steps look equally different, so every row and column
+// Colors are mixed in OKLab, where equal steps look equally different, so every row and column
 // changes evenly and the puzzle can be solved by eye.
 
 export const SIZES = {
@@ -25,12 +25,12 @@ export type Pattern = keyof typeof PATTERNS;
 export const isSize = (value: unknown): value is Size => typeof value === 'string' && Object.hasOwn(SIZES, value);
 export const isPattern = (value: unknown): value is Pattern => typeof value === 'string' && Object.hasOwn(PATTERNS, value);
 
-/** An OKLab colour: lightness, then two opponent-colour axes. */
+/** An OKLab color: lightness, then two opponent-color axes. */
 export type Lab = [L: number, a: number, b: number];
 
 type Random = () => number;
 
-// ---- Colour ----
+// ---- Color ----
 
 const lerp = (x: Lab, y: Lab, t: number): Lab => [x[0] + (y[0] - x[0]) * t, x[1] + (y[1] - x[1]) * t, x[2] + (y[2] - x[2]) * t];
 
@@ -47,7 +47,7 @@ function labToLinear([L, a, b]: Lab): [number, number, number] {
 
 const inGamut = (rgb: number[]) => rgb.every((v) => v >= -1e-4 && v <= 1 + 1e-4);
 
-/** CSS colour for an OKLab colour (sRGB, clamped). */
+/** CSS color for an OKLab color (sRGB, clamped). */
 export function toCss(lab: Lab): string {
   const channel = (v: number) => {
     const x = Math.min(1, Math.max(0, v));
@@ -58,7 +58,7 @@ export function toCss(lab: Lab): string {
   return `rgb(${r} ${g} ${b})`;
 }
 
-/** An OKLab colour from lightness, chroma and hue (degrees), pulled in until it fits sRGB. */
+/** An OKLab color from lightness, chroma and hue (degrees), pulled in until it fits sRGB. */
 function fromLch(L: number, C: number, h: number): Lab {
   const rad = (h * Math.PI) / 180;
   for (let c = C; c > 0; c -= 0.005) {
@@ -69,9 +69,9 @@ function fromLch(L: number, C: number, h: number): Lab {
 }
 
 /**
- * Four corner colours, top-left / top-right / bottom-left / bottom-right. The hues stay within
- * a ~150° arc so that no blend (least of all across a diagonal) passes through grey, and
- * lightness runs from one corner to the opposite one so neighbouring tiles always differ.
+ * Four corner colors, top-left / top-right / bottom-left / bottom-right. The hues stay within
+ * a ~150° arc so that no blend (least of all across a diagonal) passes through gray, and
+ * lightness runs from one corner to the opposite one so neighboring tiles always differ.
  */
 export function corners(random: Random = Math.random): [Lab, Lab, Lab, Lab] {
   const h = random() * 360;
@@ -89,7 +89,7 @@ export function corners(random: Random = Math.random): [Lab, Lab, Lab, Lab] {
   return flips.map((k) => c[k]) as [Lab, Lab, Lab, Lab];
 }
 
-/** The colour of every tile in its solved position, row by row. */
+/** The color of every tile in its solved position, row by row. */
 export function palette(cols: number, rows: number, [tl, tr, bl, br]: readonly Lab[]): Lab[] {
   const out: Lab[] = [];
   for (let r = 0; r < rows; r++) {

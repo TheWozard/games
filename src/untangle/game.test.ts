@@ -37,13 +37,15 @@ describe('reducer', () => {
 
   it('is done when the last crossing goes, and round-trips through JSON', () => {
     const settings = { size: 'd15', style: 'mesh', start: 'circle' } as const;
-    const { edges, solution, points } = generate(settings);
+    const { edges, solution } = generate(settings);
+    // Every dot already home except one, which starts off to the side: dragging it home is the
+    // move that untangles. (Moving dots home one by one could drop one next to a dot that hasn't
+    // moved yet, and the nudge would push it off its spot.)
+    const points = solution.map((p, i) => (i === 0 ? ([5, 5] as [number, number]) : p));
     let g: Game = { ...settings, points, edges, history: [], moves: 0, done: false };
-    for (let i = 0; i < solution.length; i++) {
-      const before = g.points;
-      g = reducer(g, { type: 'drag', index: i, to: solution[i] });
-      g = reducer(g, { type: 'drop', index: i, before });
-    }
+    const before = g.points;
+    g = reducer(g, { type: 'drag', index: 0, to: solution[0] });
+    g = reducer(g, { type: 'drop', index: 0, before });
     expect(g.done).toBe(true);
     expect(reducer(g, { type: 'drag', index: 0, to: [1, 1] })).toBe(g);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);

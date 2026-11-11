@@ -2,7 +2,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
+  import NextButton from '../shared/NextButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { counts, DIFFICULTIES, isDifficulty } from './logic';
@@ -18,8 +18,6 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
-  toastOnFinish(() => game.status === 'won', () => 'Cleared.');
-  toastOnFinish(() => game.status === 'lost', () => 'That one was a mine.', { tone: 'error' });
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
@@ -123,6 +121,8 @@
   </div>
 
 </main>
+
+<NextButton show={game.status !== 'playing'} onclick={() => (game = newGame(game.difficulty))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
   <h2>New game</h2>

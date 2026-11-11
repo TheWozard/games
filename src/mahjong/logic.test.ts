@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { deal, freePairs, isFree, LAYOUTS, neighbours, reshuffle, type LayoutName } from './logic';
+import { deal, freePairs, isFree, LAYOUTS, neighbors, reshuffle, type LayoutName } from './logic';
 
 /** Replays an order of pairs: each must be free, matching, and together they clear the board. */
-function replays(kinds: number[], near: ReturnType<typeof neighbours>, gone: boolean[], order: [number, number][]): boolean {
+function replays(kinds: number[], near: ReturnType<typeof neighbors>, gone: boolean[], order: [number, number][]): boolean {
   const g = gone.slice();
   for (const [a, b] of order) {
     if (g[a] || g[b] || kinds[a] !== kinds[b]) return false;
@@ -34,7 +34,7 @@ describe('deal', () => {
   for (const layout of Object.keys(LAYOUTS) as LayoutName[]) {
     it(`deals ${layout} in pairs that can be cleared`, () => {
       const { slots } = LAYOUTS[layout];
-      const near = neighbours(slots);
+      const near = neighbors(slots);
       for (let run = 0; run < 3; run++) {
         const { kinds, order } = deal(layout);
         expect(kinds).toHaveLength(slots.length);
@@ -52,7 +52,7 @@ describe('isFree', () => {
   it('needs nothing on top and one side open', () => {
     // Three in a row, one on top of the middle.
     const slots = [{ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }, { x: 4, y: 0, z: 0 }, { x: 2, y: 0, z: 1 }];
-    const near = neighbours(slots);
+    const near = neighbors(slots);
     const gone = [false, false, false, false];
     expect([0, 1, 2, 3].map((i) => isFree(i, near, gone))).toEqual([true, false, true, true]);
     expect(isFree(1, near, [true, false, false, true])).toBe(true);
@@ -63,7 +63,7 @@ describe('isFree', () => {
 describe('reshuffle', () => {
   it('keeps the same faces on the remaining tiles', () => {
     const { slots } = LAYOUTS.pyramid;
-    const near = neighbours(slots);
+    const near = neighbors(slots);
     const { kinds } = deal('pyramid');
     const gone = slots.map(() => false);
     for (let n = 0; n < 10; n++) {

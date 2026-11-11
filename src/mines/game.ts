@@ -1,6 +1,6 @@
 // Mine finder game state and moves, as a pure reducer (apart from placing mines on the first
 // reveal, which uses Math.random unless a source is passed in).
-import { counts, DIFFICULTIES, flood, isDifficulty, neighbours, placeMines, type Difficulty } from './logic';
+import { counts, DIFFICULTIES, flood, isDifficulty, neighbors, placeMines, type Difficulty } from './logic';
 
 export const STORAGE_KEY = 'games.mines.v1';
 
@@ -83,8 +83,8 @@ function reveal(g: Game, i: number, random: () => number): Game {
   const board = { rows: g.rows, cols: g.cols };
   const mines = g.mines ?? placeMines(board, g.mineCount, i, random);
   if (!g.revealed[i]) return open(g, mines, [i]);
-  // Tapping a revealed number whose mines are all flagged opens the rest of its neighbours.
-  const around = neighbours(i, board);
+  // Tapping a revealed number whose mines are all flagged opens the rest of its neighbors.
+  const around = neighbors(i, board);
   const n = around.filter((j) => mines[j]).length;
   const flags = around.filter((j) => g.flagged[j]).length;
   const hidden = around.filter((j) => !g.revealed[j] && !g.flagged[j]);

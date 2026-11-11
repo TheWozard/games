@@ -76,7 +76,7 @@
 
 /* Zone textures (Killer's cages): faint light marks over the cell's own background, so selection,
    peer and conflict highlights still show through. Each pattern tiles a whole number of times per
-   cell, so it runs on from cell to cell across a cage. Plain counts as one of the five. The colour
+   cell, so it runs on from cell to cell across a cage. Plain counts as one of the five. The color
    is --zone-ink (base.css); each texture picks its own strength. */
 .grid-board .cell.zone-0 { background-image: none; }                                  /* plain */
 .grid-board .cell.zone-1 {                                                             /* checks: 4 × 4 per cell */

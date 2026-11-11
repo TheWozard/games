@@ -130,7 +130,7 @@ function grow(cols: number, rows: number, target: number, random: Random): { isl
   }
   if (islands.length < target * 0.8) return null;
 
-  // A few loops: bridge some neighbouring islands the tree left unconnected.
+  // A few loops: bridge some neighboring islands the tree left unconnected.
   const { edges } = edgesOf(islands, cols, rows);
   for (const e of edges) {
     if (random() > 0.25 || links.has(`${e.a},${e.b}`)) continue;

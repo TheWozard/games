@@ -91,7 +91,7 @@ function partition(solution: readonly number[], sizes: readonly number[], random
     }
     cages.push(cage);
   }
-  // Fold leftover single cells into a neighbouring cage where they fit.
+  // Fold leftover single cells into a neighboring cage where they fit.
   for (let k = 0; k < cages.length; k++) {
     if (cages[k].length !== 1) continue;
     const i = cages[k][0];

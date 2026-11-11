@@ -1,6 +1,6 @@
 // Mahjong solitaire game state and moves, as a pure reducer (apart from Shuffle, which uses
 // Math.random unless a source is passed in).
-import { deal, freePairs, isFree, isLayout, LAYOUTS, neighbours, reshuffle, type LayoutName, type Neighbours } from './logic';
+import { deal, freePairs, isFree, isLayout, LAYOUTS, neighbors, reshuffle, type LayoutName, type Neighbors } from './logic';
 
 export const STORAGE_KEY = 'games.mahjong.v1';
 
@@ -20,8 +20,8 @@ export type Action =
   | { type: 'shuffle' }
   | { type: 'undo' };
 
-const NEAR = new Map<LayoutName, Neighbours>();
-export const near = (d: LayoutName) => NEAR.get(d) ?? NEAR.set(d, neighbours(LAYOUTS[d].slots)).get(d)!;
+const NEAR = new Map<LayoutName, Neighbors>();
+export const near = (d: LayoutName) => NEAR.get(d) ?? NEAR.set(d, neighbors(LAYOUTS[d].slots)).get(d)!;
 
 export function newGame(layout: LayoutName): Game {
   const { kinds } = deal(layout);

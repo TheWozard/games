@@ -64,7 +64,7 @@
   background: var(--line);
   transition: background 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 0.6s ease;
 }
-/* Lit: a short bar along the line, in the text colour. */
+/* Lit: a short bar along the line, in the text color. */
 .marks.rows .mark.on { height: 45%; background: var(--text); }
 .marks.cols .mark.on { width: 45%; background: var(--text); }
 .mark.none { visibility: hidden; }

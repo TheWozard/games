@@ -43,7 +43,7 @@ describe('reducer', () => {
     expect(g.flagged[hidden]).toBe(false);
   });
 
-  it('opens the neighbours of a number whose mines are flagged', () => {
+  it('opens the neighbors of a number whose mines are flagged', () => {
     let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
     // Find a revealed number touching exactly its mines, flag them, then tap it.
     const cell = g.revealed.findIndex((r, i) => r && g.mines!.some((m, j) => m && Math.abs(Math.floor(j / 9) - Math.floor(i / 9)) <= 1 && Math.abs((j % 9) - (i % 9)) <= 1));

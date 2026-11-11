@@ -153,12 +153,12 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 .pick .btn[aria-pressed="true"] span { color: inherit; }
 
 /* Toast (src/shared/toast.ts): a short note that pops up at the bottom of the screen. The
-   popover reset (inset, margin, border, padding) undoes the browser's centred-popover default. */
+   popover reset (inset, margin, border, padding) undoes the browser's centered-popover default. */
 .toast {
   position: fixed;
   inset: auto auto calc(20px + env(safe-area-inset-bottom)) 50%;
   margin: 0;
-  width: max-content; /* size to the text, not to the half-screen left of centre */
+  width: max-content; /* size to the text, not to the half-screen left of center */
   max-width: min(420px, calc(100vw - 32px));
   padding: 10px 18px;
   border: 1px solid var(--line);
@@ -176,4 +176,22 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 .toast.show { opacity: 1; translate: -50% 0; pointer-events: auto; }
 /* For a loss or a failed action: toast(message, { tone: 'error' }). */
 .toast.error { border-color: var(--danger); background: var(--danger-soft); color: #ffd9d4; }
+
+/* Next (src/shared/NextButton.svelte): floats at the bottom once a game is over. */
+.next-fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  translate: -50% 0;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 22px 12px 28px;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.5);
+}
+.next-fab svg { width: 18px; height: 18px; }
 

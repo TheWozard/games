@@ -17,9 +17,9 @@
     [[9, 6.5], [21, 6.5], [9, 15.5], [21, 15.5], [9, 24.5], [21, 24.5], [9, 33.5], [21, 33.5]],
     [[8, 9], [15, 9], [22, 9], [8, 20], [15, 20], [22, 20], [8, 31], [15, 31], [22, 31]],
   ];
-  const DOT_COLOURS = ['#2f6bd8', '#c8372d', '#2e8b57'];
+  const DOT_COLORS = ['#2f6bd8', '#c8372d', '#2e8b57'];
 
-  // Bamboo stick centres per count.
+  // Bamboo stick centers per count.
   const STICKS: P[][] = [
     [[15, 20]],
     [[15, 12], [15, 28]],
@@ -44,9 +44,9 @@
       <symbol id="mj-k{n}" viewBox="1.5 1.5 27 37">
         {#each dots as [x, y], k (k)}
           {@const r = n === 0 ? 9 : n < 4 ? 5 : n < 6 ? 4.5 : 3.8}
-          {@const colour = n === 0 ? DOT_COLOURS[1] : DOT_COLOURS[(k + n) % 3]}
-          <circle cx={x} cy={y} {r} fill="none" stroke={colour} stroke-width={n === 0 ? 2.4 : 1.6} />
-          <circle cx={x} cy={y} r={r * 0.42} fill={colour} />
+          {@const color = n === 0 ? DOT_COLORS[1] : DOT_COLORS[(k + n) % 3]}
+          <circle cx={x} cy={y} {r} fill="none" stroke={color} stroke-width={n === 0 ? 2.4 : 1.6} />
+          <circle cx={x} cy={y} r={r * 0.42} fill={color} />
         {/each}
       </symbol>
     {/each}
@@ -56,8 +56,8 @@
         {#each sticks as [x, y], k (k)}
           {@const h = n === 0 ? 26 : n < 6 ? 12 : 10}
           {@const w = n === 0 ? 6 : n === 7 ? 3.4 : 4}
-          {@const colour = (n === 4 && k === 2) || (n === 6 && k === 0) || (n === 8 && k % 3 === 1) ? '#c8372d' : '#2e8b57'}
-          <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={w / 2} fill={colour} />
+          {@const color = (n === 4 && k === 2) || (n === 6 && k === 0) || (n === 8 && k % 3 === 1) ? '#c8372d' : '#2e8b57'}
+          <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={w / 2} fill={color} />
           <path d="M{x - w / 2} {y}h{w}" stroke="#f4eedf" stroke-width="0.9" />
         {/each}
       </symbol>

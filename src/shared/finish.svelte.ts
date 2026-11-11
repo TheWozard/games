@@ -1,7 +1,6 @@
-// Announce the end of a game with a toast, once, at the moment it happens: not when a game that was
-// already over is reopened. Call from a component's script:
-//   toastOnFinish(() => game.done, () => 'Solved.');
-//   toastOnFinish(() => game.lost, () => 'That one was a mine.', { tone: 'error' });
+// Show a toast once, at the moment a condition becomes true: not when a game already in that state
+// is reopened. For in-game nudges (wins and losses just bring up the Next button). For example:
+//   toastOnFinish(() => stuck(game), () => 'No moves left.', { tone: 'error' });
 import { untrack } from 'svelte';
 import { toast, type ToastOptions } from './toast';
 

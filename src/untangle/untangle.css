@@ -35,7 +35,7 @@
 /* A dot sitting on a line it isn't part of: counts as a crossing. */
 .untangle-board .dot.touching .mark { stroke: var(--danger); stroke-width: 1.1; }
 
-/* Untangled: everything settles into the calm accent colour. */
+/* Untangled: everything settles into the calm accent color. */
 .untangle-board.done .edge { stroke: var(--accent); opacity: 0.9; }
 .untangle-board.done .dot { cursor: default; }
 .untangle-board.done .dot .mark { fill: var(--accent); }

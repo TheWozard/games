@@ -3,7 +3,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
+  import NextButton from '../shared/NextButton.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
@@ -38,7 +38,6 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
-  toastOnFinish(() => game.done, () => 'Cleared.');
 
   function start(name: string) {
     if (isLayout(name)) game = newGame(name);
@@ -119,6 +118,8 @@
     </div>
   {/if}
 </main>
+
+<NextButton show={game.done} onclick={() => (game = newGame(game.layout))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
   <h2>New game</h2>

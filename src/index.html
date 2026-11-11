@@ -14,7 +14,13 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script type="module" src="./shared/app.ts"></script>
   <style>
-    .games { list-style: none; max-width: 520px; margin: 0 auto; padding: 0 16px 24px; display: grid; gap: 12px; }
+    .games { list-style: none; max-width: 520px; margin: 0 auto; padding: 0 16px 8px; display: grid; gap: 12px; }
+    .games:last-of-type { padding-bottom: 24px; }
+    /* Games are grouped by kind, each under a quiet heading. */
+    .group {
+      max-width: 520px; margin: 8px auto 8px; padding: 0 16px;
+      color: var(--muted); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    }
     .game {
       display: flex; align-items: center; gap: 16px; padding: 16px;
       background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
@@ -47,6 +53,7 @@
 </head>
 <body>
   <header class="bar"><h1>Games</h1></header>
+  <h2 class="group">Numbers</h2>
   <ul class="games">
     <li>
       <a class="game" href="sudoku/">
@@ -84,11 +91,14 @@
       <div class="how" id="how-killer" popover>
         <h2>Killer Sudoku</h2>
         <p>Sudoku rules: every row, column and 3×3 box holds 1–9 once.</p>
-        <p>Each coloured cage’s digits add up to the number in its corner, with no digit repeated inside a cage.</p>
+        <p>Each colored cage’s digits add up to the number in its corner, with no digit repeated inside a cage.</p>
         <p>Tap a cell, then a number; Notes switches to pencil marks. A full cage with the wrong total turns red.</p>
         <button class="btn" type="button" popovertarget="how-killer" popovertargetaction="hide">Close</button>
       </div>
     </li>
+  </ul>
+  <h2 class="group">Logic</h2>
+  <ul class="games">
     <li>
       <a class="game" href="mines/">
         <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -108,6 +118,31 @@
         <p>Tap a number whose mines are all flagged to clear the cells around it.</p>
         <p>Your first tap is always safe, and every board can be cleared without guessing.</p>
         <button class="btn" type="button" popovertarget="how-mines" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="loop/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g fill="currentColor" opacity="0.5">
+            <circle cx="6" cy="6" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="30" cy="6" r="1.6"/><circle cx="42" cy="6" r="1.6"/>
+            <circle cx="6" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/><circle cx="30" cy="18" r="1.6"/><circle cx="42" cy="18" r="1.6"/>
+            <circle cx="6" cy="30" r="1.6"/><circle cx="18" cy="30" r="1.6"/><circle cx="30" cy="30" r="1.6"/><circle cx="42" cy="30" r="1.6"/>
+            <circle cx="6" cy="42" r="1.6"/><circle cx="18" cy="42" r="1.6"/><circle cx="30" cy="42" r="1.6"/><circle cx="42" cy="42" r="1.6"/>
+          </g>
+          <path d="M6 6H30V18H42V42H18V30H6Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+          <g font-size="9" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="12" y="15.5">3</text><text x="36" y="39.5">2</text>
+          </g>
+        </svg>
+        <div><strong>Loop</strong><span>Draw one closed loop along the dots; each number says how many of its sides the loop uses.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-loop" aria-label="How to play Loop">i</button>
+      <div class="how" id="how-loop" popover>
+        <h2>Loop</h2>
+        <p>Draw a single closed loop along the lines between dots. It can’t branch or cross itself.</p>
+        <p>A number in a square says how many of that square’s four sides the loop uses. Squares without a number can have any.</p>
+        <p>Click a side to add a line. Right-click a line to remove it, or right-click an empty side to mark it ✕ (not part of the loop); click a ✕ to clear it. On a touch screen, drag along sides to add them and swipe across lines to remove them. Numbers dim when they’re met and turn red when there are too many.</p>
+        <button class="btn" type="button" popovertarget="how-loop" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>
@@ -133,27 +168,28 @@
         <button class="btn" type="button" popovertarget="how-bridges" popovertargetaction="hide">Close</button>
       </div>
     </li>
+  </ul>
+  <h2 class="group">Paths</h2>
+  <ul class="games">
     <li>
-      <a class="game" href="gradient/">
+      <a class="game" href="flow/">
         <svg viewBox="0 0 48 48" aria-hidden="true">
-          <defs>
-            <linearGradient id="g-icon" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#f2c38a"/><stop offset="0.5" stop-color="#7aa5f5"/><stop offset="1" stop-color="#6b4fa3"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="44" height="44" rx="8" fill="url(#g-icon)"/>
-          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="var(--surface)" stroke-width="2.5"/>
-          <circle cx="9.5" cy="9.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/><circle cx="38.5" cy="38.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/>
+          <rect x="2" y="2" width="44" height="44" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+          <g stroke="currentColor" stroke-width="0.8" opacity="0.35"><path d="M13 2V46M2 13H46"/><path d="M24 2V46M2 24H46"/><path d="M35 2V46M2 35H46"/></g>
+          <path d="M18.5 7.5 L29.5 7.5 L40.5 7.5" fill="none" stroke="#e8c547" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="4" fill="#e8c547"/><circle cx="40.5" cy="7.5" r="4" fill="#e8c547"/>
+          <path d="M7.5 7.5 L7.5 18.5 L18.5 18.5 L29.5 18.5 L40.5 18.5 L40.5 29.5" fill="none" stroke="#e5534b" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="4" fill="#e5534b"/><circle cx="40.5" cy="29.5" r="4" fill="#e5534b"/>
+          <path d="M7.5 29.5 L18.5 29.5 L29.5 29.5" fill="none" stroke="#3fb67a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="29.5" r="4" fill="#3fb67a"/><circle cx="29.5" cy="29.5" r="4" fill="#3fb67a"/>
+          <path d="M7.5 40.5 L18.5 40.5 L29.5 40.5 L40.5 40.5" fill="none" stroke="#4f8ef7" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="40.5" r="4" fill="#4f8ef7"/><circle cx="40.5" cy="40.5" r="4" fill="#4f8ef7"/>
         </svg>
-        <div><strong>Gradient</strong><span>Swap tiles until the colours flow smoothly from corner to corner.</span></div>
+        <div><strong>Flow</strong><span>Join matching dots with paths that never cross and fill every square.</span></div>
       </a>
-      <button class="info" type="button" popovertarget="how-gradient" aria-label="How to play Gradient">i</button>
-      <div class="how" id="how-gradient" popover>
-        <h2>Gradient</h2>
-        <p>Swap tiles until the colours flow smoothly from corner to corner.</p>
-        <p>Tap two tiles to swap them, or drag one onto another. Tiles with a dot are fixed.</p>
-        <p>The marks beside each row and under each column light up when that line is in place.</p>
-        <button class="btn" type="button" popovertarget="how-gradient" popovertargetaction="hide">Close</button>
+      <button class="info" type="button" popovertarget="how-flow" aria-label="How to play Flow">i</button>
+      <div class="how" id="how-flow" popover>
+        <h2>Flow</h2>
+        <p>Join each pair of matching dots with a path through neighboring squares. Paths can’t cross or share a square, and the puzzle is done when every square is filled.</p>
+        <p>Drag from a dot to draw. Drag back over a path to shorten it, or start on a path to pick it up from there. Other colors block the way: move them first.</p>
+        <p>The number at the top shows how much of the board is filled.</p>
+        <button class="btn" type="button" popovertarget="how-flow" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>
@@ -171,6 +207,73 @@
         <p>A dot resting on a line it isn’t part of counts as a crossing too (it gets a red ring), and a dot dropped on another is nudged clear. Crossing lines show in red.</p>
         <p>For a new puzzle, pick how many dots, a style (Lines, a dense Mesh, or sparse Loops) and how the dots start. Every puzzle can be untangled.</p>
         <button class="btn" type="button" popovertarget="how-untangle" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
+  </ul>
+  <h2 class="group">Calm</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="gradient/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient id="g-icon" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f2c38a"/><stop offset="0.5" stop-color="#7aa5f5"/><stop offset="1" stop-color="#6b4fa3"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="44" height="44" rx="8" fill="url(#g-icon)"/>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="var(--surface)" stroke-width="2.5"/>
+          <circle cx="9.5" cy="9.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/><circle cx="38.5" cy="38.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/>
+        </svg>
+        <div><strong>Gradient</strong><span>Swap tiles until the colors flow smoothly from corner to corner.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-gradient" aria-label="How to play Gradient">i</button>
+      <div class="how" id="how-gradient" popover>
+        <h2>Gradient</h2>
+        <p>Swap tiles until the colors flow smoothly from corner to corner.</p>
+        <p>Tap two tiles to swap them, or drag one onto another. Tiles with a dot are fixed.</p>
+        <p>The marks beside each row and under each column light up when that line is in place.</p>
+        <button class="btn" type="button" popovertarget="how-gradient" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="sort/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="1" y="3" width="13.2" height="42" rx="6.6" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><rect x="3.3" y="24.50" width="8.6" height="17.70" rx="4.3" fill="#4f8ef7"/><rect x="3.3" y="15.15" width="8.6" height="8.35" rx="4.3" fill="#e5534b"/>
+          <rect x="17.4" y="3" width="13.2" height="42" rx="6.6" fill="var(--surface)" stroke="#e8e9ec" stroke-width="2.2"/><rect x="19.7" y="5.80" width="8.6" height="36.40" rx="4.3" fill="#3fb67a"/>
+          <rect x="33.8" y="3" width="13.2" height="42" rx="6.6" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><rect x="36.1" y="33.85" width="8.6" height="8.35" rx="4.3" fill="#e5534b"/><rect x="36.1" y="24.50" width="8.6" height="8.35" rx="4.3" fill="#e8c547"/><rect x="36.1" y="15.15" width="8.6" height="8.35" rx="4.3" fill="#4f8ef7"/>
+        </svg>
+        <div><strong>Color Sort</strong><span>Pour colored layers between tubes until every tube holds one color.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-sort" aria-label="How to play Color Sort">i</button>
+      <div class="how" id="how-sort" popover>
+        <h2>Color Sort</h2>
+        <p>Sort the colors so each tube ends up full of a single color (or empty).</p>
+        <p>Tap a tube to pick it up, then tap another to pour into it. The run of matching color on top pours across, as much as fits, but only into an empty tube or onto the same color.</p>
+        <p>Every deal can be sorted, but some pours lead to a dead end. If you run out of moves, Undo to try another way, or tap Next for a new deal.</p>
+        <button class="btn" type="button" popovertarget="how-sort" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
+  </ul>
+  <h2 class="group">Cards &amp; tiles</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="solitaire/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="4" y="9" width="22" height="31" rx="3" fill="#2f4a80" stroke="currentColor" stroke-width="1.5" transform="rotate(-10 15 24)"/>
+          <rect x="20" y="6" width="22" height="31" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="2" transform="rotate(8 31 21)"/>
+          <g transform="rotate(8 31 21)" font-family="system-ui, sans-serif" font-weight="700" fill="#e5534b">
+            <text x="23.5" y="15" font-size="8">A</text><text x="31" y="31" font-size="12" text-anchor="middle">♥</text>
+          </g>
+        </svg>
+        <div><strong>Solitaire</strong><span>Classic patience: build each suit up from Ace to King. Every deal can be won.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-solitaire" aria-label="How to play Solitaire">i</button>
+      <div class="how" id="how-solitaire" popover>
+        <h2>Solitaire</h2>
+        <p>Move every card to the four foundations at the top right, building each suit up from Ace to King.</p>
+        <p>In the seven columns, build down in alternating colors (a red 7 on a black 8). Only a King can go into an empty column. Moving a column’s last face-up card turns over the one beneath it.</p>
+        <p>Tap a card to send it to its best spot, and tap the stock (top left) to draw one card or three. When the stock runs out, tap again to turn the pile over. Once every card is showing, the rest goes home by itself.</p>
+        <button class="btn" type="button" popovertarget="how-solitaire" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>

@@ -14,7 +14,7 @@ describe('palette', () => {
     for (const lab of p) expect(toCss(lab)).toMatch(/^rgb\(\d{1,3} \d{1,3} \d{1,3}\)$/);
   });
 
-  it('keeps neighbouring tiles distinguishable', () => {
+  it('keeps neighboring tiles distinguishable', () => {
     for (let run = 0; run < 50; run++) {
       const { cols, rows } = SIZES.huge;
       const p = palette(cols, rows, corners());

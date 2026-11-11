@@ -24,7 +24,7 @@ src/
   index.html            launcher: one card per game
   shared/               loaded by every page
     app.ts              shared CSS + service worker registration (import first in every main.ts)
-    base.css            colour tokens, header bar, buttons, dialogs, page layout, shared rows
+    base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
@@ -44,7 +44,7 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 ```
 
 Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`.
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire`.
 
 ## How a game is built
 
@@ -76,21 +76,28 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 
 ## UI conventions
 
-- **Always dark.** Colours are tokens in `src/shared/base.css` (`--bg`, `--surface`, `--text`,
-  `--muted`, `--accent`, `--danger`...). Use them, not raw colours. The manifest's
+- **American English** everywhere: on-screen text, instructions, docs, comments and names
+  (color, center, gray, neighbor, behavior, -ize).
+
+- **Always dark.** Colors are tokens in `src/shared/base.css` (`--bg`, `--surface`, `--text`,
+  `--muted`, `--accent`, `--danger`...). Use them, not raw colors. The manifest's
   `background_color` / `theme_color` and each page's `<meta name="theme-color">` must equal `--bg`
   (#16181d) so Android's system bars blend in.
 - **Page shell:** `<body class="game">`, a `<header class="bar">` (`<BackButton>` to the launcher, `<h1>` with
   the difficulty in `<small>`, optional status, then `<UndoButton>` if the game has undo, then
-  `<NewButton>` — the "+" that opens the New dialog, last on the right), then `<main class="play">`, which centres the board vertically.
+  `<NewButton>` — the "+" that opens the New dialog, last on the right), then `<main class="play">`, which centers the board vertically.
 - **Controls under the board, always in this order:**
   1. `.tools` row of the game's other actions: Clear/Erase, Notes, Hint, Shuffle. Undo and New
      are in the header; leave the row out if nothing's left.
   2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
      buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
   3. A `.status` note only for a state the player must act on (Mahjong stuck → Shuffle). Wins and
-     losses are announced with a toast (`toastOnFinish` in `src/shared/finish.svelte.ts`). No how-to text on the game
+     losses (including dead ends, like Color Sort with no pour left) just bring up Next; toasts
+     (`toastOnFinish` in `src/shared/finish.svelte.ts`) are for in-game nudges, like Flow's "now fill
+     every square". No how-to text on the game
      screen: instructions live behind the card's **i** button in `src/index.html`.
+- **Color as the piece** (Color Sort, Flow): use `PALETTE` from `src/shared/palette.ts`, twelve
+  colors chosen to stay distinct on the dark background; take them from the start of the list.
 - **Toggles** use `aria-pressed`. `base.css` styles `[aria-pressed="true"]` as selected.
 - **Toasts:** `toast('message')` from `src/shared/toast.ts` shows a short note at the bottom of
   the screen (about 2.5s, tap to dismiss, announced to screen readers, above dialogs); pass
@@ -103,9 +110,9 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
-- **Calm by default:** no timers, and no pop-ups when a game ends. A toast says "Solved." (or
-  similar), the finished board stays on screen, and the player taps **+** (New) when they want
-  another. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
+- **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
+  screen and a floating **Next** button (`src/shared/NextButton.svelte`) appears, starting
+  another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
 - **Relative URLs only.** The site lives under `/games/`. Link between pages with `../`. Reference
   files in `public/` root-relative (`/icons/icon.svg`); the build rewrites them.
 
@@ -114,8 +121,8 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **SVG `<use>`:** CSS from the page doesn't reliably reach the copies that `<use>` draws. Put
   `text-anchor`, `font-family` and similar on the symbol's elements as attributes (see
   `src/mahjong/TileFaces.svelte`).
-- **Grid lines:** draw thin lines as `gap` over a line-coloured background, and thick lines as
-  overlays (`::after`, inset −1px) centred on the gap. Borders on one side make cells look uneven.
+- **Grid lines:** draw thin lines as `gap` over a line-colored background, and thick lines as
+  overlays (`::after`, inset −1px) centered on the gap. Borders on one side make cells look uneven.
 - **Service worker caching:** a browser that has visited the built site serves the *previous*
   build until the new worker activates. Use a fresh browser profile when screenshotting, and
   expect one reload on devices after a deploy.
@@ -141,7 +148,7 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
 - **Game card icons** are hand-written inline SVGs in `src/index.html`, `viewBox="0 0 48 48"`, drawn
   with `currentColor` (the accent) and `var(--surface)` for knock-outs. Keep them simple: an outer
   rounded square or a few shapes, legible at 48px. Gradient's card is the one exception that uses
-  its own colours.
+  its own colors.
 
 ## Testing
 

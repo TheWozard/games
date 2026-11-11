@@ -1,4 +1,4 @@
-// Mine finder: reveal every safe cell; numbers count the mines among a cell's eight neighbours.
+// Mine finder: reveal every safe cell; numbers count the mines among a cell's eight neighbors.
 // Mines are placed on the first tap, away from it, and only in layouts that a deduction-only
 // solver can clear from there, so a game never comes down to a guess.
 
@@ -20,7 +20,7 @@ export interface Board {
   cols: number;
 }
 
-export function neighbours(i: number, { rows, cols }: Board): number[] {
+export function neighbors(i: number, { rows, cols }: Board): number[] {
   const r = Math.floor(i / cols);
   const c = i % cols;
   const out: number[] = [];
@@ -34,9 +34,9 @@ export function neighbours(i: number, { rows, cols }: Board): number[] {
   return out;
 }
 
-/** For each cell, how many of its neighbours are mines. */
+/** For each cell, how many of its neighbors are mines. */
 export function counts(mines: readonly boolean[], board: Board): number[] {
-  return mines.map((_, i) => neighbours(i, board).filter((j) => mines[j]).length);
+  return mines.map((_, i) => neighbors(i, board).filter((j) => mines[j]).length);
 }
 
 /** Cells uncovered by revealing `start`: it, plus everything reachable through zero-count cells. */
@@ -46,7 +46,7 @@ export function flood(start: number, near: readonly number[], board: Board, bloc
   for (let k = 0; k < queue.length; k++) {
     const i = queue[k];
     if (near[i] !== 0) continue;
-    for (const j of neighbours(i, board)) {
+    for (const j of neighbors(i, board)) {
       if (!seen.has(j) && !blocked(j)) {
         seen.add(j);
         queue.push(j);
@@ -58,10 +58,10 @@ export function flood(start: number, near: readonly number[], board: Board, bloc
 
 const MAX_ATTEMPTS = 1000;
 
-/** A mine layout with `first` and its neighbours clear, solvable from `first` without guessing. */
+/** A mine layout with `first` and its neighbors clear, solvable from `first` without guessing. */
 export function placeMines(board: Board, count: number, first: number, random: Random = Math.random): boolean[] {
   const total = board.rows * board.cols;
-  const keepClear = new Set([first, ...neighbours(first, board)]);
+  const keepClear = new Set([first, ...neighbors(first, board)]);
   const open = [...Array(total).keys()].filter((i) => !keepClear.has(i));
   let mines: boolean[] = [];
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -79,9 +79,9 @@ export function placeMines(board: Board, count: number, first: number, random: R
 
 /**
  * Whether the board can be cleared from `first` by deduction alone, using: a number whose mines
- * are all found clears its other neighbours; a number with exactly as many hidden neighbours as
+ * are all found clears its other neighbors; a number with exactly as many hidden neighbors as
  * missing mines makes them all mines; the same two rules on the difference of two numbers whose
- * hidden neighbours overlap as a subset; and the total mine count.
+ * hidden neighbors overlap as a subset; and the total mine count.
  */
 export function solvable(mines: readonly boolean[], board: Board, first: number): boolean {
   const total = mines.length;
@@ -115,7 +115,7 @@ export function solvable(mines: readonly boolean[], board: Board, first: number)
     const constraints: { cells: number[]; mines: number }[] = [];
     for (let i = 0; i < total; i++) {
       if (known[i] !== SAFE || near[i] === 0) continue;
-      const around = neighbours(i, board);
+      const around = neighbors(i, board);
       const hidden = around.filter((j) => known[j] === UNKNOWN);
       if (hidden.length === 0) continue;
       const m = near[i] - around.filter((j) => known[j] === MINE).length;

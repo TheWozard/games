@@ -2,11 +2,11 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
+  import NextButton from '../shared/NextButton.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { centre, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
+  import { center, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
   import { DIFFICULTIES, isDifficulty } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
@@ -20,14 +20,13 @@
   let askingNew = $state(false);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
-  toastOnFinish(() => game.done, () => 'Connected.');
 
   function start(difficulty: string) {
     if (isDifficulty(difficulty)) game = newGame(difficulty);
   }
 
   // ---- Gestures ----
-  // Drag from an island towards another to build one more bridge; swipe across a bridge (starting
+  // Drag from an island toward another to build one more bridge; swipe across a bridge (starting
   // away from an island) to remove one. A press that barely moves stays an ordinary tap (a tap on
   // the gap between islands cycles 0 → 1 → 2 → 0); once a gesture starts, the click that follows
   // is ignored.
@@ -164,10 +163,10 @@
 
       <!-- Gesture feedback: where a drag will build, or the trail of a swipe. -->
       {#if gesture?.kind === 'build'}
-        {@const from = centre(game, gesture.from)}
+        {@const from = center(game, gesture.from)}
         {@const e = edges[gesture.edge]}
         {#if e}
-          {@const to = centre(game, e.a === gesture.from ? e.b : e.a)}
+          {@const to = center(game, e.a === gesture.from ? e.b : e.a)}
           <line class="preview" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />
         {:else}
           <line class="preview loose" x1={from.x} y1={from.y} x2={gesture.to.x} y2={gesture.to.y} />
@@ -191,6 +190,8 @@
   </div>
 
 </main>
+
+<NextButton show={game.done} onclick={() => (game = newGame(game.difficulty))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
   <h2>New game</h2>

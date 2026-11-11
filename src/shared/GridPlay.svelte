@@ -24,7 +24,7 @@
   import Dialog from './Dialog.svelte';
   import BackButton from './BackButton.svelte';
   import NewButton from './NewButton.svelte';
-  import { toastOnFinish } from './finish.svelte';
+  import NextButton from './NextButton.svelte';
   import UndoButton from './UndoButton.svelte';
   import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
   import { loadJSON, saveJSON } from './storage';
@@ -54,7 +54,6 @@
 
   // Save after every change (the reducer returns a new object only when something changed).
   $effect(() => saveJSON(storageKey, game));
-  toastOnFinish(() => game.done, () => 'Solved.');
 
   function start(difficulty: string) {
     if (Object.hasOwn(difficulties, difficulty)) game = create(difficulty);
@@ -126,6 +125,8 @@
     {/each}
   </div>
 </main>
+
+<NextButton show={game.done} onclick={() => (game = create(game.difficulty))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
   <h2>New game</h2>

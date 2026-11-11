@@ -3,7 +3,7 @@
   import Dialog from '../shared/Dialog.svelte';
   import BackButton from '../shared/BackButton.svelte';
   import NewButton from '../shared/NewButton.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
+  import NextButton from '../shared/NextButton.svelte';
   import UndoButton from '../shared/UndoButton.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, lines, newGame, reducer, STORAGE_KEY, type Action, type Settings } from './game';
@@ -22,7 +22,6 @@
   let choice = $state<Settings>({ ...DEFAULT });
 
   $effect(() => saveJSON(STORAGE_KEY, game));
-  toastOnFinish(() => game.done, () => `Settled in ${game.history.length} ${game.history.length === 1 ? 'swap' : 'swaps'}.`);
 
   const start = (settings: Settings) => (game = newGame(settings));
 
@@ -118,6 +117,8 @@
 
 
 </main>
+
+<NextButton show={game.done} onclick={() => (game = newGame({ size: game.size, pattern: game.pattern }))} />
 
 <Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') start(choice); }}>
   <h2>New game</h2>

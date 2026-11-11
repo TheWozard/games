@@ -1,38 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { edgesFor, newGame, reducer, type Game } from './game';
-import { centre, dragEdge, islandAt, swipedEdges } from './gesture';
+import { center, dragEdge, islandAt, swipedEdges } from './gesture';
 
 describe('islandAt', () => {
   it('finds the island under a point, and nothing between islands', () => {
     const g = newGame('medium');
-    g.islands.forEach((_, i) => expect(islandAt(g, centre(g, i))).toBe(i));
-    const c = centre(g, 0);
+    g.islands.forEach((_, i) => expect(islandAt(g, center(g, i))).toBe(i));
+    const c = center(g, 0);
     expect(islandAt(g, { x: c.x + 0.3, y: c.y })).toBe(0);
     expect(islandAt(g, { x: c.x + 0.6, y: c.y + 0.6 })).toBeNull();
   });
 });
 
 describe('dragEdge', () => {
-  it('follows the drag towards the neighbour in its main direction', () => {
+  it('follows the drag toward the neighbor in its main direction', () => {
     const g = newGame('hard');
     const { edges } = edgesFor(g);
     edges.forEach((e, k) => {
-      const a = centre(g, e.a);
-      const b = centre(g, e.b);
-      // From either end, dragging most of a cell towards the other end picks this edge...
-      const towards = (p: typeof a, q: typeof a) => ({ x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.1, y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.1 });
-      expect(dragEdge(g, e.a, towards(a, b))).toBe(k);
-      expect(dragEdge(g, e.b, towards(b, a))).toBe(k);
+      const a = center(g, e.a);
+      const b = center(g, e.b);
+      // From either end, dragging most of a cell toward the other end picks this edge...
+      const toward = (p: typeof a, q: typeof a) => ({ x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.1, y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.1 });
+      expect(dragEdge(g, e.a, toward(a, b))).toBe(k);
+      expect(dragEdge(g, e.b, toward(b, a))).toBe(k);
     });
   });
 
-  it('needs a real drag, and finds nothing where there is no neighbour', () => {
+  it('needs a real drag, and finds nothing where there is no neighbor', () => {
     const g = newGame('easy');
-    const c = centre(g, 0);
+    const c = center(g, 0);
     expect(dragEdge(g, 0, { x: c.x + 0.2, y: c.y })).toBe(-1);
     // Some direction from some island leads nowhere (the board edge, at least).
     const dead = g.islands.some((_, i) => {
-      const p = centre(g, i);
+      const p = center(g, i);
       return [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dx, dy]) => dragEdge(g, i, { x: p.x + dx, y: p.y + dy }) === -1);
     });
     expect(dead).toBe(true);
@@ -45,8 +45,8 @@ describe('swipedEdges', () => {
     const { edges } = edgesFor(g);
     const k = 0;
     const e = edges[k];
-    const a = centre(g, e.a);
-    const b = centre(g, e.b);
+    const a = center(g, e.a);
+    const b = center(g, e.b);
     const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     // A short stroke straight across the middle of the bridge.
     const across = e.horizontal

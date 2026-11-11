@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { counts, DIFFICULTIES, neighbours, placeMines, solvable, type Difficulty } from './logic';
+import { counts, DIFFICULTIES, neighbors, placeMines, solvable, type Difficulty } from './logic';
 
 describe('placeMines', () => {
   for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
@@ -9,7 +9,7 @@ describe('placeMines', () => {
         const first = Math.floor(Math.random() * board.rows * board.cols);
         const mines = placeMines(board, board.mines, first);
         expect(mines.filter(Boolean).length).toBe(board.mines);
-        for (const i of [first, ...neighbours(first, board)]) expect(mines[i]).toBe(false);
+        for (const i of [first, ...neighbors(first, board)]) expect(mines[i]).toBe(false);
         expect(solvable(mines, board, first)).toBe(true);
       }
     });
@@ -37,7 +37,7 @@ describe('solvable', () => {
 });
 
 describe('counts', () => {
-  it('counts neighbouring mines', () => {
+  it('counts neighboring mines', () => {
     const board = { rows: 2, cols: 3 };
     expect(counts([true, false, false, false, false, true], board)).toEqual([0, 2, 1, 1, 2, 0]);
   });
