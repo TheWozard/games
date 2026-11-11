@@ -5,18 +5,28 @@
 // and one only to its up and down neighbors, so a path through either goes straight; the two
 // must be different colors (a path can't cross itself).
 //
-// Each color is drawn from one dot (its head) to the other (its target). Each step extends the
-// unfinished color with the fewest moves, so forced moves cost nothing, after checking that the
-// position can still be finished:
-// - every empty node has two ways in or out (empty neighbors, or the open end of a path);
-// - every target still has a way in;
-// - every pocket of empty nodes touches both ends of some unfinished color (a path that goes in
-//   has to come out and finish), and every color's head and target are side by side or touch a
-//   pocket together.
-import { isBridge, isHole, step, neighbors, type Board } from './logic';
+// Every color is drawn from both of its dots at once: each dot is an open end, and the color is
+// done when its two ends meet. Each step extends one end, after checking that the position can
+// still be finished:
+// - every empty node has two ways in or out (empty neighbors, or open ends). With exactly two it
+//   must use both: if both are ends of different colors it would join them, so it's dead; if one
+//   is an end, that end's next step is forced;
+// - every open end has a move;
+// - empty nodes fall into pockets, walled off by paths. A path that goes into a pocket can't come
+//   out until it finishes, so each pocket needs a color of its own whose two ends both touch it
+//   (a matching of pockets to colors), and a color that's the only one fitting a pocket must step
+//   into it next. Every color's ends must touch each other or a pocket together.
+// With no forced step, it extends the end with the fewest moves (ties: the one beside the empty
+// node with the fewest ways), trying each.
+//
+// On the hardest boards (9×9, wrapping) this is about ten times faster than drawing each color
+// from one dot with only the pocket check.
+import { isBridge, isHole, neighbors, step, type Board } from './logic';
 
 /** Directions (see DIRS in logic.ts) that run across: left and right. */
 const ACROSS = (d: number) => d >= 2;
+
+const lowBit = (m: number) => 31 - Math.clz32(m & -m);
 
 interface Graph {
   /** Per node: the nodes a path can step to. Nodes 0..n-1 are squares (a bridge's across path), n..2n-1 a bridge's down path. */
@@ -29,8 +39,8 @@ function graph(board: Board): Graph {
   const n = board.size * board.size;
   const next: number[][] = Array.from({ length: 2 * n }, () => []);
   const live = new Array<boolean>(2 * n).fill(false);
-  // The node a step from `i` in direction d lands on: a bridge's across or down node.
-  const into = (j: number, d: number) => (isBridge(j, board) && !ACROSS(d) ? n + j : j);
+  // A bridge's down node is entered and left by vertical steps; everything else by its square.
+  const node = (i: number, d: number) => (isBridge(i, board) && !ACROSS(d) ? n + i : i);
   for (let i = 0; i < n; i++) {
     if (isHole(i, board)) continue;
     live[i] = true;
@@ -38,9 +48,8 @@ function graph(board: Board): Graph {
     for (let d = 0; d < 4; d++) {
       const j = step(i, d, board);
       if (j === -1 || !neighbors(i, board).includes(j)) continue;
-      // From a bridge, its across node only goes left and right, its down node up and down.
-      const from = isBridge(i, board) && !ACROSS(d) ? n + i : i;
-      const to = into(j, d);
+      const from = node(i, d);
+      const to = node(j, d);
       if (!next[from].includes(to)) next[from].push(to);
     }
   }
@@ -62,123 +71,187 @@ export function countSolutions(
   const nodes = 2 * n;
   const colors = dots.length;
   const color = new Int32Array(nodes).fill(-1); // -1: empty
-  const head = dots.map(([a]) => a);
-  const target = dots.map(([, b]) => b);
+  // Open ends: color k's are ends 2k and 2k+1, at[e] where end e is now.
+  const at = dots.flatMap(([a, b]) => [a, b]);
   const done = new Array<boolean>(colors).fill(false);
-  // endOf[v]: the color whose open end (head or target) is at v, else -1.
-  const endOf = new Int32Array(nodes).fill(-1);
+  const endAt = new Int32Array(nodes).fill(-1); // the open end at a node, or -1
   let empty = 0;
   for (let v = 0; v < nodes; v++) if (live[v]) empty++;
   dots.forEach(([a, b], k) => {
     color[a] = color[b] = k;
-    endOf[a] = endOf[b] = k;
+    endAt[a] = 2 * k;
+    endAt[b] = 2 * k + 1;
     empty -= 2;
   });
   // A bridge's two nodes: its across node (the square's own) and its down node.
   const isBridgeNode = (v: number) => v >= n || live[n + v];
   const sibling = (v: number) => (v < n ? n + v : v - n);
-  const region = new Int32Array(nodes);
+  /** Whether color k may step onto empty node u (not both ways over one bridge). */
+  const mayEnter = (u: number, k: number) => color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k);
+
+  // Worked out by viable(), for the step that follows it.
+  const pocket = new Int32Array(nodes); // pocket number per empty node
+  const ways = new Int32Array(nodes); // ways in or out per empty node
+  const pinned = new Int32Array(colors); // the pocket color k must step into next, or -1
+  let forced: [end: number, node: number] | null = null;
 
   /** Whether the position could still be finished (see the checks at the top). */
   function viable(): boolean {
+    forced = null;
     for (let v = 0; v < nodes; v++) {
       if (!live[v] || color[v] !== -1) continue;
-      let ways = 0;
-      for (const u of next[v]) if (color[u] === -1 || endOf[u] !== -1) ways++;
-      if (ways < 2) return false;
+      let w = 0;
+      let e1 = -1;
+      let e2 = -1;
+      for (const u of next[v]) {
+        if (color[u] === -1) w++;
+        else if (endAt[u] !== -1) {
+          w++;
+          if (e1 === -1) e1 = endAt[u];
+          else e2 = endAt[u];
+        }
+      }
+      if (w < 2) return false;
+      ways[v] = w;
+      if (w === 2 && e1 !== -1) {
+        if (e2 !== -1 && e1 >> 1 !== e2 >> 1) return false;
+        forced ??= [e1, v];
+      }
     }
-    for (let k = 0; k < colors; k++) {
-      if (done[k]) continue;
-      if (!next[target[k]].some((u) => color[u] === -1 || u === head[k])) return false;
+    for (let e = 0; e < at.length; e++) {
+      if (done[e >> 1]) continue;
+      const other = at[e ^ 1];
+      if (!next[at[e]].some((u) => u === other || mayEnter(u, e >> 1))) return false;
     }
-    // Pockets of empty nodes, with the colors whose head or target each touches.
-    region.fill(-1);
-    const heads: number[] = [];
-    const targets: number[] = [];
+    // Pockets, with the colors whose two ends both touch each.
+    pocket.fill(-1);
+    const fits: number[] = [];
     for (let v = 0; v < nodes; v++) {
-      if (!live[v] || color[v] !== -1 || region[v] !== -1) continue;
-      const r = heads.length;
-      let h = 0;
-      let t = 0;
+      if (!live[v] || color[v] !== -1 || pocket[v] !== -1) continue;
+      const r = fits.length;
+      let even = 0; // colors whose end 2k touches the pocket
+      let odd = 0; // ... and end 2k+1
       const queue = [v];
-      region[v] = r;
+      pocket[v] = r;
       for (let q = 0; q < queue.length; q++) {
         for (const u of next[queue[q]]) {
           if (color[u] === -1) {
-            if (region[u] === -1) { region[u] = r; queue.push(u); }
-          } else if (endOf[u] !== -1) {
-            const k = endOf[u];
-            if (u === head[k]) h |= 1 << k;
-            else t |= 1 << k;
+            if (pocket[u] === -1) {
+              pocket[u] = r;
+              queue.push(u);
+            }
+          } else if (endAt[u] !== -1) {
+            if (endAt[u] % 2) odd |= 1 << (endAt[u] >> 1);
+            else even |= 1 << (endAt[u] >> 1);
           }
         }
       }
-      if (!(h & t)) return false;
-      heads.push(h);
-      targets.push(t);
+      if (!(even & odd)) return false;
+      fits.push(even & odd);
     }
     for (let k = 0; k < colors; k++) {
-      if (done[k] || next[head[k]].includes(target[k])) continue;
-      const bit = 1 << k;
-      if (!heads.some((h, r) => h & targets[r] & bit)) return false;
+      if (done[k] || next[at[2 * k]].includes(at[2 * k + 1])) continue;
+      if (!fits.some((f) => f & (1 << k))) return false;
+    }
+    // Each pocket a color of its own (augmenting paths; a dozen colors at most).
+    const owner = new Int32Array(colors).fill(-1);
+    let tried = 0;
+    const claim = (r: number): boolean => {
+      for (let m = fits[r] & ~tried; m; m &= m - 1) {
+        const k = lowBit(m);
+        tried |= 1 << k;
+        if (owner[k] === -1 || claim(owner[k])) {
+          owner[k] = r;
+          return true;
+        }
+      }
+      return false;
+    };
+    pinned.fill(-1);
+    for (let r = 0; r < fits.length; r++) {
+      tried = 0;
+      if (!claim(r)) return false;
+      if (!(fits[r] & (fits[r] - 1))) pinned[lowBit(fits[r])] = r;
     }
     return true;
+  }
+
+  /** Where end e can go: its other end, or an empty node (into its pinned pocket, if it has one). */
+  function moves(e: number): number[] {
+    const k = e >> 1;
+    const other = at[e ^ 1];
+    const pin = pinned[k];
+    const out: number[] = [];
+    for (const u of next[at[e]]) {
+      if (pin !== -1 ? mayEnter(u, k) && pocket[u] === pin : u === other || mayEnter(u, k)) out.push(u);
+    }
+    return out;
   }
 
   let found = 0;
   let steps = 0;
 
-  /** The moves for color k's head: an empty node (a bridge node only if the other way isn't k's), or its target. */
-  function moves(k: number): number[] {
-    const out: number[] = [];
-    for (const u of next[head[k]]) {
-      if (u === target[k]) out.push(u);
-      else if (color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k)) out.push(u);
+  /** Moves end e onto u (finishing its color if u is its other end), searches on, and takes it back. */
+  function go(e: number, u: number): boolean {
+    const k = e >> 1;
+    const from = at[e];
+    const other = at[e ^ 1];
+    endAt[from] = -1;
+    let ok: boolean;
+    if (u === other) {
+      endAt[other] = -1;
+      done[k] = true;
+      ok = search();
+      done[k] = false;
+      endAt[other] = e ^ 1;
+    } else {
+      color[u] = k;
+      endAt[u] = e;
+      at[e] = u;
+      empty--;
+      ok = search();
+      empty++;
+      at[e] = from;
+      endAt[u] = -1;
+      color[u] = -1;
     }
-    return out;
+    endAt[from] = e;
+    return ok;
   }
 
+  /** False if the budget ran out. */
   function search(): boolean {
     if (++steps > budget) return false;
     if (!viable()) return true;
+    if (forced) {
+      const [e, v] = forced;
+      const k = e >> 1;
+      if (!mayEnter(v, k) || (pinned[k] !== -1 && pocket[v] !== pinned[k])) return true;
+      return go(e, v);
+    }
+    // The end with the fewest moves; ties go to the one beside the tightest empty node.
+    const tightness = (ms: number[]) => Math.min(...ms.map((u) => (color[u] === -1 ? ways[u] : 9)));
     let pick = -1;
     let options: number[] = [];
-    for (let k = 0; k < colors; k++) {
-      if (done[k]) continue;
-      const m = moves(k);
+    let tight = 0;
+    for (let e = 0; e < at.length && options.length !== 1; e++) {
+      if (done[e >> 1]) continue;
+      const m = moves(e);
       if (m.length === 0) return true;
-      if (pick === -1 || m.length < options.length) {
-        pick = k;
+      if (pick !== -1 && m.length > options.length) continue;
+      const t = tightness(m);
+      if (pick === -1 || m.length < options.length || t < tight) {
+        pick = e;
         options = m;
-        if (m.length === 1) break;
+        tight = t;
       }
     }
     if (pick === -1) {
       if (empty === 0) found++;
       return true;
     }
-    const k = pick;
-    const from = head[k];
     for (const u of options) {
-      endOf[from] = -1;
-      if (u === target[k]) {
-        endOf[u] = -1;
-        done[k] = true;
-        if (!search()) return false;
-        done[k] = false;
-        endOf[u] = k;
-      } else {
-        color[u] = k;
-        endOf[u] = k;
-        head[k] = u;
-        empty--;
-        if (!search()) return false;
-        empty++;
-        head[k] = from;
-        endOf[u] = -1;
-        color[u] = -1;
-      }
-      endOf[from] = k;
+      if (!go(pick, u)) return false;
       if (found >= limit) return true;
     }
     return true;

@@ -87,8 +87,8 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
-- **A setting that can't be fast is marked slow** (Flow: Hard with Wrapping and no Holes, up to
-  several seconds). Its Play and Next turn orange, or red when it's likely over a second on a
+- **A setting that can't be fast is marked slow** (Flow: Hard with Wrapping and no other rule,
+  up to a few seconds). Its Play and Next turn orange, or red when it's likely over a second on a
   phone (`GameScreen`'s `wait` / `nextWait`: `'quick' | 'slow' | 'slower'`, `src/shared/wait.ts`;
   colors `--warn` and `--danger`), and the game makes it in a Web Worker (`src/flow/worker.ts`, `background.ts`):
   `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the

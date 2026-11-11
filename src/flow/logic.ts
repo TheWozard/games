@@ -166,17 +166,15 @@ const WALLS = 0.15;
 const BRIDGES = { easy: 1, medium: 2, hard: 3 } as const;
 
 /**
- * How long a setting's puzzles take to make (see src/shared/wait.ts). Slow ones are Hard with
- * wrapping, where the uniqueness check has no edges to box paths in, unless holes give it some
- * back. Medians on a laptop (a phone takes about four times as long):
- * - slower: wrapping alone, 1.5–4 s; with bridges, about 0.5 s;
- * - slow: with walls (with or without bridges), 30–100 ms, occasionally about a second;
- * - quick: everything else, tens of milliseconds at most.
- * Slow and slower ones are made in the background, behind an orange or red Play or Next.
+ * How long a setting's puzzles take to make (see src/shared/wait.ts). On a laptop (a phone takes
+ * about four times as long), Hard with wrapping and no other rule takes about 350 ms (median; up to
+ * a few seconds), as the uniqueness check has no edges, walls, holes or bridges to box paths in:
+ * slower, made in the background behind a red Play or Next. Everything else is quick: Hard about
+ * 5–40 ms (up to a quarter of a second), Medium and Easy a few at most.
  */
 export function wait(difficulty: Difficulty, rules: Rules): Wait {
-  if (difficulty !== 'hard' || !rules.wrap || rules.holes) return 'quick';
-  return rules.walls ? 'slow' : 'slower';
+  const boxedIn = rules.walls || rules.holes || rules.bridges;
+  return difficulty === 'hard' && rules.wrap && !boxedIn ? 'slower' : 'quick';
 }
 
 export const isSlow = (difficulty: Difficulty, rules: Rules): boolean => wait(difficulty, rules) !== 'quick';

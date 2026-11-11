@@ -48,17 +48,14 @@ describe('generate', () => {
 });
 
 describe('wait', () => {
-  it('marks Hard wrapping without holes slow, and slower without walls too', () => {
+  it('marks only Hard with wrapping and no other rule slower', () => {
     const wrap = { ...NO_RULES, wrap: true };
+    expect(wait('hard', wrap)).toBe('slower');
     expect(wait('medium', wrap)).toBe('quick');
     expect(wait('hard', NO_RULES)).toBe('quick');
-    expect(wait('hard', { ...wrap, holes: true })).toBe('quick');
-    expect(wait('hard', { ...wrap, walls: true })).toBe('slow');
-    expect(wait('hard', { ...wrap, walls: true, bridges: true })).toBe('slow');
-    expect(wait('hard', wrap)).toBe('slower');
-    expect(wait('hard', { ...wrap, bridges: true })).toBe('slower');
-    expect(isSlow('hard', { ...wrap, walls: true })).toBe(true);
-    expect(isSlow('hard', NO_RULES)).toBe(false);
+    for (const rule of ['walls', 'holes', 'bridges'] as const) expect(wait('hard', { ...wrap, [rule]: true })).toBe('quick');
+    expect(isSlow('hard', wrap)).toBe(true);
+    expect(isSlow('hard', { ...wrap, walls: true })).toBe(false);
   });
 });
 
