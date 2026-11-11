@@ -99,7 +99,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   then the "+" that opens the New dialog, last on the right), then `<main class="play">`, which
   centers the board vertically.
 - **Controls under the board, always in this order:**
-  1. `.tools` row of the game's other actions: Clear/Erase, Notes, Hint, Shuffle. Undo and New
+  1. `.tools` row of the game's other actions: Clear/Erase, Notes, Shuffle. Undo and New
      are in the header; leave the row out if nothing's left.
   2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
      buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
@@ -146,6 +146,9 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
+- **No hints, in any game.** The player works every puzzle out alone; don't add a hint button or
+  anything that reveals a move, even where a solver could supply one.
+- **Undo everywhere except Mines.** Mines is about the risk of a wrong tap, so a mistake stands.
 - **Relative URLs only.** The site lives under `/games/`. Link between pages with `../`. Reference
   files in `public/` root-relative (`/icons/icon.svg`); the build rewrites them.
 
