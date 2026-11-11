@@ -13,6 +13,14 @@
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script type="module" src="./shared/app.ts"></script>
+  <script type="module">
+    // Back from a game (../#sudoku): bring that game's card into the middle of the screen, then
+    // drop the hash so a reload starts at the top.
+    const name = decodeURIComponent(location.hash.slice(1));
+    const card = name && [...document.querySelectorAll('a.game')].find((a) => a.getAttribute('href') === `${name}/`);
+    if (card) card.scrollIntoView({ block: 'center' });
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  </script>
   <style>
     .version { color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
     .games { list-style: none; max-width: 520px; margin: 0 auto; padding: 0 16px 8px; display: grid; gap: 12px; }
