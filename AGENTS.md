@@ -13,6 +13,7 @@ just test          # Vitest unit tests (npm test)
 just build         # svelte-check (fails on warnings) + production build into dist/
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
+just blocks        # remake the Sliding Blocks puzzle list (a couple of minutes)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -27,9 +28,11 @@ src/
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
+    GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
     GridPlay.svelte     the whole screen for a digit-grid game; a game supplies a `layout`
     grid.css            board / cell / number-pad styles for GridPlay
+    cards.ts, cards.css, CardFace.svelte   playing cards for Solitaire and FreeCell
   <game>/               one folder per game, picked up automatically as a build entry
     index.html          page shell: head + <body class="game"><div id="root">
     main.ts             imports ../shared/app, the game's CSS, mounts the component
@@ -39,12 +42,13 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
 
 Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire`.
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire`, `freecell`, `blocks` (Sliding Blocks).
 
 ## How a game is built
 
@@ -53,7 +57,9 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **game.ts holds all state changes** in a pure `reducer(game, action)`. It returns the *same
   object* when an action changes nothing (tests rely on this). Game state is plain JSON.
 - **Components** keep the game in `$state.raw`, replace it via the reducer, and save with
-  `$effect(() => saveJSON(STORAGE_KEY, game))`.
+  `$effect(() => saveJSON(STORAGE_KEY, game))`. They render inside `<GameScreen>`, passing the
+  title, current setting, undo, New options (or a `picker` snippet for several settings) and
+  Next; the board and controls are its children, header extras a `status` snippet.
 - **Saved games:** key `games.<name>.v1`. `isGame()` must reject anything that doesn't fit the
   current shape, so a stale save falls back to a new game instead of crashing. If you change the
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
@@ -67,7 +73,11 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **Every puzzle must be solvable, and where the genre expects it, uniquely.** Sudoku, Killer,
   Bridges: unique solution, checked by a solver. Mines: no guessing needed, checked by a
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
-  Untangle: built from a planar arrangement. Tests must prove this, not assume it.
+  Untangle: built from a planar arrangement. Solitaire, FreeCell: deals a solver can win. Tests must
+  prove this, not assume it.
+- **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
+  by `scripts/blocks.ts` (`just blocks`) into `src/blocks/puzzles.ts`, and played in order; its
+  tests re-check every stored puzzle.
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
@@ -83,9 +93,10 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `--muted`, `--accent`, `--danger`...). Use them, not raw colors. The manifest's
   `background_color` / `theme_color` and each page's `<meta name="theme-color">` must equal `--bg`
   (#16181d) so Android's system bars blend in.
-- **Page shell:** `<body class="game">`, a `<header class="bar">` (`<BackButton>` to the launcher, `<h1>` with
-  the difficulty in `<small>`, optional status, then `<UndoButton>` if the game has undo, then
-  `<NewButton>` — the "+" that opens the New dialog, last on the right), then `<main class="play">`, which centers the board vertically.
+- **Page shell** (drawn by `GameScreen`): `<body class="game">`, a `<header class="bar">` (back to
+  the launcher, `<h1>` with the setting in `<small>`, optional status, Undo if the game has undo,
+  then the "+" that opens the New dialog, last on the right), then `<main class="play">`, which
+  centers the board vertically.
 - **Controls under the board, always in this order:**
   1. `.tools` row of the game's other actions: Clear/Erase, Notes, Hint, Shuffle. Undo and New
      are in the header; leave the row out if nothing's left.
@@ -111,7 +122,7 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
-  screen and a floating **Next** button (`src/shared/NextButton.svelte`) appears, starting
+  screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
 - **Relative URLs only.** The site lives under `/games/`. Link between pages with `../`. Reference
   files in `public/` root-relative (`/icons/icon.svg`); the build rewrites them.

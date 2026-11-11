@@ -5,14 +5,9 @@
 //
 // Deals are random, and kept only if a solver finds a way to win, so every game can be won.
 
-/** Cards are 0–51: suit = floor(card / 13) (♠ ♥ ♦ ♣), rank = card % 13 + 1 (Ace = 1, King = 13). */
-export type Card = number;
+import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../shared/cards';
 
-export const suitOf = (c: Card) => Math.floor(c / 13);
-export const rankOf = (c: Card) => (c % 13) + 1;
-export const isRed = (c: Card) => suitOf(c) === 1 || suitOf(c) === 2;
-export const SUITS = ['♠', '♥', '♦', '♣'];
-export const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+export { isRed, rankOf, suitOf, type Card };
 
 export interface Column {
   down: Card[]; // face down, bottom first
@@ -30,16 +25,8 @@ export type Draw = 1 | 3;
 
 type Random = () => number;
 
-function shuffle<T>(a: T[], random: Random): T[] {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export function deal(random: Random = Math.random): Table {
-  const deck = shuffle([...Array(52).keys()], random);
+  const deck = shuffledDeck(random);
   const tableau: Column[] = [];
   let k = 0;
   for (let col = 0; col < 7; col++) {
@@ -177,13 +164,7 @@ export function solvable(start: Table, drawCount: Draw, budget = SOLVE_BUDGET): 
   const key = (t: Table) =>
     t.tableau.map((c) => `${c.down.length}:${c.up.join('.')}`).join('|') + '/' + t.stock.join('.') + '/' + t.waste.join('.') + '/' + t.foundations.join('.');
 
-  // A card is safe to put up when both opposite-colored foundations are close behind it.
-  const safe = (t: Table, c: Card) => {
-    const r = rankOf(c);
-    if (r <= 2) return true;
-    const opposite = isRed(c) ? [0, 3] : [1, 2];
-    return opposite.every((s) => t.foundations[s] >= r - 1);
-  };
+  const safe = (t: Table, c: Card) => safeToFoundation(t.foundations, c);
   const autoplay = (t: Table): Table => {
     for (let progress = true; progress; ) {
       progress = false;

@@ -1,0 +1,31 @@
+.blocks-count { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.blocks-count small { font-size: 0.8em; opacity: 0.8; }
+
+.blocks-board {
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  overflow: visible; /* room for the key block to slide out when it's free */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none; /* dragging a block must not pan the page */
+}
+
+.blocks-board .tray { fill: var(--surface); }
+.blocks-board .spot { fill: var(--line); }
+/* The wall, open at the exit; a small arrow beyond the gap points the way out. */
+.blocks-board .wall { fill: none; stroke: var(--line-strong); stroke-opacity: 0.5; stroke-width: 0.06; }
+.blocks-board .exit-mark { fill: none; stroke: var(--muted); stroke-width: 0.07; stroke-linecap: round; stroke-linejoin: round; }
+
+.blocks-board .block { cursor: grab; outline: none; transition: transform 0.15s ease; }
+.blocks-board .block.moving { cursor: grabbing; transition: none; }
+.blocks-board .block rect { fill: var(--accent-soft); stroke: var(--accent); stroke-opacity: 0.45; stroke-width: 0.05; }
+.blocks-board .block.key rect { stroke: rgb(255 255 255 / 0.35); }
+
+/* Free: the key block slides out through the gap. */
+.blocks-board.done .block { cursor: default; }
+.blocks-board.done .block.key {
+  translate: 2.4px 0;
+  opacity: 0;
+  transition: translate 0.6s ease-in 0.1s, opacity 0.3s ease 0.4s;
+}

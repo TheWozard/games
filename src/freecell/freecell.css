@@ -1,0 +1,4 @@
+/* Cards are dragged, so the browser mustn't treat a press on one as the start of a pan. */
+.fc-board .card { touch-action: none; }
+/* Free cells: a solid outline, to tell them from the dashed foundation and column places. */
+.fc-board .slot.cell { border-style: solid; }

@@ -1,17 +1,18 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { bestTarget, isRed, rankOf, RANKS, suitOf, SUITS, type Card, type Draw, type Source } from './logic';
+  import CardFace from '../shared/CardFace.svelte';
+  import { cardName, isRed, SUITS } from '../shared/cards';
+  import { bestTarget, type Card, type Draw, type Source } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame(1));
-  const dispatch = (action: Action) => (game = reducer(game, action));
-
-  let askingNew = $state(false);
+  // Cards glide between places only once the player has moved: not while the page lays out.
+  let animate = $state(false);
+  const dispatch = (action: Action) => {
+    animate = true;
+    game = reducer(game, action);
+  };
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
@@ -99,10 +100,8 @@
 
   function onKey(e: KeyboardEvent) {
     if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    } else if (e.key === ' ' || e.key === 'd') {
+    // Space or D draws from the stock (GameScreen handles Ctrl/Cmd+Z).
+    if (e.key === ' ' || e.key === 'd') {
       e.preventDefault();
       dispatch({ type: 'stock' });
     }
@@ -111,16 +110,19 @@
 
 <svelte:document onkeydown={onKey} />
 
-<header class="bar">
-  <BackButton />
-  <h1>Solitaire <small>Draw {game.draw}</small></h1>
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={() => (askingNew = true)} />
-</header>
-
-<main class="play">
+<GameScreen
+  title="Solitaire"
+  subtitle="Draw {game.draw}"
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  options={[{ value: '1', label: 'Draw 1 · easier' }, { value: '3', label: 'Draw 3 · classic' }]}
+  onstart={start}
+  finished={game.done}
+  onnext={() => (game = newGame(game.draw))}
+>
   <div class="board-area">
-    <div class="sol-board" bind:clientWidth={width} bind:clientHeight={height} style:--cw="{cw}px" style:--ch="{ch}px">
+    <div class={['card-table sol-board', { animate }]} bind:clientWidth={width} bind:clientHeight={height} style:--cw="{cw}px" style:--ch="{ch}px">
       <!-- Empty slots: the stock (tap to turn the waste over), foundations, and columns. -->
       <button
         type="button"
@@ -144,25 +146,12 @@
           class={['card', { down: !p.up, red: isRed(p.card), shake: shaking === p.card, live: p.source !== null }]}
           style:transform="translate({p.x}px, {p.y}px)"
           style:z-index={p.z}
-          aria-label={p.up ? `${RANKS[rankOf(p.card) - 1]} of ${['spades', 'hearts', 'diamonds', 'clubs'][suitOf(p.card)]}` : 'Face-down card'}
+          aria-label={p.up ? cardName(p.card) : 'Face-down card'}
           onclick={() => tap(p)}
         >
-          {#if p.up}
-            <span class="corner">{RANKS[rankOf(p.card) - 1]}<span>{SUITS[suitOf(p.card)]}</span></span>
-            <span class="pip">{SUITS[suitOf(p.card)]}</span>
-          {/if}
+          {#if p.up}<CardFace card={p.card} />{/if}
         </button>
       {/each}
     </div>
   </div>
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame(game.draw))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; start(value); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-  <button class="btn" value="1">Draw 1 · easier</button>
-  <button class="btn" value="3">Draw 3 · classic</button>
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

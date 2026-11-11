@@ -15,6 +15,8 @@ Games:
 - [Gradient](src/gradient/): swap color tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color; every deal is checked to be sortable.
 - [Solitaire](src/solitaire/): Klondike-style patience, draw 1 or 3; tap a card to send it to its best move, and every deal is checked winnable.
+- [FreeCell](src/freecell/): every card face up, two to four free cells; tap a card for its best move or drag it, and every deal is checked winnable.
+- [Sliding Blocks](src/blocks/): slide blocks to free the red one; 300 pre-made puzzles in three difficulties, each played in order, with the fewest moves shown.
 - [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 
 ## Installing on a phone
@@ -47,7 +49,8 @@ The service worker only exists in the production build, so test offline behavior
 - `src/<game>/`: one folder per game, each with its own `index.html` entry.
 - `src/shared/`: what every page loads: [base.css](src/shared/base.css), the service worker
   registration ([app.ts](src/shared/app.ts)), a safe `localStorage` wrapper ([storage.ts](src/shared/storage.ts))
-  and a modal [Dialog.svelte](src/shared/Dialog.svelte).
+  a modal [Dialog.svelte](src/shared/Dialog.svelte), and [GameScreen.svelte](src/shared/GameScreen.svelte),
+  the frame every game screen shares (header, Next button, New dialog, Ctrl/Cmd+Z undo).
 - Digit-grid games (Sudoku, Killer Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
   pencil marks, undo, win) and their whole screen ([GridPlay.svelte](src/shared/GridPlay.svelte)).
   Each one only supplies a puzzle generator and a `layout` (size, which cells can't repeat a

@@ -168,6 +168,24 @@
         <button class="btn" type="button" popovertarget="how-bridges" popovertargetaction="hide">Close</button>
       </div>
     </li>
+    <li>
+      <a class="game" href="blocks/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M45 17V9a6 6 0 0 0-6-6H9a6 6 0 0 0-6 6v30a6 6 0 0 0 6 6h30a6 6 0 0 0 6-6V27" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <rect x="8" y="18" width="16" height="8" rx="2.5" fill="#e5534b"/>
+          <g fill="currentColor" opacity="0.6"><rect x="27" y="8" width="8" height="22" rx="2.5"/><rect x="8" y="33" width="22" height="8" rx="2.5"/><rect x="8" y="8" width="16" height="7" rx="2.5"/></g>
+        </svg>
+        <div><strong>Sliding Blocks</strong><span>Slide the blocks aside to clear a way out for the red one.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-blocks" aria-label="How to play Sliding Blocks">i</button>
+      <div class="how" id="how-blocks" popover>
+        <h2>Sliding Blocks</h2>
+        <p>Get the red block out through the gap in the right-hand edge.</p>
+        <p>Drag a block to slide it. Blocks only move along their length, and can’t pass through each other.</p>
+        <p>The count at the top is your moves so far, next to the fewest it can be done in. Sliding a block any distance is one move. Puzzles come in order, a little harder each time.</p>
+        <button class="btn" type="button" popovertarget="how-blocks" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
   </ul>
   <h2 class="group">Paths</h2>
   <ul class="games">
@@ -205,7 +223,7 @@
         <h2>Untangle</h2>
         <p>Drag the dots until no two lines cross.</p>
         <p>A dot resting on a line it isn’t part of counts as a crossing too (it gets a red ring), and a dot dropped on another is nudged clear. Crossing lines show in red.</p>
-        <p>For a new puzzle, pick how many dots, a style (Lines, a dense Mesh, or sparse Loops) and how the dots start. Every puzzle can be untangled.</p>
+        <p>For a new puzzle, pick how many dots, a style (Lines, a dense Mesh, or sparse Loops) and how the dots start: round a Circle, along a Spiral, in three Rows, on a Grid, or Scattered. The whole screen is yours to spread them out. Every puzzle can be untangled.</p>
         <button class="btn" type="button" popovertarget="how-untangle" popovertargetaction="hide">Close</button>
       </div>
     </li>
@@ -274,6 +292,30 @@
         <p>In the seven columns, build down in alternating colors (a red 7 on a black 8). Only a King can go into an empty column. Moving a column’s last face-up card turns over the one beneath it.</p>
         <p>Tap a card to send it to its best spot, and tap the stock (top left) to draw one card or three. When the stock runs out, tap again to turn the pile over. Once every card is showing, the rest goes home by itself.</p>
         <button class="btn" type="button" popovertarget="how-solitaire" popovertargetaction="hide">Close</button>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="freecell/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="9" height="12" rx="2"/><rect x="14" y="3" width="9" height="12" rx="2"/></g>
+          <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"><rect x="25" y="3" width="9" height="12" rx="2"/><rect x="36" y="3" width="9" height="12" rx="2"/></g>
+          <g fill="var(--surface)" stroke="currentColor" stroke-width="1.6">
+            <rect x="4" y="19" width="12" height="16" rx="2"/><rect x="4" y="25" width="12" height="16" rx="2"/>
+            <rect x="18" y="19" width="12" height="16" rx="2"/><rect x="18" y="24" width="12" height="16" rx="2"/><rect x="18" y="29" width="12" height="16" rx="2"/>
+            <rect x="32" y="19" width="12" height="16" rx="2"/><rect x="32" y="26" width="12" height="16" rx="2"/>
+          </g>
+          <text x="24" y="41" font-size="9" text-anchor="middle" font-family="system-ui, sans-serif" fill="#e5534b">♥</text>
+        </svg>
+        <div><strong>FreeCell</strong><span>Every card face up from the start: plan your way to the foundations. Every deal can be won.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-freecell" aria-label="How to play FreeCell">i</button>
+      <div class="how" id="how-freecell" popover>
+        <h2>FreeCell</h2>
+        <p>Move every card to the four foundations at the top right, building each suit up from Ace to King.</p>
+        <p>In the eight columns, build down in alternating colors (a red 7 on a black 8). Any card can go into an empty column, and each free cell at the top left holds one card.</p>
+        <p>You can move a run of cards at once if there’s room to move it one card at a time through the free cells and empty columns.</p>
+        <p>Tap a card to send it to its best spot, or drag it exactly where you want. Cards that are no longer needed go up to the foundations by themselves. Fewer free cells make it harder.</p>
+        <button class="btn" type="button" popovertarget="how-freecell" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>
