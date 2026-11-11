@@ -60,10 +60,10 @@
   // The exit arrow sits just past the right-hand edge, level with the key block's row.
   const EDGE = 0.15;
 
-  /** The New dialog's choices, with the range of moves each difficulty's puzzles take. */
+  /** The New Game choices, with the range of moves each difficulty's puzzles take. */
   const options = (Object.keys(DIFFICULTIES) as Difficulty[]).map((value) => {
     const fewest = PUZZLES[value].map(([n]) => n);
-    return { value, label: `${DIFFICULTIES[value].label} · ${Math.min(...fewest)}–${Math.max(...fewest)} moves` };
+    return { value, label: DIFFICULTIES[value].label, detail: `${Math.min(...fewest)}–${Math.max(...fewest)} moves` };
   });
 </script>
 
@@ -72,8 +72,8 @@
   subtitle="{DIFFICULTIES[game.difficulty].label} · No. {game.number + 1}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
   {options}
+  current={game.difficulty}
   onstart={start}
   finished={game.done}
   onnext={() => (game = newGame(game.difficulty, game.upNext))}

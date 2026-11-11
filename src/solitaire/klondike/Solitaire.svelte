@@ -1,13 +1,24 @@
 <script lang="ts">
-  import GameScreen from '../shared/GameScreen.svelte';
-  import { loadJSON, saveJSON } from '../shared/storage';
+  import GameScreen from '../../shared/GameScreen.svelte';
+  import { loadJSON, saveJSON } from '../../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import CardFace from '../shared/CardFace.svelte';
-  import { cardName, isRed, SUITS } from '../shared/cards';
-  import { attachPan } from '../shared/pan';
+  import CardFace from '../../shared/CardFace.svelte';
+  import { cardName, isRed, SUITS } from '../../shared/cards';
+  import { attachPan } from '../../shared/pan';
   import { bestTarget, type Card, type Draw, type Source } from './logic';
+  import { untrack } from 'svelte';
+  import Picker from '../Picker.svelte';
+  import { KLONDIKE, parse, type VariantProps } from '../variants';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame(1));
+  let { start: first, onswitch }: VariantProps = $props();
+  // The New dialog's pick, "<variant>:<setting>", starting on this game each time it opens.
+  let pickerOpens = $state(0);
+  let pick = $state('');
+
+  const isDraw = (s: string | undefined) => s === '1' || s === '3';
+  let game = $state.raw(
+    untrack(() => (isDraw(first) ? newGame(Number(first) as Draw) : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)))),
+  );
   // Cards glide between places only once the player has moved: not while the page lays out.
   let animate = $state(false);
   const dispatch = (action: Action) => {
@@ -136,7 +147,11 @@
   }
 
   function start(value: string) {
-    if (value === '1' || value === '3') deal(newGame(Number(value) as Draw));
+    if (value !== 'start') return;
+    const choice = parse(pick);
+    if (!choice) return;
+    if (choice.variant !== 'klondike') onswitch(pick);
+    else if (isDraw(choice.setting)) deal(newGame(Number(choice.setting) as Draw));
   }
 
   function deal(next: typeof game) {
@@ -159,15 +174,17 @@
 <GameScreen
   wide
   title="Solitaire"
-  subtitle="Draw {game.draw}"
+  subtitle="Klondike · {KLONDIKE[game.draw]}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
-  options={[{ value: '1', label: 'Draw 1 · easier' }, { value: '3', label: 'Draw 3 · classic' }]}
+  onopennew={() => { pick = `klondike:${game.draw}`; pickerOpens++; }}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.draw))}
 >
+  {#snippet picker()}
+    {#key pickerOpens}<Picker bind:value={pick} />{/key}
+  {/snippet}
   <div class="board-area">
     <div
       class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}

@@ -1,11 +1,12 @@
 // Mine finder game state and moves, as a pure reducer (apart from placing mines on the first
 // reveal, which uses Math.random unless a source is passed in).
-import { counts, DIFFICULTIES, flood, isDifficulty, neighbors, placeMines, type Difficulty } from './logic';
+import { counts, flood, isDensity, isSize, mineCount, neighbors, placeMines, SIZES, type Density, type Size } from './logic';
 
 export const STORAGE_KEY = 'games.mines.v1';
 
 export interface Game {
-  difficulty: Difficulty;
+  size: Size;
+  density: Density;
   rows: number;
   cols: number;
   mineCount: number;
@@ -20,13 +21,14 @@ export type Action =
   | { type: 'tap'; index: number } // reveal (or, on a number, clear around it)
   | { type: 'flag'; index: number }; // long-press / right-click
 
-export function newGame(difficulty: Difficulty): Game {
-  const { rows, cols, mines } = DIFFICULTIES[difficulty];
+export function newGame(size: Size, density: Density): Game {
+  const { rows, cols } = SIZES[size];
   return {
-    difficulty,
+    size,
+    density,
     rows,
     cols,
-    mineCount: mines,
+    mineCount: mineCount(size, density),
     mines: null,
     revealed: new Array(rows * cols).fill(false),
     flagged: new Array(rows * cols).fill(false),
@@ -35,10 +37,18 @@ export function newGame(difficulty: Difficulty): Game {
   };
 }
 
+/** Saves from before size and density were separate settings had one difficulty instead. */
+const OLD_DIFFICULTIES: Record<string, [Size, Density]> = { easy: ['small', 'few'], medium: ['medium', 'some'], hard: ['large', 'many'] };
+
+/** Validates a save, reading a pre-split save's difficulty as the size and density it stood for. */
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
-  if (!isDifficulty(g?.difficulty)) return false;
-  const { rows, cols } = DIFFICULTIES[g.difficulty];
+  const g = value as (Partial<Game> & { difficulty?: string }) | null;
+  if (g && !g.size && g.difficulty && Object.hasOwn(OLD_DIFFICULTIES, g.difficulty)) {
+    [g.size, g.density] = OLD_DIFFICULTIES[g.difficulty];
+    delete g.difficulty;
+  }
+  if (!isSize(g?.size) || !isDensity(g.density)) return false;
+  const { rows, cols } = SIZES[g.size];
   const cells = rows * cols;
   return (
     g.rows === rows && g.cols === cols &&

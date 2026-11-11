@@ -1,7 +1,8 @@
 import '../shared/app';
 import '../shared/cards.css';
-import './solitaire.css';
+import './klondike/solitaire.css';
+import './freecell/freecell.css';
 import { mount } from 'svelte';
-import Solitaire from './Solitaire.svelte';
+import App from './App.svelte';
 
-mount(Solitaire, { target: document.getElementById('root')! });
+mount(App, { target: document.getElementById('root')! });

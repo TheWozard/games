@@ -14,8 +14,7 @@ Games:
 - [Untangle](src/untangle/): drag dots until no lines cross (a dot on a line counts); 10–36 dots in three styles, each built from an untangled layout so every puzzle is solvable.
 - [Gradient](src/gradient/): swap color tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color; every deal is checked to be sortable.
-- [Solitaire](src/solitaire/): Klondike-style patience, draw 1 or 3; tap a card to send it to its best move, and every deal is checked winnable.
-- [FreeCell](src/freecell/): every card face up, two to four free cells; tap a card for its best move or drag it, and every deal is checked winnable.
+- [Solitaire](src/solitaire/): Klondike (draw 1 or 3) or FreeCell (two to four free cells), picked when you start a game; tap a card to send it to its best move, and every deal is checked winnable.
 - [Sliding Blocks](src/blocks/): slide blocks to free the red one; 300 pre-made puzzles in three difficulties, each played in order, with the fewest moves shown.
 - [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 

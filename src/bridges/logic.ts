@@ -4,7 +4,7 @@
 // and kept only if a solver confirms the answer is unique.
 //
 // Optional rules, any mix:
-// - colors: islands are gold, pink or gray; a bridge joins two islands of the same color, or a gray
+// - colors: islands are red, blue or gray; a bridge joins two islands of the same color, or a gray
 //   island to any island;
 // - blocks: some empty spots hold a block that no bridge may pass;
 // - diagonals: islands can also be bridged diagonally.
@@ -21,9 +21,9 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export const RULES = {
-  colors: { label: 'Colors' },
-  blocks: { label: 'Blocks' },
-  diagonals: { label: 'Diagonals' },
+  colors: { label: 'Colors', info: 'Bridges join red to red and blue to blue; plain islands join any.' },
+  blocks: { label: 'Blocks', info: 'No bridge may pass over a block.' },
+  diagonals: { label: 'Diagonals', info: 'Bridges can also run diagonally, even between islands that touch at a corner.' },
 } as const;
 
 export type Rule = keyof typeof RULES;
@@ -168,7 +168,7 @@ const pair = (a: number, b: number) => `${Math.min(a, b)},${Math.max(a, b)}`;
 
 /**
  * Colors the islands so every bridge in `links` is allowed: about a third go gray, and each group
- * the rest form over bridges between non-gray islands gets gold or pink. False if it came out all
+ * the rest form over bridges between non-gray islands gets red or blue. False if it came out all
  * one color.
  */
 function paint(islands: Island[], links: Map<string, number>, random: Random): boolean {

@@ -20,8 +20,8 @@ export const DIFFICULTIES = {
 const KEEP_WITH_RULES = 0.1;
 
 export const RULES = {
-  squares: { label: 'Squares' },
-  rings: { label: 'Rings' },
+  squares: { label: 'Squares', info: 'Solid squares end up on one side of the loop, hollow squares on the other.' },
+  rings: { label: 'Rings', info: 'The loop passes through every ringed dot.' },
 } as const;
 
 export type Rule = keyof typeof RULES;

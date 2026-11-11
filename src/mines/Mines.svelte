@@ -2,20 +2,22 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { counts, DIFFICULTIES, isDifficulty } from './logic';
+  import { counts, DENSITIES, isDensity, isSize, mineCount, SIZES, type Density, type Size } from './logic';
 
   const LONG_PRESS_MS = 350;
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
+  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('small', 'few'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const near = $derived(game.mines ? counts(game.mines, game) : null);
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(`${SIZES[game.size].label} · ${DENSITIES[game.density].label}`);
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  // The New Game picks, starting from the current game's; Play starts them.
+  let choice = $state<{ size: Size; density: Density }>({ size: 'small', density: 'few' });
+  function start(value: string) {
+    if (value === 'start' && isSize(choice.size) && isDensity(choice.density)) game = newGame(choice.size, choice.density);
   }
 
   // Long-press flags (touch has no right-click). The press that flagged must not also reveal, so
@@ -74,12 +76,30 @@
 <GameScreen
   title="Mines"
   subtitle={label}
-  inProgress={game.status === 'playing' && game.mines !== null}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cols}×${d.rows}, ${d.mines} mines` }))}
+  onopennew={() => (choice = { size: game.size, density: game.density })}
   onstart={start}
   finished={game.status !== 'playing'}
-  onnext={() => (game = newGame(game.difficulty))}
+  onnext={() => (game = newGame(game.size, game.density))}
 >
+  {#snippet picker()}
+    <h3 class="pick-title">Board</h3>
+    <div class="pick">
+      {#each Object.entries(SIZES) as [key, s] (key)}
+        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
+          <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
+        </button>
+      {/each}
+    </div>
+    <h3 class="pick-title">Mines</h3>
+    <div class="pick">
+      {#each Object.entries(DENSITIES) as [key, d] (key)}
+        <button type="button" class="btn" aria-pressed={choice.density === key} onclick={() => (choice.density = key as Density)}>
+          <strong>{d.label}</strong><span>{mineCount(choice.size, key as Density)} mines</span>
+        </button>
+      {/each}
+    </div>
+  {/snippet}
+
   {#snippet status()}
     <span class="mines-left" aria-label="Mines left to flag">{@render flagIcon()} {flagsLeft(game)}</span>
   {/snippet}

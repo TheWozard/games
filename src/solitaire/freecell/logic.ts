@@ -5,7 +5,7 @@
 //
 // Nearly every deal can be won with four free cells, fewer with two or three; a solver checks
 // each deal, so every game can be won.
-import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../shared/cards';
+import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../../shared/cards';
 
 export const DIFFICULTIES = {
   classic: { label: 'Classic', cells: 4 },

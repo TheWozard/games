@@ -55,8 +55,10 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(name: string) {
-    if (isLayout(name)) deal(newGame(name));
+  // The New dialog's pick, starting on the current layout; Start deals it.
+  let choice = $state('');
+  function start(value: string) {
+    if (value === 'start' && isLayout(choice)) deal(newGame(choice));
   }
 
   function deal(next: typeof game) {
@@ -86,7 +88,7 @@
   subtitle={layout.name}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
+  onopennew={() => (choice = game.layout)}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.layout))}
@@ -100,9 +102,10 @@
     {/if}
   {/snippet}
   {#snippet picker()}
+    <h3 class="pick-title">Layout</h3>
     <div class="mj-layouts">
       {#each Object.entries(LAYOUTS) as [key, l] (key)}
-        <button class={['btn', { current: key === game.layout }]} value={key}>
+        <button type="button" class="btn" aria-pressed={choice === key} onclick={() => (choice = key)}>
           <strong>{l.name}</strong><span>{l.slots.length} tiles</span>
         </button>
       {/each}

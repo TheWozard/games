@@ -64,9 +64,9 @@
   transition: fill 0.2s ease;
 }
 
-/* Colors rule: gold and pink rings only join their own color; plain islands join any. */
-.bridges-board .island.color-1 .ring { --ring: #e8c547; stroke-width: 0.1; }
-.bridges-board .island.color-2 .ring { --ring: #ec6cb9; stroke-width: 0.1; }
+/* Colors rule: red and blue rings only join their own color; plain islands join any. */
+.bridges-board .island.color-1 .ring { --ring: #e5534b; stroke-width: 0.1; }
+.bridges-board .island.color-2 .ring { --ring: #4f8ef7; stroke-width: 0.1; }
 
 /* Blocks: no bridge may pass. */
 .bridges-board .block { fill: var(--line); stroke: var(--muted); stroke-width: 0.04; pointer-events: none; }

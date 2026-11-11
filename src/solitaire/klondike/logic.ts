@@ -5,7 +5,7 @@
 //
 // Deals are random, and kept only if a solver finds a way to win, so every game can be won.
 
-import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../shared/cards';
+import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../../shared/cards';
 
 export { isRed, rankOf, suitOf, type Card };
 

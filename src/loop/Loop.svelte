@@ -46,7 +46,6 @@
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
   onopennew={askNew}
   onstart={start}
   finished={game.done}

@@ -1,13 +1,23 @@
 <script lang="ts">
-  import GameScreen from '../shared/GameScreen.svelte';
-  import CardFace from '../shared/CardFace.svelte';
-  import { cardName, isRed, SUITS, type Card } from '../shared/cards';
-  import { attachPan } from '../shared/pan';
-  import { loadJSON, saveJSON } from '../shared/storage';
+  import GameScreen from '../../shared/GameScreen.svelte';
+  import CardFace from '../../shared/CardFace.svelte';
+  import { cardName, isRed, SUITS, type Card } from '../../shared/cards';
+  import { attachPan } from '../../shared/pan';
+  import { loadJSON, saveJSON } from '../../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { bestTarget, canMove, COLUMNS, DIFFICULTIES, isDifficulty, lifted, type Source, type Target } from './logic';
+  import { untrack } from 'svelte';
+  import Picker from '../Picker.svelte';
+  import { parse, type VariantProps } from '../variants';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('classic'));
+  let { start: first, onswitch }: VariantProps = $props();
+  // The New dialog's pick, "<variant>:<setting>", starting on this game each time it opens.
+  let pickerOpens = $state(0);
+  let pick = $state('');
+
+  let game = $state.raw(
+    untrack(() => (isDifficulty(first) ? newGame(first) : (loadJSON(STORAGE_KEY, isGame) ?? newGame('classic')))),
+  );
   // Cards glide between places only once the player has moved: not while the page lays out.
   let animate = $state(false);
   const dispatch = (action: Action) => {
@@ -18,7 +28,11 @@
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   function start(value: string) {
-    if (isDifficulty(value)) deal(newGame(value));
+    if (value !== 'start') return;
+    const choice = parse(pick);
+    if (!choice) return;
+    if (choice.variant !== 'freecell') onswitch(pick);
+    else if (isDifficulty(choice.setting)) deal(newGame(choice.setting));
   }
 
   function deal(next: typeof game) {
@@ -211,16 +225,18 @@
 
 <GameScreen
   wide
-  title="FreeCell"
-  subtitle="{DIFFICULTIES[game.difficulty].label} · {DIFFICULTIES[game.difficulty].cells} free cells"
+  title="Solitaire"
+  subtitle="FreeCell · {DIFFICULTIES[game.difficulty].label}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: `${d.label} · ${d.cells} free cells` }))}
+  onopennew={() => { pick = `freecell:${game.difficulty}`; pickerOpens++; }}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.difficulty))}
 >
+  {#snippet picker()}
+    {#key pickerOpens}<Picker bind:value={pick} />{/key}
+  {/snippet}
   <div class="board-area">
     <div
       bind:this={board}

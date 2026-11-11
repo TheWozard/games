@@ -82,7 +82,7 @@ describe('edgesOf', () => {
     expect(edges).toHaveLength(6);
     const diagonal = edges.flatMap((e, k) => (e.dr && e.dc ? [k] : []));
     expect(crosses[diagonal[0]]).toEqual([diagonal[1]]);
-    // Colors: gold and pink can't join; gray joins either.
+    // Colors: red and blue can't join; gray joins either.
     const colored = islands.map((s, k) => ({ ...s, color: [1, 2, GRAY, 1][k] }));
     expect(edgesOf(colored, 3, 3).edges.map((e) => [e.a, e.b])).toEqual([[0, 2], [2, 3]]);
   });

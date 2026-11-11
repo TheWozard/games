@@ -32,7 +32,7 @@ src/
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
     GridPlay.svelte     the whole screen for a digit-grid game; a game supplies a `layout`
     grid.css            board / cell / number-pad styles for GridPlay
-    cards.ts, cards.css, CardFace.svelte   playing cards for Solitaire and FreeCell
+    cards.ts, cards.css, CardFace.svelte   playing cards for Solitaire (Klondike and FreeCell)
   <game>/               one folder per game, picked up automatically as a build entry
     index.html          page shell: head + <body class="game"><div id="root">
     main.ts             imports ../shared/app, the game's CSS, mounts the component
@@ -48,7 +48,9 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 ```
 
 Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire`, `freecell`, `blocks` (Sliding Blocks).
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire` (Klondike and FreeCell, one page:
+`src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
+only forwards old links), `blocks` (Sliding Blocks).
 
 ## How a game is built
 
@@ -73,7 +75,7 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **Every puzzle must be solvable, and where the genre expects it, uniquely.** Sudoku, Killer,
   Bridges: unique solution, checked by a solver. Mines: no guessing needed, checked by a
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
-  Untangle: built from a planar arrangement. Solitaire, FreeCell: deals a solver can win. Tests must
+  Untangle: built from a planar arrangement. Klondike, FreeCell: deals a solver can win. Tests must
   prove this, not assume it.
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
   by `scripts/blocks.ts` (`just blocks`) into `src/blocks/puzzles.ts`, and played in order; its
@@ -116,13 +118,30 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `<div class="board-area">`, which fills the space left between header and controls, and size
   it with container units: `width: min(100cqw, 100cqh * cols / rows); aspect-ratio: cols / rows`. For grids, set both `grid-template-columns` and
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
-  One exception: on thin screens Solitaire's and FreeCell's columns, and Mahjong's wide layouts,
+  One exception: on thin screens Klondike's and FreeCell's columns, and Mahjong's wide layouts,
   are wider than the screen so cards and tiles stay large, and pan sideways under a finger
   (`src/shared/pan.ts`; not page scrolling: the page itself never moves). These games use
   `GameScreen`'s `wide`, so a tablet or desktop shows everything and only pans if it must.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
+- **New Game dialog** (`GameScreen`; one shape in every game):
+  - Title "New Game", an × in the top corner to close it (Escape and the backdrop too), and one
+    **Play** button at the bottom. Nothing else in the dialog starts a game: choices only select.
+  - Every group of choices has a `.pick-title` heading ("Difficulty" for Easy / Medium / Hard,
+    "Size" for real sizes, "Rules" for optional rules, "Layout"...), over a `.pick` row of
+    `aria-pressed` tiles: a name in `<strong>` and an optional short detail in `<span>`, which
+    should fit on one line ("9×9 · 5 colors", "10 mines").
+  - One group: pass `options` (`{ value, label, detail? }`), `current` and `optionsTitle`. Several:
+    a `picker` snippet of such groups (`RulesPicker` for a size plus optional rules: one line per
+    rule, a check box toggle and an **i** that opens a short explanation, one line if it can be);
+    Play then calls `onstart('start')`. Solitaire puts tabs (`.pick-tabs`) above its groups to pick
+    the game.
+  - The header's subtitle lists the picks in the same order, joined by " · ".
+- **Capitalization:** Title Case for names the player sees as labels: game titles, dialog titles,
+  headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
+  Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
+  own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.

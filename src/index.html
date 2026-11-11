@@ -95,13 +95,13 @@
           <rect x="2" y="2" width="44" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/>
           <g font-size="6.5" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif"><text x="5.4" y="10.2">14</text><text x="34.73" y="10.2">9</text><text x="20.07" y="24.87">17</text><text x="5.4" y="39.53">5</text></g>
         </svg>
-        <div><strong>Killer Sudoku</strong><span>Sudoku with no clues, just cages: each one adds up to its sum, with no repeats.</span></div>
+        <div><strong>Killer Sudoku</strong><span>Sudoku with only a few digits given: colored cages add up to their sums, with no repeats.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-killer" aria-label="How to play Killer Sudoku">i</button>
       <div class="how" id="how-killer" popover>
         <h2>Killer Sudoku</h2>
         <p>Sudoku rules: every row, column and 3×3 box holds 1–9 once.</p>
-        <p>Each colored cage’s digits add up to the number in its corner, with no digit repeated inside a cage.</p>
+        <p>Each colored cage’s digits add up to the number on its top edge, with no digit repeated inside a cage. A few digits are given to start you off.</p>
         <p>Tap a cell, then a number; Notes switches to pencil marks. A full cage with the wrong total turns red.</p>
         <button class="btn" type="button" popovertarget="how-killer" popovertargetaction="hide">Close</button>
       </div>
@@ -150,7 +150,6 @@
         <h2>Loop</h2>
         <p>Draw a single closed loop along the lines between dots. It can’t branch or cross itself.</p>
         <p>A number in a cell says how many of that cell’s four sides the loop uses. Cells without a number can have any.</p>
-        <p>Extra rules to turn on under +: <strong>Squares</strong>: solid squares all end up on one side of the loop (inside or outside) and hollow squares on the other. <strong>Rings</strong>: the loop passes through every ringed dot.</p>
         <p>Tap a side to draw a line, tap it again to mark it ✕ (not part of the loop), and once more to clear it. Numbers dim when they’re met and turn red when there are too many.</p>
         <button class="btn" type="button" popovertarget="how-loop" popovertargetaction="hide">Close</button>
       </div>
@@ -175,7 +174,6 @@
         <p>Each island’s number is how many bridges it needs.</p>
         <p>Bridges run straight across or down, at most two between the same islands. They can’t cross, and every island must end up connected.</p>
         <p>Drag from one island to another to build a bridge; drag again for a double. Swipe across a bridge to remove one, or tap the gap to cycle 0 → 1 → 2.</p>
-        <p>Extra rules to turn on under +: <strong>Colors</strong>: bridges only join gold-ringed islands to gold or pink to pink; plain islands join any color. <strong>Blocks</strong>: no bridge may pass over a block. <strong>Diagonals</strong>: bridges can also run diagonally, even between islands that touch at a corner.</p>
         <button class="btn" type="button" popovertarget="how-bridges" popovertargetaction="hide">Close</button>
       </div>
     </li>
@@ -294,39 +292,15 @@
             <text x="23.5" y="15" font-size="8">A</text><text x="31" y="31" font-size="12" text-anchor="middle">♥</text>
           </g>
         </svg>
-        <div><strong>Solitaire</strong><span>Classic patience: build each suit up from Ace to King. Every deal can be won.</span></div>
+        <div><strong>Solitaire</strong><span>Klondike or FreeCell: build each suit up from Ace to King. Every deal can be won.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-solitaire" aria-label="How to play Solitaire">i</button>
       <div class="how" id="how-solitaire" popover>
         <h2>Solitaire</h2>
-        <p>Move every card to the four foundations at the top right, building each suit up from Ace to King.</p>
-        <p>In the seven columns, build down in alternating colors (a red 7 on a black 8). Only a King can go into an empty column. Moving a column’s last face-up card turns over the one beneath it.</p>
-        <p>Tap a card to send it to its best spot, and tap the stock (top left) to draw one card or three. When the stock runs out, tap again to turn the pile over. Once every card is showing, the rest goes home by itself.</p>
+        <p>Two games, picked under +. In both, move every card to the four foundations along the top, building each suit up from Ace to King, and build the columns down in alternating colors (a red 7 on a black 8). Tap a card to send it to its best spot. Wide columns pan sideways under your finger.</p>
+        <p><strong>Klondike</strong>: seven columns, most cards face down. Only a King can go into an empty column, and moving a column’s last face-up card turns over the one beneath it. Tap the stock (bottom right) to draw one card or three; when it runs out, tap again to turn the pile over. Once every card is showing, the rest goes home by itself.</p>
+        <p><strong>FreeCell</strong>: eight columns, every card face up. Any card can go into an empty column, and each free cell along the bottom holds one card. You can move a run of cards at once if there’s room to move it one card at a time through the free cells and empty columns. Drag a card to put it exactly where you want. Fewer free cells make it harder.</p>
         <button class="btn" type="button" popovertarget="how-solitaire" popovertargetaction="hide">Close</button>
-      </div>
-    </li>
-    <li>
-      <a class="game" href="freecell/">
-        <svg viewBox="0 0 48 48" aria-hidden="true">
-          <g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="9" height="12" rx="2"/><rect x="14" y="3" width="9" height="12" rx="2"/></g>
-          <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"><rect x="25" y="3" width="9" height="12" rx="2"/><rect x="36" y="3" width="9" height="12" rx="2"/></g>
-          <g fill="var(--surface)" stroke="currentColor" stroke-width="1.6">
-            <rect x="4" y="19" width="12" height="16" rx="2"/><rect x="4" y="25" width="12" height="16" rx="2"/>
-            <rect x="18" y="19" width="12" height="16" rx="2"/><rect x="18" y="24" width="12" height="16" rx="2"/><rect x="18" y="29" width="12" height="16" rx="2"/>
-            <rect x="32" y="19" width="12" height="16" rx="2"/><rect x="32" y="26" width="12" height="16" rx="2"/>
-          </g>
-          <text x="24" y="41" font-size="9" text-anchor="middle" font-family="system-ui, sans-serif" fill="#e5534b">♥</text>
-        </svg>
-        <div><strong>FreeCell</strong><span>Every card face up from the start: plan your way to the foundations. Every deal can be won.</span></div>
-      </a>
-      <button class="info" type="button" popovertarget="how-freecell" aria-label="How to play FreeCell">i</button>
-      <div class="how" id="how-freecell" popover>
-        <h2>FreeCell</h2>
-        <p>Move every card to the four foundations at the top right, building each suit up from Ace to King.</p>
-        <p>In the eight columns, build down in alternating colors (a red 7 on a black 8). Any card can go into an empty column, and each free cell at the top left holds one card.</p>
-        <p>You can move a run of cards at once if there’s room to move it one card at a time through the free cells and empty columns.</p>
-        <p>Tap a card to send it to its best spot, or drag it exactly where you want. Cards that are no longer needed go up to the foundations by themselves. Fewer free cells make it harder.</p>
-        <button class="btn" type="button" popovertarget="how-freecell" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>

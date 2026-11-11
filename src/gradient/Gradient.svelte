@@ -69,7 +69,6 @@
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
   onopennew={askNew}
   onstart={(value) => { if (value === 'start') start(choice); }}
   finished={game.done}
@@ -85,7 +84,7 @@
       {/each}
     </div>
 
-    <h3 class="pick-title">Fixed tiles</h3>
+    <h3 class="pick-title">Fixed Tiles</h3>
     <div class="pick patterns">
       {#each Object.entries(PATTERNS) as [key, p] (key)}
         <button type="button" class="btn" aria-pressed={choice.pattern === key} onclick={() => (choice.pattern = key as Pattern)}>
@@ -105,8 +104,6 @@
         </button>
       {/each}
     </div>
-
-    <button class="btn primary" value="start">Start · {describe(choice)}</button>
   {/snippet}
 
   <!-- The board, with a marker beside each row and under each column that lights up when that

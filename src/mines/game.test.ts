@@ -8,7 +8,7 @@ function playToEnd(g: Game, pick: (g: Game) => number): Game {
 
 describe('reducer', () => {
   it('places mines on the first tap, never under it', () => {
-    let g = newGame('hard');
+    let g = newGame('large', 'many');
     g = reducer(g, { type: 'tap', index: 0 });
     expect(g.mines).not.toBeNull();
     expect(g.mines![0]).toBe(false);
@@ -17,7 +17,7 @@ describe('reducer', () => {
   });
 
   it('wins once every safe cell is revealed, flagging the mines', () => {
-    let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    let g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     g = playToEnd(g, (s) => s.mines!.findIndex((m, i) => !m && !s.revealed[i]));
     expect(g.status).toBe('won');
     expect(g.flagged).toEqual(g.mines);
@@ -25,7 +25,7 @@ describe('reducer', () => {
   });
 
   it('loses on a mine and records which one', () => {
-    let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    let g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     const mine = g.mines!.indexOf(true);
     g = reducer(g, { type: 'tap', index: mine });
     expect(g.status).toBe('lost');
@@ -34,7 +34,7 @@ describe('reducer', () => {
   });
 
   it('flags with a long-press, and flagged cells ignore taps', () => {
-    let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    let g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     const hidden = g.revealed.indexOf(false);
     g = reducer(g, { type: 'flag', index: hidden });
     expect(g.flagged[hidden]).toBe(true);
@@ -44,7 +44,7 @@ describe('reducer', () => {
   });
 
   it('opens the neighbors of a number whose mines are flagged', () => {
-    let g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    let g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     // Find a revealed number touching exactly its mines, flag them, then tap it.
     const cell = g.revealed.findIndex((r, i) => r && g.mines!.some((m, j) => m && Math.abs(Math.floor(j / 9) - Math.floor(i / 9)) <= 1 && Math.abs((j % 9) - (i % 9)) <= 1));
     expect(cell).toBeGreaterThanOrEqual(0);
@@ -58,8 +58,16 @@ describe('reducer', () => {
     expect(g.revealed.filter(Boolean).length).toBeGreaterThanOrEqual(before);
   });
 
+  it('loads games saved with one difficulty, as its size and density', () => {
+    const { size: _s, density: _d, ...rest } = reducer(newGame('medium', 'some'), { type: 'tap', index: 40 });
+    const save = JSON.parse(JSON.stringify({ ...rest, difficulty: 'medium' }));
+    expect(isGame(save)).toBe(true);
+    expect([save.size, save.density, save.mineCount]).toEqual(['medium', 'some', 22]);
+    expect(isGame({ ...rest, difficulty: 'impossible' })).toBe(false);
+  });
+
   it('loads games saved with the old flag-mode button', () => {
-    const g = reducer(newGame('easy'), { type: 'tap', index: 40 });
+    const g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     expect(isGame(JSON.parse(JSON.stringify({ ...g, flagMode: true })))).toBe(true);
   });
 });

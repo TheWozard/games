@@ -138,22 +138,68 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 
+/* A dialog is a see-through layer over the whole screen that scrolls as one; the box is its form,
+   centered while it fits and running on past the bottom (scroll to reach the rest) when it doesn't,
+   so the box itself never scrolls inside. A tap on the dimmed area around the box closes it. */
 dialog {
-  width: min(340px, calc(100vw - 32px));
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px var(--safe-bottom);
+  background: transparent;
+  color: var(--text);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+dialog[open] { display: flex; flex-direction: column; }
+
+dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+
+dialog form {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(340px, 100%);
+  margin: auto;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
-  color: var(--text);
   padding: 20px;
 }
-
-dialog::backdrop { background: rgb(0 0 0 / 0.45); }
 
 dialog h2 { margin: 0 0 8px; font-size: 1.2rem; }
 
 dialog p { margin: 0 0 16px; color: var(--muted); }
 
-dialog form { display: flex; flex-direction: column; gap: 8px; }
+/* The × that closes a dialog, in its top corner, level with the title. */
+.dialog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+}
+.dialog-close svg { width: 18px; height: 18px; }
+.dialog-close:hover { background: var(--line); color: var(--text); }
+dialog h2 { padding-right: 40px; }
+
+/* The Play button at the bottom of a New Game dialog, set apart from the choices above it. */
+.new-start { margin-top: 14px; }
+
+/* In a dialog, a picked choice is outlined (solid accent is kept for Play). */
+dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
 
 /* New-game dialogs with several choices: a small heading per group, then a row of
    aria-pressed buttons (a name, and an optional detail line in <span>). */
@@ -163,6 +209,72 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 .pick .btn strong { font-size: 0.85rem; }
 .pick .btn span { font-size: 0.75rem; color: var(--muted); }
 .pick .btn[aria-pressed="true"] span { color: inherit; }
+
+/* Rules: one line each, an on/off toggle (a check box at the left, checked while on) and an i at the
+   right that opens a line explaining the rule. One-of-a-set choices don't get the check box. */
+.rules { display: flex; flex-direction: column; gap: 6px; }
+.rule { display: flex; align-items: center; gap: 8px; }
+.btn.toggle { flex: 1; display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; }
+.btn.toggle strong { font-size: 0.9rem; }
+.btn.toggle .check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+  color: transparent;
+}
+.btn.toggle .check svg { width: 12px; height: 12px; }
+.btn.toggle[aria-pressed="true"] .check { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+/* The same round i as on the launcher's cards. */
+.rule-info {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  font: italic 700 1rem/1 Georgia, 'Times New Roman', serif;
+}
+.rule-info[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+dialog p.rule-text { margin: 0 0 4px; padding: 0 4px; font-size: 0.85rem; line-height: 1.4; }
+
+/* A row of tabs at the top of a New dialog (Solitaire's game), underlining the picked one. It scrolls
+   sideways, without a scrollbar, if the tabs don't fit. */
+.pick-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  /* Sideways only: overflow-x alone makes the other axis scrollable too. The line under the row is
+     drawn inside it (a shadow, not a border), so the tabs' underlines cover it without overhanging
+     and there's nothing to scroll up and down. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  box-shadow: inset 0 -1px var(--line);
+}
+.pick-tabs::-webkit-scrollbar { display: none; }
+/* The row scrolls, so browsers let it take focus (and a dialog may focus it on opening); the tabs
+   in it are the controls, so the row itself shows no ring. */
+.pick-tabs:focus { outline: none; }
+.pick-tabs [role="tab"] {
+  flex: none;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pick-tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
 
 /* Toast (src/shared/toast.ts): a short note that pops up at the bottom of the screen. The
    popover reset (inset, margin, border, padding) undoes the browser's centered-popover default. */

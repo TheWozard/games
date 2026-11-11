@@ -2,16 +2,29 @@
 // Mines are placed on the first tap, away from it, and only in layouts that a deduction-only
 // solver can clear from there, so a game never comes down to a guess.
 
-export const DIFFICULTIES = {
-  easy: { label: 'Easy', rows: 9, cols: 9, mines: 10 },
-  medium: { label: 'Medium', rows: 14, cols: 10, mines: 22 },
-  hard: { label: 'Hard', rows: 18, cols: 12, mines: 40 },
+// Two settings, picked separately: the board's size, and how thickly it's mined (a share of its
+// cells, so a bigger board gets more mines at the same setting).
+export const SIZES = {
+  small: { label: 'Small', rows: 9, cols: 9 },
+  medium: { label: 'Medium', rows: 14, cols: 10 },
+  large: { label: 'Large', rows: 18, cols: 12 },
 } as const;
 
-export type Difficulty = keyof typeof DIFFICULTIES;
+export const DENSITIES = {
+  few: { label: 'Few', share: 0.125 },
+  some: { label: 'Some', share: 0.157 },
+  many: { label: 'Many', share: 0.185 },
+} as const;
 
-export const isDifficulty = (value: unknown): value is Difficulty =>
-  typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
+export type Size = keyof typeof SIZES;
+export type Density = keyof typeof DENSITIES;
+
+export const isSize = (value: unknown): value is Size => typeof value === 'string' && Object.hasOwn(SIZES, value);
+export const isDensity = (value: unknown): value is Density => typeof value === 'string' && Object.hasOwn(DENSITIES, value);
+
+/** How many mines a board of `size` gets at `density`. */
+export const mineCount = (size: Size, density: Density) =>
+  Math.round(SIZES[size].rows * SIZES[size].cols * DENSITIES[density].share);
 
 type Random = () => number;
 

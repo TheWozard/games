@@ -96,8 +96,8 @@
   subtitle={difficulties[game.difficulty]?.label ?? ''}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
   options={Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  current={game.difficulty}
   onstart={start}
   finished={game.done}
   onnext={() => (game = create(game.difficulty))}

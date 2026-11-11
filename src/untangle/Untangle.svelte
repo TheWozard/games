@@ -81,7 +81,6 @@
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  inProgress={!game.done && game.history.length > 0}
   onopennew={askNew}
   onstart={(value) => { if (value === 'start') game = newGame(choice, game); }}
   finished={game.done}
@@ -115,7 +114,7 @@
       {/each}
     </div>
 
-    <h3 class="pick-title">Start</h3>
+    <h3 class="pick-title">Layout</h3>
     <div class="pick starts">
       {#each Object.entries(STARTS) as [key, s] (key)}
         <button type="button" class="btn" aria-pressed={choice.start === key} onclick={() => (choice.start = key as Start)}>
@@ -123,8 +122,6 @@
         </button>
       {/each}
     </div>
-
-    <button class="btn primary" value="start">Start · {describe(choice)}</button>
   {/snippet}
 
   <div class="board-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>
