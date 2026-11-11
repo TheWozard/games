@@ -4,7 +4,8 @@
 // Puzzles start from a real covering: every square begins as its own path, and neighboring path
 // ends are joined at random until the right number of paths is left, each at least three squares
 // long and never running alongside itself (which would allow an obvious shortcut). Each path's
-// two ends become that color's dots.
+// two ends become that color's dots. It's kept only if the solver (solve.ts) finds no other way
+// to join the dots; otherwise another is made.
 //
 // Optional rules, any mix (all described by the `Board`):
 // - walls: some edges between squares are closed; added on edges the answer doesn't use;
@@ -12,6 +13,7 @@
 // - wrap: the edges join up, so a path leaving one side comes back on the opposite one;
 // - bridges: a bridge square carries two paths, one straight across and one straight down, and is
 //   filled once both cross it; each starts as two short straight paths crossing it.
+import { countSolutions } from './solve';
 
 export const DIFFICULTIES = {
   easy: { label: 'Easy', size: 5, colors: 5 },
@@ -162,6 +164,15 @@ const HOLES = 0.08;
 const WALLS = 0.15;
 const BRIDGES = { easy: 1, medium: 2, hard: 3 } as const;
 
+/**
+ * Settings whose puzzles can take a while to make: Hard with wrapping, where the uniqueness check
+ * has no edges to box paths in, unless holes give it some back. On a laptop they take about half
+ * a second to several seconds (the rest stay well under one); they're made in the background,
+ * behind an orange Play or Next.
+ */
+export const isSlow = (difficulty: Difficulty, rules: Rules): boolean =>
+  difficulty === 'hard' && rules.wrap && !rules.holes;
+
 export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
   const { size, colors } = DIFFICULTIES[difficulty];
   for (;;) {
@@ -175,7 +186,9 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
     const paths = merge(board, start, colors, random);
     if (!paths) continue;
     if (rules.walls) board = { ...board, walls: walls(board, paths, random) };
-    return { dots: paths.map((p) => [p[0], p[p.length - 1]]), solution: paths, board };
+    const dots = paths.map((p): [number, number] => [p[0], p[p.length - 1]]);
+    if (countSolutions(dots, board, 2) !== 1) continue;
+    return { dots, solution: paths, board };
   }
 }
 

@@ -9,6 +9,10 @@
   `picker` snippet of their own groups instead (same look: .pick-title headings over .pick rows of
   aria-pressed tiles), and Play calls `onstart('start')`. The × in the top corner, Escape and the
   backdrop close it without starting anything. Conventions: AGENTS.md, "New Game dialog".
+
+  A setting that takes a while to make (`slow` for the one picked in the dialog, `nextSlow` for the
+  current one) turns Play or Next orange. If `onstart` or `onnext` returns a promise, its button
+  shows a spinner until it settles, and the dialog stays open (and can't be closed) meanwhile.
 -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
@@ -36,10 +40,15 @@
     picker?: Snippet;
     /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
     onopennew?: () => void;
-    onstart: (value: string) => void;
+    /** Starts the picked game; a returned promise means it's still being made. */
+    onstart: (value: string) => unknown;
     /** Won, completed or lost: show Next. */
     finished: boolean;
-    onnext: () => void;
+    onnext: () => unknown;
+    /** The setting picked in the New dialog is slow to make: Play turns orange. */
+    slow?: boolean;
+    /** The current setting is slow to make: Next turns orange. */
+    nextSlow?: boolean;
     /** Let the board use the full width of a big screen, not the usual centered column. */
     wide?: boolean;
     children: Snippet;
@@ -47,8 +56,36 @@
 
   let {
     title, subtitle, status, onundo, canUndo = false, options = [], current,
-    optionsTitle = 'Difficulty', picker, onopennew, onstart, finished, onnext, wide = false, children,
+    optionsTitle = 'Difficulty', picker, onopennew, onstart, finished, onnext, slow = false, nextSlow = false,
+    wide = false, children,
   }: Props = $props();
+
+  // Which button is waiting on a new game being made, if any.
+  let busy = $state<'play' | 'next' | null>(null);
+
+  function play(e: MouseEvent) {
+    e.preventDefault(); // the dialog stays open until the game is ready
+    if (busy) return;
+    const made = onstart(picker ? 'start' : picked);
+    if (!(made instanceof Promise)) {
+      askingNew = false;
+      return;
+    }
+    busy = 'play';
+    made.finally(() => {
+      busy = null;
+      askingNew = false;
+    });
+  }
+
+  function next() {
+    if (busy) return;
+    const made = onnext();
+    if (made instanceof Promise) {
+      busy = 'next';
+      made.finally(() => (busy = null));
+    }
+  }
 
   let askingNew = $state(false);
   let picked = $state('');
@@ -82,9 +119,9 @@
   {@render children()}
 </main>
 
-<NextButton show={finished} onclick={onnext} />
+<NextButton show={finished} onclick={next} slow={nextSlow} busy={busy === 'next'} />
 
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value) onstart(value); }}>
+<Dialog open={askingNew} locked={busy === 'play'} onclose={() => (askingNew = false)}>
   <h2>New Game</h2>
   {#if picker}
     {@render picker()}
@@ -98,12 +135,17 @@
       {/each}
     </div>
   {/if}
-  <button class="btn primary new-start" value={picker ? 'start' : picked}>
+  <!-- The form's first submit button, so Enter plays; it starts the game itself (see play). -->
+  <button class={['btn primary new-start', { slow }]} aria-busy={busy === 'play'} onclick={play}>
     Play
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5L15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    {#if busy === 'play'}
+      <span class="spinner" aria-hidden="true"></span>
+    {:else}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5L15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    {/if}
   </button>
-  <!-- Last in the form, so Enter starts rather than closes; drawn in the top corner. -->
-  <button class="dialog-close" value="" aria-label="Close">
+  <!-- Drawn in the top corner. -->
+  <button class="dialog-close" value="" aria-label="Close" disabled={busy === 'play'}>
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
   </button>
 </Dialog>

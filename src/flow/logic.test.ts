@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  adjacent, connected, DIFFICULTIES, extend, generate, isBridge, isHole, isSolved, NO_RULES, plainBoard, settle, startStroke,
-  type Board, type Difficulty, type Rules,
+  adjacent, connected, DIFFICULTIES, extend, generate, isBridge, isHole, isSlow, isSolved, NO_RULES, plainBoard, settle,
+  startStroke, type Board, type Difficulty, type Rules,
 } from './logic';
+import { countSolutions } from './solve';
 
 const RULE_SETS: Rules[] = [
   NO_RULES,
@@ -17,9 +18,10 @@ const named = (rules: Rules) => Object.entries(rules).filter(([, on]) => on).map
 describe('generate', () => {
   for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
     for (const rules of RULE_SETS) {
-      it(`makes a ${difficulty} puzzle whose own paths solve it, ${named(rules)}`, () => {
+      it(`makes a ${difficulty} puzzle whose own paths are its only solution, ${named(rules)}`, () => {
         const { size, colors } = DIFFICULTIES[difficulty];
-        for (let run = 0; run < 4; run++) {
+        // Slow settings (seconds each): one run, with time to spare.
+        for (let run = 0; run < (isSlow(difficulty, rules) ? 1 : 4); run++) {
           const { dots, solution, board } = generate(difficulty, rules);
           expect(board.size).toBe(size);
           expect(dots).toHaveLength(colors);
@@ -29,6 +31,7 @@ describe('generate', () => {
             for (let k = 1; k < p.length; k++) expect(adjacent(p[k - 1], p[k], board)).toBe(true);
           }
           expect(isSolved(dots, solution, board)).toBe(true);
+        expect(countSolutions(dots, board, 2)).toBe(1);
           // Each rule's feature appears only with the rule.
           expect(board.wrap).toBe(rules.wrap);
           expect(board.holes.length > 0).toBe(rules.holes);
@@ -39,7 +42,7 @@ describe('generate', () => {
           const used = new Set(solution.flatMap((p) => p.slice(1).map((c, k) => [p[k], c].sort((a, b) => a - b).join())));
           for (const [a, b] of board.walls) expect(used.has([a, b].sort((x, y) => x - y).join())).toBe(false);
         }
-      });
+      }, 120_000);
     }
   }
 });

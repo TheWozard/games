@@ -74,7 +74,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 ### Puzzle quality rules
 
 - **Every puzzle must be solvable, and where the genre expects it, uniquely.** Sudoku, Killer,
-  Bridges: unique solution, checked by a solver. Mines: no guessing needed, checked by a
+  Bridges, Flow: unique solution, checked by a solver. Mines: no guessing needed, checked by a
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
   Untangle: built from a planar arrangement. Klondike, FreeCell: deals a solver can win. Tests must
   prove this, not assume it.
@@ -87,6 +87,11 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
+- **A setting that can't be fast is marked slow** (Flow: Hard with Wrapping and no Holes, up to
+  several seconds). Its Play and Next turn orange (`GameScreen`'s `slow` / `nextSlow`, color
+  `--warn`), and the game makes it in a Web Worker (`src/flow/worker.ts`, `background.ts`):
+  `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the
+  New Game dialog held open meanwhile.
 
 ## UI conventions
 

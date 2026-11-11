@@ -9,7 +9,7 @@ Games:
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
 - [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network, with optional colored islands, blocks and diagonal bridges; every puzzle has a unique solution.
-- [Flow](src/flow/): join matching dots with paths that fill the board, with optional walls, holes, wrapping edges and bridges; each puzzle is built from a real covering of paths.
+- [Flow](src/flow/): join matching dots with paths that fill the board, with optional walls, holes, wrapping edges and bridges; every puzzle has exactly one solution, checked by a solver (the slowest settings are made in the background).
 - [Untangle](src/untangle/): drag dots until no lines cross (a dot on a line counts); 10–36 dots in three styles, each built from an untangled layout so every puzzle is solvable.
 - [Gradient](src/gradient/): swap color tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color, with optional mystery layers and tall tubes; every deal is checked to be sortable.

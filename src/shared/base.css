@@ -14,6 +14,7 @@
   --peer: #262a32;
   --danger: #f07b70;
   --danger-soft: #4a2622;
+  --warn: #f0a04b; /* a setting that's slow to make: its Play and Next buttons */
   color-scheme: dark;
   /* Room kept clear at the bottom for Android's gesture bar. Pages draw behind the system bars
      (viewport-fit=cover); env() says how far (the max- inset is the bar's full height, Chrome
@@ -137,6 +138,19 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 .tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+/* Play or Next for a setting that takes a while to make. */
+.btn.primary.slow { background: var(--warn); border-color: var(--warn); }
+
+/* Turns in place of a button's arrow while its game is being made. */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.4px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { rotate: 1turn; } }
 
 /* A dialog is a see-through layer over the whole screen that scrolls as one; the box is its form,
    centered while it fits and running on past the bottom (scroll to reach the rest) when it doesn't,

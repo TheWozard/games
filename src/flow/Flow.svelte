@@ -3,9 +3,10 @@
   import { PALETTE } from '../shared/palette';
   import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { generateInBackground } from './background';
+  import { gameOf, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
-    bridgeWay, connected, DIFFICULTIES, dirOf, DIRS, extend, isBridge, isDifficulty, isHole, NO_RULES, RULES,
+    bridgeWay, connected, DIFFICULTIES, dirOf, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES,
     settle, startStroke, type Difficulty, type Path, type Rule, type Rules,
   } from './logic';
 
@@ -85,8 +86,20 @@
     if (!drawing) saveJSON(STORAGE_KEY, game);
   });
 
+  /** A new game: made here, or for a slow setting in the background (GameScreen shows a spinner). */
+  function make(difficulty: Difficulty, rules: Rules): void | Promise<void> {
+    if (!isSlow(difficulty, rules)) {
+      game = newGame(difficulty, rules);
+      return;
+    }
+    const picked = { ...rules };
+    return generateInBackground(difficulty, picked).then((puzzle) => {
+      game = gameOf(difficulty, picked, puzzle);
+    });
+  }
+
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty)) return make(choice.difficulty, choice.rules);
   }
 
   // ---- Drawing ----
@@ -165,7 +178,9 @@
   onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty, game.rules))}
+  onnext={() => make(game.difficulty, game.rules)}
+  slow={isSlow(choice.difficulty, choice.rules)}
+  nextSlow={isSlow(game.difficulty, game.rules)}
 >
   {#snippet picker()}
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />

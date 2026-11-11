@@ -2,7 +2,7 @@
 // recorded as one move when it ends ('commit').
 import {
   DIFFICULTIES, generate, isDifficulty, isRules, isSolved, NO_RULES, plainBoard,
-  type Board, type Difficulty, type Path, type Rules,
+  type Board, type Difficulty, type Path, type Puzzle, type Rules,
 } from './logic';
 
 export const STORAGE_KEY = 'games.flow.v1';
@@ -24,11 +24,14 @@ export type Action =
   | { type: 'commit'; before: Path[] } // end of a drag: one undo step
   | { type: 'undo' };
 
-export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
+/** A game of a puzzle made for these settings (here, or in the background: see background.ts). */
+export function gameOf(difficulty: Difficulty, rules: Rules, { dots, board }: Puzzle): Game {
   const { size } = DIFFICULTIES[difficulty];
-  const { dots, board } = generate(difficulty, rules);
   return { difficulty, rules: { ...rules }, size, board, dots, paths: dots.map(() => []), history: [], done: false };
 }
+
+export const newGame = (difficulty: Difficulty, rules: Rules = NO_RULES): Game =>
+  gameOf(difficulty, rules, generate(difficulty, rules));
 
 const cells = (value: unknown, n: number) => Array.isArray(value) && value.every((x) => Number.isInteger(x) && x >= 0 && x < n);
 
