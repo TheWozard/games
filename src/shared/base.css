@@ -67,6 +67,7 @@ body.game {
   position: fixed;
   inset: 0 0 auto;
   height: var(--app-height, 100%);
+  min-height: 0; /* not body's 100dvh, which stays too tall after the installed app is reopened */
   padding-bottom: var(--safe-bottom);
   display: flex;
   flex-direction: column;
@@ -230,4 +231,6 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
   visibility: hidden;
   pointer-events: none;
   padding: env(safe-area-inset-top, 0px) var(--safe-bottom) env(safe-area-inset-bottom, 0px) env(safe-area-max-inset-bottom, 0px);
+  height: 100dvh;
+  box-sizing: content-box;
 }

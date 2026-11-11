@@ -47,7 +47,7 @@ function show(): void {
       `inner ${innerWidth}x${innerHeight}  client ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
       `vv ${vv ? `${px(vv.width)}x${px(vv.height)} scale ${px(vv.scale)} top ${px(vv.offsetTop)}` : '-'}`,
       `screen ${screen.width}x${screen.height} avail ${screen.availHeight} dpr ${px(devicePixelRatio)}`,
-      `--app-height ${root.getPropertyValue('--app-height') || '-'}  --safe-bottom ${px(parseFloat(pad.paddingRight))}`,
+      `100dvh ${px(parseFloat(pad.height))}  --app-height ${root.getPropertyValue('--app-height') || '-'}  --safe-bottom ${px(parseFloat(pad.paddingRight))}`,
       `inset bottom ${pad.paddingBottom} max ${pad.paddingLeft} top ${pad.paddingTop}`,
       `body ${px(document.body.getBoundingClientRect().height)}  play⤓ ${bottom('main.play')}  board⤓ ${bottom('.board-area')}`,
       `pad⤓ ${bottom('.pad')}  tools⤓ ${bottom('.tools')}`,

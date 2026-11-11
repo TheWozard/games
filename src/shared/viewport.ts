@@ -9,7 +9,7 @@ export function trackViewportHeight(): void {
     const vv = window.visualViewport;
     // The visual viewport times its zoom is the layout height, so a pinch doesn't shrink the page.
     const height = vv ? vv.height * vv.scale : window.innerHeight;
-    root.style.setProperty('--app-height', `${Math.round(height)}px`);
+    root.style.setProperty('--app-height', `${Math.floor(height)}px`);
   };
   const settle = () => {
     measure();
