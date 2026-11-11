@@ -21,8 +21,12 @@ export const STYLES = {
   loops: { label: 'Loops' },
 } as const;
 
+// How the dots are laid out at the start, before any are moved (in a random order each time).
 export const STARTS = {
   circle: { label: 'Circle' },
+  spiral: { label: 'Spiral' },
+  rows: { label: 'Rows' },
+  grid: { label: 'Grid' },
   scatter: { label: 'Scatter' },
 } as const;
 
@@ -39,10 +43,37 @@ export const isStart = has(STARTS);
 export type Point = [x: number, y: number];
 export type Edge = [a: number, b: number];
 
-/** The board, in SVG units: portrait, to suit phones. */
-export const WIDTH = 100;
-export const HEIGHT = 130;
-export const MARGIN = 5;
+/**
+ * The board, in SVG units: it fills the screen's free space, so its shape follows the screen,
+ * with the shorter side 100 units long (dot sizes are in the same units).
+ */
+export interface Board {
+  width: number;
+  height: number;
+}
+/** Until the screen has been measured: a phone in portrait. */
+export const DEFAULT_BOARD: Board = { width: 100, height: 130 };
+/** Dots stay this far inside the board's edges, so they're never cut off. */
+export const MARGIN = 3.5;
+
+/** The board for a space `w` × `h` pixels in size. */
+export function boardFor(w: number, h: number): Board {
+  if (!(w > 0 && h > 0)) return DEFAULT_BOARD;
+  const scale = 100 / Math.min(w, h);
+  return { width: Math.round(w * scale * 10) / 10, height: Math.round(h * scale * 10) / 10 };
+}
+
+export const sameBoard = (a: Board, b: Board) => Math.abs(a.width - b.width) < 0.5 && Math.abs(a.height - b.height) < 0.5;
+
+/**
+ * Stretches a layout from one board to another (each axis on its own). A stretch keeps straight
+ * lines straight, so it never adds or removes a crossing.
+ */
+export function rescale(points: readonly Point[], from: Board, to: Board): Point[] {
+  const sx = (to.width - 2 * MARGIN) / (from.width - 2 * MARGIN);
+  const sy = (to.height - 2 * MARGIN) / (from.height - 2 * MARGIN);
+  return points.map(([x, y]) => clamp([MARGIN + (x - MARGIN) * sx, MARGIN + (y - MARGIN) * sy], to));
+}
 
 /** Drawn dot radius: a little smaller on the busiest boards. */
 export const dotRadius = (dots: number) => (dots <= 15 ? 2.8 : dots <= 21 ? 2.5 : 2.1);
@@ -126,16 +157,16 @@ export function crossings(points: readonly Point[], edges: readonly Edge[]): Tan
   return { crossed, touching, count };
 }
 
-export const clamp = ([x, y]: Point): Point => [
-  Math.min(WIDTH - MARGIN, Math.max(MARGIN, x)),
-  Math.min(HEIGHT - MARGIN, Math.max(MARGIN, y)),
+export const clamp = ([x, y]: Point, { width, height }: Board): Point => [
+  Math.min(width - MARGIN, Math.max(MARGIN, x)),
+  Math.min(height - MARGIN, Math.max(MARGIN, y)),
 ];
 
 /**
  * Moves dot `i` clear of any dot it was dropped on (staying on the board). Returns the same array
  * when nothing needed moving.
  */
-export function nudge(points: readonly Point[], i: number, random: Random = Math.random): readonly Point[] {
+export function nudge(points: readonly Point[], i: number, board: Board, random: Random = Math.random): readonly Point[] {
   const gap = dotGap(points.length);
   const clear = points.every((p, j) => j === i || Math.hypot(p[0] - points[i][0], p[1] - points[i][1]) >= gap);
   if (clear) return points;
@@ -155,7 +186,7 @@ export function nudge(points: readonly Point[], i: number, random: Random = Math
     const angle = nearD > 1e-6
       ? Math.atan2(out[i][1] - out[near][1], out[i][0] - out[near][0])
       : random() * Math.PI * 2;
-    out[i] = clamp([out[near][0] + Math.cos(angle) * gap * 1.05, out[near][1] + Math.sin(angle) * gap * 1.05]);
+    out[i] = clamp([out[near][0] + Math.cos(angle) * gap * 1.05, out[near][1] + Math.sin(angle) * gap * 1.05], board);
   }
   return out;
 }
@@ -174,15 +205,16 @@ export interface Puzzle {
   points: Point[]; // the scrambled start
 }
 
-export function generate({ size, style, start }: Settings, random: Random = Math.random): Puzzle {
+export function generate({ size, style, start }: Settings, board: Board = DEFAULT_BOARD, random: Random = Math.random): Puzzle {
   const { dots, lines } = SIZES[size];
+  const layout = { circle, spiral, rows, grid, scatter }[start];
   for (;;) {
-    const built = style === 'lines' ? fromLines(lines, random) : fromMesh(dots, style, random);
+    const built = style === 'lines' ? fromLines(lines, board, random) : fromMesh(dots, style, board, random);
     if (!built) continue;
-    const solution = untouch(built.solution, built.edges);
+    const solution = untouch(built.solution, built.edges, board);
     if (!solution) continue;
     built.solution = solution;
-    const points = start === 'circle' ? circle(dots, random) : scatter(dots, random);
+    const points = shuffle(layout(dots, board, random), random);
     if (crossings(points, built.edges).count === 0) continue;
     return { ...built, points };
   }
@@ -193,7 +225,7 @@ export function generate({ size, style, start }: Settings, random: Random = Math
  * meet), one small step at a time, keeping only steps that leave the layout less tangled.
  * Returns the repaired layout, or null if it can't be untangled this way.
  */
-function untouch(start: readonly Point[], edges: readonly Edge[]): Point[] | null {
+function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): Point[] | null {
   let points = start.slice();
   let tangle = crossings(points, edges);
   const touch = touchDistance(points.length);
@@ -213,7 +245,7 @@ function untouch(start: readonly Point[], edges: readonly Edge[]): Point[] | nul
     let improved = false;
     for (const sign of [1, -1]) {
       const trial = points.slice();
-      trial[k] = clamp([points[k][0] + sign * nx * move, points[k][1] + sign * ny * move]);
+      trial[k] = clamp([points[k][0] + sign * nx * move, points[k][1] + sign * ny * move], board);
       const next = crossings(trial, edges);
       if (next.count < tangle.count) {
         points = trial;
@@ -228,7 +260,7 @@ function untouch(start: readonly Point[], edges: readonly Edge[]): Point[] | nul
 }
 
 /** Random lines in general position; each crossing is a dot, each stretch between is an edge. */
-function fromLines(n: number, random: Random): { edges: Edge[]; solution: Point[] } {
+function fromLines(n: number, board: Board, random: Random): { edges: Edge[]; solution: Point[] } {
   // Directions spread evenly round the half-turn (with a little jitter), so no two lines are
   // nearly parallel and the crossings spread out.
   const turn = random() * Math.PI;
@@ -261,12 +293,12 @@ function fromLines(n: number, random: Random): { edges: Edge[]; solution: Point[
   }
   // Dots may sit close together here; generate() still rejects any layout where a dot lies on a
   // line it isn't part of (three lines nearly through one point).
-  return { edges, solution: fit(dots) };
+  return { edges, solution: fit(dots, board) };
 }
 
 /** Well-spaced random dots joined into triangles, then thinned: a little for mesh, a lot for loops. */
-function fromMesh(n: number, style: 'mesh' | 'loops', random: Random): { edges: Edge[]; solution: Point[] } | null {
-  const solution = spread(n, random);
+function fromMesh(n: number, style: 'mesh' | 'loops', board: Board, random: Random): { edges: Edge[]; solution: Point[] } | null {
+  const solution = spread(n, board, random);
   if (!solution) return null;
   const edges = delaunay(solution);
   // Thin out: drop random edges while both ends keep enough links and everything stays joined.
@@ -311,12 +343,12 @@ function connected(n: number, edges: readonly Edge[]): boolean {
 }
 
 /** `n` random dots on the board, each at least a comfortable distance from the others. */
-function spread(n: number, random: Random): Point[] | null {
-  const area = (WIDTH - 2 * MARGIN) * (HEIGHT - 2 * MARGIN);
+function spread(n: number, { width, height }: Board, random: Random): Point[] | null {
+  const area = (width - 2 * MARGIN) * (height - 2 * MARGIN);
   const spacing = Math.sqrt(area / n) * 0.62;
   const out: Point[] = [];
   for (let tries = 0; out.length < n && tries < n * 400; tries++) {
-    const p: Point = [MARGIN + random() * (WIDTH - 2 * MARGIN), MARGIN + random() * (HEIGHT - 2 * MARGIN)];
+    const p: Point = [MARGIN + random() * (width - 2 * MARGIN), MARGIN + random() * (height - 2 * MARGIN)];
     if (out.every((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) >= spacing)) out.push(p);
   }
   return out.length === n ? out : null;
@@ -327,8 +359,9 @@ export function delaunay(points: readonly Point[]): Edge[] {
   type Tri = [number, number, number];
   const n = points.length;
   // A triangle big enough to hold every point; its corners are indices n, n+1, n+2.
-  const big = 10 * Math.max(WIDTH, HEIGHT);
-  const all: Point[] = [...points, [-big, -big], [big * 2, -big], [WIDTH / 2, big * 2]];
+  const span = Math.max(1, ...points.map(([x, y]) => Math.max(Math.abs(x), Math.abs(y))));
+  const big = 10 * span;
+  const all: Point[] = [...points, [-big, -big], [big * 2, -big], [span / 2, big * 2]];
   let tris: Tri[] = [[n, n + 1, n + 2]];
   const inCircle = ([a, b, c]: Tri, p: Point) => {
     const [ax, ay] = all[a];
@@ -365,33 +398,73 @@ export function delaunay(points: readonly Point[]): Edge[] {
 }
 
 /** Scales and centers points to fill the board inside the margin, keeping their shape. */
-function fit(points: Point[]): Point[] {
+function fit(points: Point[], { width, height }: Board): Point[] {
   const xs = points.map((p) => p[0]);
   const ys = points.map((p) => p[1]);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const scale = Math.min((WIDTH - 2 * MARGIN) / (x1 - x0 || 1), (HEIGHT - 2 * MARGIN) / (y1 - y0 || 1));
-  const ox = (WIDTH - (x1 - x0) * scale) / 2;
-  const oy = (HEIGHT - (y1 - y0) * scale) / 2;
+  const scale = Math.min((width - 2 * MARGIN) / (x1 - x0 || 1), (height - 2 * MARGIN) / (y1 - y0 || 1));
+  const ox = (width - (x1 - x0) * scale) / 2;
+  const oy = (height - (y1 - y0) * scale) / 2;
   return points.map(([x, y]) => [ox + (x - x0) * scale, oy + (y - y0) * scale]);
 }
 
-/** Dots spaced round an oval in random order: the classic tangled start. */
-function circle(count: number, random: Random): Point[] {
-  const slots = shuffle([...Array(count).keys()], random);
-  const rx = WIDTH / 2 - MARGIN * 2;
-  const ry = Math.min(HEIGHT / 2 - MARGIN * 2, rx * 1.25);
+// ---- Starting layouts ----
+// Each returns `count` spots on the board; generate() hands them out to the dots in random order.
+
+/** Spots round an oval: the classic tangled start. */
+function circle(count: number, { width, height }: Board, random: Random): Point[] {
+  const rx = width / 2 - MARGIN * 2;
+  const ry = Math.min(height / 2 - MARGIN * 2, rx * 1.25);
   const turn = random() * Math.PI * 2;
-  return slots.map((s) => {
+  return Array.from({ length: count }, (_, s) => {
     const angle = turn + (s / count) * Math.PI * 2;
-    return [WIDTH / 2 + rx * Math.cos(angle), HEIGHT / 2 + ry * Math.sin(angle)];
+    return [width / 2 + rx * Math.cos(angle), height / 2 + ry * Math.sin(angle)];
   });
 }
 
-/** Dots spread randomly but evenly over the board. */
-function scatter(count: number, random: Random): Point[] {
-  for (;;) {
-    const points = spread(count, random);
-    if (points) return shuffle(points, random);
-  }
+/** Spots along a spiral of about two and a half turns, evenly spaced along it. */
+function spiral(count: number, { width, height }: Board, random: Random): Point[] {
+  const rx = width / 2 - MARGIN * 2;
+  const ry = Math.min(height / 2 - MARGIN * 2, rx * 1.25);
+  const turns = 2.5;
+  const turn = random() * Math.PI * 2;
+  return Array.from({ length: count }, (_, k) => {
+    // Arc length grows with the square of the angle, so square-root steps keep the spots even.
+    const t = Math.sqrt((k + 1) / count);
+    const angle = turn + t * turns * Math.PI * 2;
+    return [width / 2 + rx * t * Math.cos(angle), height / 2 + ry * t * Math.sin(angle)];
+  });
 }
 
+/** Three evenly spaced rows straight across the board. */
+function rows(count: number, { width, height }: Board): Point[] {
+  const lines = 3;
+  const out: Point[] = [];
+  for (let r = 0; r < lines; r++) {
+    const n = Math.floor(count / lines) + (r < count % lines ? 1 : 0);
+    const y = MARGIN + ((height - 2 * MARGIN) * (r + 0.5)) / lines;
+    for (let k = 0; k < n; k++) out.push([MARGIN * 2 + ((width - 4 * MARGIN) * (k + 0.5)) / n, y]);
+  }
+  return out;
+}
+
+/** A grid of evenly spaced spots, shaped like the board, with any spare spots left empty at random. */
+function grid(count: number, { width, height }: Board, random: Random): Point[] {
+  const cols = Math.max(2, Math.round(Math.sqrt((count * width) / height)));
+  const lines = Math.ceil(count / cols);
+  const spots: Point[] = [];
+  for (let r = 0; r < lines; r++) {
+    for (let c = 0; c < cols; c++) {
+      spots.push([MARGIN * 2 + ((width - 4 * MARGIN) * (c + 0.5)) / cols, MARGIN + ((height - 2 * MARGIN) * (r + 0.5)) / lines]);
+    }
+  }
+  return shuffle(spots, random).slice(0, count);
+}
+
+/** Spots spread randomly but evenly over the board. */
+function scatter(count: number, board: Board, random: Random): Point[] {
+  for (;;) {
+    const points = spread(count, board, random);
+    if (points) return points;
+  }
+}

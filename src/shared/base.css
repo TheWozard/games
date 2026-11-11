@@ -79,6 +79,8 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 
 /* A short note under the board for a state the player must act on (Mahjong: stuck, Shuffle).
    Wins and losses are toasts instead. */
+.play.wide { max-width: none; }
+
 .status { margin: 0; color: var(--text); font-size: 0.95rem; text-align: center; }
 
 /* The space the board may use. Boards size themselves to fit it with container units:

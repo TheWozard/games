@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  crossings, delaunay, distanceToSegment, dotGap, generate, HEIGHT, MARGIN, nudge, segmentsCross, SIZES, STARTS, STYLES,
-  WIDTH, type Size, type Start, type Style,
+  boardFor, crossings, DEFAULT_BOARD, delaunay, distanceToSegment, dotGap, generate, MARGIN, nudge, rescale, segmentsCross,
+  SIZES, STARTS, STYLES, type Board, type Size, type Start, type Style,
 } from './logic';
 
 function isConnected(n: number, edges: [number, number][]): boolean {
@@ -20,8 +20,12 @@ describe('generate', () => {
   for (const style of Object.keys(STYLES) as Style[]) {
     for (const size of Object.keys(SIZES) as Size[]) {
       it(`makes a tangled ${style} puzzle with ${SIZES[size].dots} dots that can be untangled`, () => {
+        // Every start, on a phone-shaped board and a wide one.
+        const boards: Board[] = [DEFAULT_BOARD, { width: 180, height: 100 }];
         for (const start of Object.keys(STARTS) as Start[]) {
-          const { edges, solution, points } = generate({ size, style, start });
+          const board = boards[Object.keys(STARTS).indexOf(start) % 2];
+          const { width, height } = board;
+          const { edges, solution, points } = generate({ size, style, start }, board);
           const n = SIZES[size].dots;
           expect(points).toHaveLength(n);
           expect(solution).toHaveLength(n);
@@ -32,9 +36,9 @@ describe('generate', () => {
           // ...everything on the board, one connected network, no duplicate edges.
           for (const [x, y] of [...points, ...solution]) {
             expect(x).toBeGreaterThanOrEqual(MARGIN - 1e-9);
-            expect(x).toBeLessThanOrEqual(WIDTH - MARGIN + 1e-9);
+            expect(x).toBeLessThanOrEqual(width - MARGIN + 1e-9);
             expect(y).toBeGreaterThanOrEqual(MARGIN - 1e-9);
-            expect(y).toBeLessThanOrEqual(HEIGHT - MARGIN + 1e-9);
+            expect(y).toBeLessThanOrEqual(height - MARGIN + 1e-9);
           }
           expect(isConnected(n, edges)).toBe(true);
           expect(new Set(edges.map(([a, b]) => `${Math.min(a, b)},${Math.max(a, b)}`)).size).toBe(edges.length);
@@ -49,6 +53,13 @@ describe('generate', () => {
       });
     }
   }
+
+  it('starts Rows on three lines straight across', () => {
+    for (const size of Object.keys(SIZES) as Size[]) {
+      const { points } = generate({ size, style: 'mesh', start: 'rows' });
+      expect(new Set(points.map(([, y]) => y)).size).toBe(3);
+    }
+  });
 
   it('makes mesh denser than loops', () => {
     const mesh = generate({ size: 'd21', style: 'mesh', start: 'circle' }).edges.length;
@@ -99,7 +110,7 @@ describe('nudge', () => {
   it('moves a dropped dot clear of any dot it landed on', () => {
     const points: [number, number][] = Array.from({ length: 10 }, (_, i) => [10 + i * 8, 60]);
     points[3] = [...points[7]] as [number, number]; // exactly on top
-    const out = nudge(points, 3);
+    const out = nudge(points, 3, DEFAULT_BOARD);
     const gap = dotGap(10);
     out.forEach((p, j) => {
       if (j !== 3) expect(Math.hypot(p[0] - out[3][0], p[1] - out[3][1])).toBeGreaterThanOrEqual(gap - 1e-9);
@@ -114,5 +125,33 @@ describe('delaunay', () => {
     const edges = delaunay(pts);
     expect(crossings(pts, edges).count).toBe(0);
     expect(edges.length).toBe(3 * pts.length - 3 - 4); // 3n − 3 − (points on the hull = 4)
+  });
+});
+
+describe('board', () => {
+  it('makes the shorter side 100 units', () => {
+    expect(boardFor(390, 600)).toEqual({ width: 100, height: 153.8 });
+    expect(boardFor(800, 400)).toEqual({ width: 200, height: 100 });
+    expect(boardFor(0, 0)).toBe(DEFAULT_BOARD);
+  });
+
+  it('stretches a layout to a new board without changing its crossings', () => {
+    for (let run = 0; run < 10; run++) {
+      const { edges, solution, points } = generate({ size: 'd21', style: 'lines', start: 'scatter' });
+      const wide = { width: 170, height: 100 };
+      const moved = rescale(points, DEFAULT_BOARD, wide);
+      for (const [x, y] of moved) {
+        expect(x).toBeGreaterThanOrEqual(MARGIN);
+        expect(x).toBeLessThanOrEqual(wide.width - MARGIN);
+        expect(y).toBeLessThanOrEqual(wide.height - MARGIN);
+      }
+      // Lines that truly cross (a dot near a line is a distance, which a stretch can change).
+      const proper = (p: typeof points) =>
+        edges.flatMap(([a, b], i) => edges.slice(i + 1).filter(([c, d]) =>
+          a !== c && a !== d && b !== c && b !== d && segmentsCross(p[a], p[b], p[c], p[d]))).length;
+      expect(proper(moved)).toBe(proper(points));
+      expect(rescale(rescale(solution, DEFAULT_BOARD, wide), wide, DEFAULT_BOARD).map((p) => p.map((v) => +v.toFixed(6))))
+        .toEqual(solution.map((p) => p.map((v) => +v.toFixed(6))));
+    }
   });
 });

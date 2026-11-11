@@ -1,12 +1,9 @@
 <script lang="ts">
-  import Dialog from '../shared/Dialog.svelte';
-  import BackButton from '../shared/BackButton.svelte';
-  import NewButton from '../shared/NewButton.svelte';
-  import NextButton from '../shared/NextButton.svelte';
-  import UndoButton from '../shared/UndoButton.svelte';
+  import { untrack } from 'svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { DEFAULT, describe, fromSaved, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { crossings, dotRadius, HEIGHT, SIZES, STARTS, STYLES, WIDTH, type Point, type Settings, type Size, type Start, type Style } from './logic';
+  import { DEFAULT, describe, fromSaved, newGame, reducer, settingsOf, STORAGE_KEY, type Action } from './game';
+  import { boardFor, crossings, dotRadius, SIZES, STARTS, STYLES, type Point, type Settings, type Size, type Start, type Style } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame(DEFAULT));
@@ -16,7 +13,6 @@
   const label = $derived(describe(game));
   const r = $derived(dotRadius(game.points.length));
 
-  let askingNew = $state(false);
   let svg: SVGSVGElement;
 
   // The dot being dragged, where it started, and the layout before the drag (for undo).
@@ -27,6 +23,16 @@
   const neighbors = $derived(
     dragging === null ? new Set<number>() : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
   );
+
+  // The board fills all the space it's given; when that changes shape (rotation, another
+  // device), the dots stretch to fit. Never mid-drag: the drop would land in the wrong place.
+  let areaW = $state(0);
+  let areaH = $state(0);
+  const board = $derived(boardFor(areaW, areaH));
+  $effect(() => {
+    const to = board;
+    if (areaW > 0 && areaH > 0 && dragging === null) untrack(() => dispatch({ type: 'resize', board: to }));
+  });
 
   // Save whenever the game changes, except mid-drag (a drop saves the result).
   $effect(() => {
@@ -65,40 +71,67 @@
   // The New dialog's picks, starting from the current game's settings.
   let choice = $state<Settings>({ ...DEFAULT });
   function askNew() {
-    choice = { size: game.size, style: game.style, start: game.start };
-    askingNew = true;
-  }
-
-  function onKey(e: KeyboardEvent) {
-    if (document.querySelector('dialog[open]')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      dispatch({ type: 'undo' });
-    }
+    choice = settingsOf(game);
   }
 </script>
 
-<svelte:document onkeydown={onKey} />
+<GameScreen
+  title="Untangle"
+  wide
+  subtitle={label}
+  onundo={() => dispatch({ type: 'undo' })}
+  canUndo={!game.done && game.history.length > 0}
+  inProgress={!game.done && game.history.length > 0}
+  onopennew={askNew}
+  onstart={(value) => { if (value === 'start') game = newGame(choice, game); }}
+  finished={game.done}
+  onnext={() => (game = newGame(game, game))}
+>
+  {#snippet status()}
+    {#if !game.done}
+      <span class="tangle-count" aria-live="polite" aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        {tangle.count}
+      </span>
+    {/if}
+  {/snippet}
+  {#snippet picker()}
+    <h3 class="pick-title">Dots</h3>
+    <div class="pick">
+      {#each Object.entries(SIZES) as [key, s] (key)}
+        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
+          <strong>{s.label}</strong>
+        </button>
+      {/each}
+    </div>
 
-<header class="bar">
-  <BackButton />
-  <h1>Untangle <small>{label}</small></h1>
-  {#if !game.done}
-    <span class="tangle-count" aria-live="polite" aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-      {tangle.count}
-    </span>
-  {/if}
-  <UndoButton disabled={game.done || game.history.length === 0} onclick={() => dispatch({ type: 'undo' })} />
-  <NewButton onclick={askNew} />
-</header>
+    <h3 class="pick-title">Style</h3>
+    <div class="pick">
+      {#each Object.entries(STYLES) as [key, s] (key)}
+        <button type="button" class="btn" aria-pressed={choice.style === key} onclick={() => (choice.style = key as Style)}>
+          <strong>{s.label}</strong>
+          <span>{key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}</span>
+        </button>
+      {/each}
+    </div>
 
-<main class="play">
-  <div class="board-area">
+    <h3 class="pick-title">Start</h3>
+    <div class="pick starts">
+      {#each Object.entries(STARTS) as [key, s] (key)}
+        <button type="button" class="btn" aria-pressed={choice.start === key} onclick={() => (choice.start = key as Start)}>
+          <strong>{s.label}</strong>
+        </button>
+      {/each}
+    </div>
+
+    <button class="btn primary" value="start">Start · {describe(choice)}</button>
+  {/snippet}
+
+  <div class="board-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>
     <svg
       bind:this={svg}
       class={['untangle-board', { done: game.done, dragging: dragging !== null }]}
-      viewBox="0 0 {WIDTH} {HEIGHT}"
+      viewBox="0 0 {game.width} {game.height}"
       role="group"
       aria-label="Untangle board"
       onpointermove={pointerMove}
@@ -128,45 +161,4 @@
       {/each}
     </svg>
   </div>
-
-
-
-</main>
-
-<NextButton show={game.done} onclick={() => (game = newGame({ size: game.size, style: game.style, start: game.start }))} />
-
-<Dialog open={askingNew} onclose={(value) => { askingNew = false; if (value === 'start') game = newGame(choice); }}>
-  <h2>New game</h2>
-  {#if !game.done && game.history.length > 0}<p>This replaces the game in progress.</p>{/if}
-
-  <h3 class="pick-title">Dots</h3>
-  <div class="pick">
-    {#each Object.entries(SIZES) as [key, s] (key)}
-      <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
-        <strong>{s.label}</strong>
-      </button>
-    {/each}
-  </div>
-
-  <h3 class="pick-title">Style</h3>
-  <div class="pick">
-    {#each Object.entries(STYLES) as [key, s] (key)}
-      <button type="button" class="btn" aria-pressed={choice.style === key} onclick={() => (choice.style = key as Style)}>
-        <strong>{s.label}</strong>
-        <span>{key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}</span>
-      </button>
-    {/each}
-  </div>
-
-  <h3 class="pick-title">Start</h3>
-  <div class="pick">
-    {#each Object.entries(STARTS) as [key, s] (key)}
-      <button type="button" class="btn" aria-pressed={choice.start === key} onclick={() => (choice.start = key as Start)}>
-        <strong>{s.label}</strong>
-      </button>
-    {/each}
-  </div>
-
-  <button class="btn primary" value="start">Start · {describe(choice)}</button>
-  <button class="btn" value="">Cancel</button>
-</Dialog>
+</GameScreen>

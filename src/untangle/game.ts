@@ -1,15 +1,15 @@
 // Untangle game state and moves, as a pure reducer. A drag moves a dot live ('drag'), and letting
 // go ('drop') nudges it clear of any dot it landed on, records the move for undo, and checks
-// whether the tangle is gone.
+// whether the tangle is gone. When the screen changes shape ('resize'), the dots stretch to fit.
 import {
-  clamp, crossings, generate, isSize, isStart, isStyle, nudge, SIZES, STARTS, STYLES,
-  type Edge, type Point, type Settings,
+  clamp, crossings, DEFAULT_BOARD, generate, isSize, isStart, isStyle, nudge, rescale, sameBoard, SIZES, STARTS, STYLES,
+  type Board, type Edge, type Point, type Settings,
 } from './logic';
 
 export const STORAGE_KEY = 'games.untangle.v1';
 const HISTORY_LIMIT = 300;
 
-export interface Game extends Settings {
+export interface Game extends Settings, Board {
   points: Point[];
   edges: Edge[];
   history: Point[][]; // layouts before each move, for undo
@@ -20,22 +20,28 @@ export interface Game extends Settings {
 export type Action =
   | { type: 'drag'; index: number; to: Point }
   | { type: 'drop'; index: number; before: Point[] }
-  | { type: 'undo' };
+  | { type: 'undo' }
+  | { type: 'resize'; board: Board };
 
 export const DEFAULT: Settings = { size: 'd10', style: 'lines', start: 'circle' };
 
 export const describe = ({ size, style, start }: Settings) =>
   `${SIZES[size].dots} dots · ${STYLES[style].label} · ${STARTS[start].label}`;
 
-export function newGame(settings: Settings): Game {
-  const { points, edges } = generate(settings);
-  return { ...settings, points, edges, history: [], moves: 0, done: false };
+/** Settings only, without the rest of the game (for New and Next). */
+export const settingsOf = ({ size, style, start }: Settings): Settings => ({ size, style, start });
+
+export function newGame(settings: Settings, board: Board = DEFAULT_BOARD): Game {
+  const { width, height } = board;
+  const { points, edges } = generate(settings, board);
+  return { ...settingsOf(settings), width, height, points, edges, history: [], moves: 0, done: false };
 }
 
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   return (
     isSize(g?.size) && isStyle(g.style) && isStart(g.start) &&
+    typeof g.width === 'number' && g.width > 0 && typeof g.height === 'number' && g.height > 0 &&
     Array.isArray(g.points) && g.points.length === SIZES[g.size].dots &&
     g.points.every((p) => Array.isArray(p) && p.length === 2) &&
     Array.isArray(g.edges) && g.edges.every(([a, b]) => a < g.points!.length && b < g.points!.length) &&
@@ -50,11 +56,16 @@ const OLD_LEVELS: Record<string, Settings> = {
   hard: { size: 'd21', style: 'lines', start: 'circle' },
 };
 
-/** A saved game in the current shape, upgrading one saved by an earlier version; else null. */
+/**
+ * A saved game in the current shape, upgrading one saved by an earlier version (which had no board
+ * size: they were all the default board, and the oldest had three fixed levels); else null.
+ */
 export function fromSaved(value: unknown): Game | null {
   if (isGame(value)) return value;
-  const old = value as { difficulty?: unknown } | null;
-  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty)) return null;
+  if (typeof value !== 'object' || value === null) return null;
+  const old = { ...DEFAULT_BOARD, ...value } as Record<string, unknown>;
+  if (old.difficulty === undefined) return isGame(old) ? old : null;
+  if (typeof old.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty)) return null;
   const { difficulty, ...rest } = old as { difficulty: string };
   const upgraded = { ...rest, ...OLD_LEVELS[difficulty] };
   // Re-check under today's rules (a dot on a line now counts), so an old "done" stays honest.
@@ -67,12 +78,12 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
     case 'drag': {
       if (g.done) return g;
       const points = g.points.slice();
-      points[action.index] = clamp(action.to);
+      points[action.index] = clamp(action.to, g);
       return { ...g, points };
     }
     case 'drop': {
       if (g.done) return g;
-      const nudged = nudge(g.points, action.index, random);
+      const nudged = nudge(g.points, action.index, g, random);
       const points = nudged === g.points ? g.points : nudged.slice();
       const moved = action.before.some((p, i) => p[0] !== points[i][0] || p[1] !== points[i][1]);
       if (!moved) return points === g.points ? g : { ...g, points };
@@ -88,6 +99,17 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
       const last = g.history.at(-1);
       if (g.done || !last) return g;
       return { ...g, points: last, history: g.history.slice(0, -1), moves: g.moves + 1 };
+    }
+    case 'resize': {
+      const { width, height } = action.board;
+      if (sameBoard(g, action.board)) return g;
+      return {
+        ...g,
+        width,
+        height,
+        points: rescale(g.points, g, action.board),
+        history: g.history.map((points) => rescale(points, g, action.board)),
+      };
     }
   }
 }

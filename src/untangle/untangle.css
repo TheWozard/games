@@ -1,11 +1,14 @@
 .tangle-count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tangle-count svg { width: 0.9em; height: 0.9em; }
 
+/* Five starts don't fit one row on a phone: three, then two. */
+.pick.starts { grid-auto-flow: row; grid-template-columns: repeat(3, 1fr); }
+
+/* The whole free space is the board: no card behind it, so dots can go anywhere on screen. */
 .untangle-board {
-  width: min(100cqw, 100cqh * 100 / 130);
-  aspect-ratio: 100 / 130;
-  background: var(--surface);
-  border-radius: 12px;
+  width: 100cqw;
+  height: 100cqh;
+  overflow: visible;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -26,7 +29,7 @@
 .untangle-board .dot .hit { fill: transparent; }
 .untangle-board .dot .mark {
   fill: var(--text);
-  stroke: var(--surface);
+  stroke: var(--bg);
   stroke-width: 0.9;
   transition: r 0.12s ease;
 }
