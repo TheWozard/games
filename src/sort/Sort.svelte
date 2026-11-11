@@ -89,7 +89,7 @@
   function tap(t: number) {
     const from = game.selected;
     // A pour that isn't allowed onto a tube that's full or empty: give it a little shake.
-    if (from !== null && from !== t && pourAmount(game.tubes, from, t, cap) === 0 && !game.tubes[t].length) {
+    if (from !== null && from !== t && pourAmount(game.tubes, from, t, cap, game.hidden) === 0 && !game.tubes[t].length) {
       clearTimeout(shakeTimer);
       shaking = t;
       shakeTimer = setTimeout(() => (shaking = null), 300);

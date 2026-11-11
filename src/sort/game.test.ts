@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isGame, newGame, reducer } from './game';
-import { NO_RULES, solve, TALL } from './logic';
+import { isGame, newGame, reducer, type Game } from './game';
+import { NO_RULES, pourAmount, solve, TALL } from './logic';
 
 describe('reducer', () => {
   it('picks up, pours, and undoes', () => {
@@ -43,6 +43,22 @@ describe('tall tubes', () => {
   });
 });
 
+/**
+ * Plays the solver's pours by tapping. With the mystery rule a pour moves only the layers that
+ * show, so each is repeated until it has moved as many layers as the solver's would.
+ */
+function playSolution(g: Game): Game {
+  for (const [from, to] of solve(g.tubes, Infinity, g.rules.tall ? TALL : undefined)!) {
+    const target = g.tubes[from].length - pourAmount(g.tubes, from, to, g.rules.tall ? TALL : undefined);
+    while (g.tubes[from].length > target) {
+      const before = g.tubes;
+      g = reducer(reducer(g, { type: 'tap', tube: from }), { type: 'tap', tube: to });
+      expect(g.tubes).not.toBe(before);
+    }
+  }
+  return g;
+}
+
 describe('mystery', () => {
   const rules = { mystery: true, tall: false };
 
@@ -69,9 +85,28 @@ describe('mystery', () => {
     expect(g.hidden).toEqual(before.hidden);
   });
 
+  it('never pours a hidden layer, even one matching the color above it', () => {
+    // Tube 0: two hidden reds under a red that shows; tube 1 empty.
+    const tubes = [[1, 0, 0, 0], [], [1, 1, 1], [0]];
+    let g: Game = {
+      difficulty: 'easy', rules: { mystery: true, tall: false }, tubes,
+      hidden: [[true, true, true, false], [], [false, false, false], [false]],
+      selected: null, history: [], done: false,
+    };
+    g = reducer(reducer(g, { type: 'tap', tube: 0 }), { type: 'tap', tube: 1 });
+    expect(g.tubes[0]).toEqual([1, 0, 0]); // only the red that showed moved
+    expect(g.tubes[1]).toEqual([0]);
+    expect(g.hidden[0]).toEqual([true, true, false]); // the next red now shows
+    g = reducer(reducer(g, { type: 'tap', tube: 0 }), { type: 'tap', tube: 1 });
+    expect(g.tubes[1]).toEqual([0, 0]);
+  });
+
+  it('can still win every deal by following the solver, a layer at a time where it must', () => {
+    for (let run = 0; run < 3; run++) expect(playSolution(newGame('medium', rules)).done).toBe(true);
+  });
+
   it('shows everything once sorted', () => {
-    let g = newGame('easy', rules);
-    for (const [from, to] of solve(g.tubes)!) g = reducer(reducer(g, { type: 'tap', tube: from }), { type: 'tap', tube: to });
+    const g = playSolution(newGame('easy', rules));
     expect(g.done).toBe(true);
     expect(g.hidden.flat().some(Boolean)).toBe(false);
   });

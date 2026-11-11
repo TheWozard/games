@@ -4,7 +4,7 @@
 // a solver finds a way to finish.
 //
 // Optional rules: tall tubes (6 layers instead of 4), and mystery (only each tube's top layer
-// shows its color; game.ts tracks which are hidden, since pouring works the same either way).
+// shows its color, and pours move only the layers that show; game.ts tracks which are hidden).
 
 export const DIFFICULTIES = {
   easy: { label: 'Easy', colors: 4, spare: 2 },
@@ -50,19 +50,24 @@ function shuffle<T>(a: T[], random: Random): T[] {
 }
 
 /** How many layers a pour from `from` into `to` would move (0 if it can't). */
-export function pourAmount(tubes: Tubes, from: number, to: number, capacity = CAPACITY): number {
+/**
+ * How many layers a pour from `from` into `to` would move (0 if it can't). With the mystery rule,
+ * `hidden` (per layer, as tubes) stops the run at the first hidden layer: only layers that show
+ * are poured, even if one below turns out to match.
+ */
+export function pourAmount(tubes: Tubes, from: number, to: number, capacity = CAPACITY, hidden?: boolean[][]): number {
   const a = tubes[from];
   const b = tubes[to];
   if (from === to || a.length === 0 || b.length >= capacity) return 0;
   const color = a[a.length - 1];
   if (b.length > 0 && b[b.length - 1] !== color) return 0;
   let run = 0;
-  for (let k = a.length - 1; k >= 0 && a[k] === color; k--) run++;
+  for (let k = a.length - 1; k >= 0 && a[k] === color && !(run > 0 && hidden?.[from][k]); k--) run++;
   return Math.min(run, capacity - b.length);
 }
 
-export function pour(tubes: Tubes, from: number, to: number, capacity = CAPACITY): Tubes {
-  const n = pourAmount(tubes, from, to, capacity);
+export function pour(tubes: Tubes, from: number, to: number, capacity = CAPACITY, hidden?: boolean[][]): Tubes {
+  const n = pourAmount(tubes, from, to, capacity, hidden);
   if (n === 0) return tubes;
   const out = tubes.map((t) => t.slice());
   out[to].push(...out[from].splice(out[from].length - n, n));

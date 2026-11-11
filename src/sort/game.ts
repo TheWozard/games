@@ -1,9 +1,8 @@
 // Color Sort game state and moves, as a pure reducer.
 //
 // With the mystery rule, `hidden` marks the layers whose color isn't shown yet (parallel to
-// `tubes`). A layer comes into view once it's on top of its tube, or once it's poured; pours
-// themselves work exactly as without the rule, so hidden layers move with the run above them if
-// they match it.
+// `tubes`). A layer comes into view once it's on top of its tube, or once it's poured. Only layers
+// that show are poured: a hidden layer stays put even if it matches the run above it.
 import {
   capacityOf, DIFFICULTIES, generate, isDifficulty, isRules, isSorted, NO_RULES, pour, pourAmount,
   type Difficulty, type Rules, type Tubes,
@@ -75,12 +74,12 @@ export function reducer(g: Game, action: Action): Game {
       const cap = capacity(g);
       if (g.selected === null) return g.tubes[t].length ? { ...g, selected: t } : g;
       if (g.selected === t) return { ...g, selected: null };
-      const n = pourAmount(g.tubes, g.selected, t, cap);
+      const n = pourAmount(g.tubes, g.selected, t, cap, g.hidden);
       if (n === 0) {
         // Can't pour there: pick that tube up instead (if it has anything in it).
         return g.tubes[t].length ? { ...g, selected: t } : g;
       }
-      const tubes = pour(g.tubes, g.selected, t, cap);
+      const tubes = pour(g.tubes, g.selected, t, cap, g.hidden);
       const done = isSorted(tubes, cap);
       // Sorted: everything shows.
       const hidden = done ? tubes.map((x) => x.map(() => false)) : pourHidden(g.hidden, g.selected, t, n);
