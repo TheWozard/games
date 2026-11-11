@@ -16,6 +16,10 @@
   --danger: #f07b70;
   --danger-soft: #4a2622;
   color-scheme: dark;
+  /* Room kept clear at the bottom for Android's gesture bar. Pages draw behind the system bars
+     (viewport-fit=cover); env() says how far, but some Android builds report 0 there, so never
+     less than 16px. */
+  --safe-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
 * { box-sizing: border-box; }
@@ -58,9 +62,11 @@ button {
    top, controls at the bottom, and the board filling the space between. Pinned to the screen's
    edges rather than height: 100dvh, which Android can make taller than the visible screen (with
    its font-size page zoom), pushing the controls off the bottom. */
+html:has(body.game) { overflow: hidden; }
 body.game {
   position: fixed;
   inset: 0;
+  padding-bottom: var(--safe-bottom);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -161,7 +167,7 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
    popover reset (inset, margin, border, padding) undoes the browser's centered-popover default. */
 .toast {
   position: fixed;
-  inset: auto auto calc(20px + env(safe-area-inset-bottom)) 50%;
+  inset: auto auto calc(20px + var(--safe-bottom)) 50%;
   margin: 0;
   width: max-content; /* size to the text, not to the half-screen left of center */
   max-width: min(420px, calc(100vw - 32px));
@@ -186,7 +192,7 @@ dialog form { display: flex; flex-direction: column; gap: 8px; }
 .next-fab {
   position: fixed;
   left: 50%;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  bottom: calc(20px + var(--safe-bottom));
   translate: -50% 0;
   z-index: 50;
   display: inline-flex;
