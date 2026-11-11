@@ -1,87 +1,158 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
-  import { toastOnFinish } from '../shared/finish.svelte';
   import { PALETTE } from '../shared/palette';
+  import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { allJoined, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { connected, DIFFICULTIES, extend, isDifficulty, startStroke, type Path } from './logic';
+  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import {
+    bridgeWay, connected, DIFFICULTIES, dirOf, DIRS, extend, isBridge, isDifficulty, isHole, NO_RULES, RULES,
+    settle, startStroke, type Difficulty, type Path, type Rule, type Rules,
+  } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(
+    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+  );
+  const board = $derived(game.board);
   const n = $derived(game.size);
   const center = (cell: number) => ({ x: (cell % n) + 0.5, y: Math.floor(cell / n) + 0.5 });
-  /** For each square, the color filling it (or -1). */
+  /** For each square, the color filling it (or -1; bridges stay untinted, as two colors cross there). */
   const fill = $derived.by(() => {
     const out = new Array<number>(n * n).fill(-1);
-    game.paths.forEach((p, k) => p.forEach((cell) => (out[cell] = k)));
+    game.paths.forEach((p, k) => p.forEach((cell) => { if (!isBridge(cell, board)) out[cell] = k; }));
     return out;
   });
-  const filled = $derived(fill.filter((k) => k !== -1).length);
+
+  /**
+   * A path as SVG: straight between neighbors, and where it wraps across an edge, out to that edge
+   * and back in from the opposite one.
+   */
+  function pathD(path: Path): string {
+    let d = '';
+    path.forEach((cell, k) => {
+      const p = center(cell);
+      if (k === 0) {
+        d += `M${p.x} ${p.y}`;
+        return;
+      }
+      const q = center(path[k - 1]);
+      if (Math.abs(p.x - q.x) + Math.abs(p.y - q.y) === 1) {
+        d += `L${p.x} ${p.y}`;
+        return;
+      }
+      const [dr, dc] = DIRS[dirOf(path[k - 1], cell, board)];
+      d += `L${q.x + dc / 2} ${q.y + dr / 2}M${p.x - dc / 2} ${p.y - dr / 2}L${p.x} ${p.y}`;
+    });
+    return d;
+  }
+
+  /**
+   * The outer edge pieces a path can wrap across, as lines: one per square along each side, left
+   * out where the square or the one it wraps to is a hole.
+   */
+  const wrapEdges = $derived.by(() => {
+    if (!board.wrap) return [];
+    const out: string[] = [];
+    const i = 0.02; // inset, so the line sits just inside the board
+    const across = (k: number) => !isHole(k, board) && !isHole((n - 1) * n + k, board); // top and bottom of column k
+    const down = (k: number) => !isHole(k * n, board) && !isHole(k * n + n - 1, board); // ends of row k
+    for (let k = 0; k < n; k++) {
+      if (across(k)) out.push(`M${k} ${i}H${k + 1}`, `M${k} ${n - i}H${k + 1}`);
+      if (down(k)) out.push(`M${i} ${k}V${k + 1}`, `M${n - i} ${k}V${k + 1}`);
+    }
+    return out;
+  });
+
+  /** Paths crossing each bridge left to right, redrawn over the one going down. */
+  const overpasses = $derived(
+    board.bridges.flatMap((b) => {
+      const k = game.paths.findIndex((p) => p.includes(b) && bridgeWay(p, p.indexOf(b), board) === 'across');
+      return k === -1 ? [] : [{ b, k }];
+    }),
+  );
+
+  const sizes = Object.fromEntries(
+    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.size}×${d.size} · ${d.colors} colors` }]),
+  ) as Record<Difficulty, { label: string; detail: string }>;
+  // The New Game picks, starting from the current game's; Play starts them.
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
 
   let drawing = $state(false);
 
   $effect(() => {
     if (!drawing) saveJSON(STORAGE_KEY, game);
   });
-  toastOnFinish(() => !drawing && allJoined(game), () => 'Every pair is joined. Now fill every square.');
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  function start(value: string) {
+    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
   }
 
   // ---- Drawing ----
   // Press on a dot or a path and drag through neighboring squares. Fast drags are walked square
-  // by square so nothing is skipped.
+  // by square so nothing is skipped. Positions are kept unwrapped (row and column may run past
+  // the edges), so on a wrapping board a drag off one side carries on from the opposite one.
 
   let svg: SVGSVGElement;
-  let stroke: { id: number; color: number; at: number; before: Path[] } | null = null;
+  type Spot = { r: number; c: number };
+  let stroke: { id: number; color: number; at: Spot; before: Path[] } | null = null;
 
-  function cellAt(e: PointerEvent): number | null {
+  function spotAt(e: PointerEvent): Spot {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
-    const c = Math.floor(p.x);
-    const r = Math.floor(p.y);
+    return { r: Math.floor(p.y), c: Math.floor(p.x) };
+  }
+
+  /** The square at a spot: wrapped onto the board if it wraps, else null off the edge. */
+  function cellOf({ r, c }: Spot): number | null {
+    if (board.wrap) return (((r % n) + n) % n) * n + (((c % n) + n) % n);
     return r >= 0 && r < n && c >= 0 && c < n ? r * n + c : null;
   }
 
   function pointerDown(e: PointerEvent) {
     if (game.done || stroke || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    const cell = cellAt(e);
-    if (cell === null) return;
-    const { color, paths } = startStroke(game.dots, game.paths, cell);
+    const at = spotAt(e);
+    if (at.r < 0 || at.r >= n || at.c < 0 || at.c >= n) return;
+    const cell = cellOf(at)!;
+    const { color, paths } = startStroke(game.dots, game.paths, cell, board);
     if (color === -1) return;
     svg.setPointerCapture?.(e.pointerId);
-    stroke = { id: e.pointerId, color, at: cell, before: game.paths };
+    stroke = { id: e.pointerId, color, at, before: game.paths };
     drawing = true;
     dispatch({ type: 'draw', paths });
   }
 
   function pointerMove(e: PointerEvent) {
     if (!stroke || e.pointerId !== stroke.id) return;
-    const target = cellAt(e);
-    if (target === null || target === stroke.at) return;
+    const target = spotAt(e);
     let paths = game.paths;
     let at = stroke.at;
-    while (at !== target) {
-      const [r, c] = [Math.floor(at / n), at % n];
-      const [tr, tc] = [Math.floor(target / n), target % n];
-      const next = Math.abs(tr - r) > Math.abs(tc - c) ? at + Math.sign(tr - r) * n : at + Math.sign(tc - c);
-      const moved = extend(game.dots, paths, stroke.color, next, n);
-      if (moved === paths) break; // blocked (another color) or finished: stop here
+    while (at.r !== target.r || at.c !== target.c) {
+      const next = Math.abs(target.r - at.r) > Math.abs(target.c - at.c)
+        ? { r: at.r + Math.sign(target.r - at.r), c: at.c }
+        : { r: at.r, c: at.c + Math.sign(target.c - at.c) };
+      const cell = cellOf(next);
+      if (cell === null) break;
+      const moved = extend(game.dots, paths, stroke.color, cell, board);
+      if (moved === paths) break; // blocked (another color, a wall) or finished: stop here
       paths = moved;
       at = next;
     }
-    // Carry on from wherever the path really ends, so a blocked drag resumes when it comes back.
-    stroke.at = paths[stroke.color].at(-1) ?? at;
+    // Carry on from the last square reached, so a blocked drag resumes when it comes back.
+    stroke.at = at;
     if (paths !== game.paths) dispatch({ type: 'draw', paths });
   }
 
   function pointerUp(e: PointerEvent) {
     if (!stroke || e.pointerId !== stroke.id) return;
-    const before = stroke.before;
+    const { before, color } = stroke;
     stroke = null;
     drawing = false;
+    // A stroke that never left its dot leaves no path behind (and, if nothing else changed, no undo
+    // step); one let go on a bridge carries on through it (see `settle`).
+    if (game.paths[color].length === 1) dispatch({ type: 'draw', paths: game.paths.map((p, k) => (k === color ? [] : p)) });
+    const settled = settle(game.dots, game.paths, color, board);
+    if (settled !== game.paths) dispatch({ type: 'draw', paths: settled });
     dispatch({ type: 'commit', before });
   }
 </script>
@@ -91,16 +162,14 @@
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: d.label, detail: `${d.size}×${d.size} · ${d.colors} colors` }))}
-  current={game.difficulty}
+  onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty))}
+  onnext={() => (game = newGame(game.difficulty, game.rules))}
 >
-  {#snippet status()}
-    <span class="flow-count" aria-label="{filled} of {n * n} squares filled">{Math.round((filled / (n * n)) * 100)}%</span>
+  {#snippet picker()}
+    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
-
   <div class="board-area">
     <svg
       bind:this={svg}
@@ -120,11 +189,45 @@
         <line class="grid" x1={i + 1} y1="0" x2={i + 1} y2={n} />
         <line class="grid" x1="0" y1={i + 1} x2={n} y2={i + 1} />
       {/each}
-
+      <!-- Wrapping: the outer edge is dashed wherever a path can wrap to the opposite side. -->
+      {#each wrapEdges as d (d)}
+        <path class="wrap-edge" {d} />
+      {/each}
+      <!-- Holes are hatched, inside their usual grid lines, so they read as missing squares. -->
+      {#if board.holes.length}
+        <defs>
+          <pattern id="flow-hatch" width="0.2" height="0.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line class="hatch" x1="0.1" y1="0" x2="0.1" y2="0.2" />
+          </pattern>
+        </defs>
+      {/if}
+      {#each board.holes as cell (cell)}
+        <rect class="hole-hatch" x={(cell % n) + 0.08} y={Math.floor(cell / n) + 0.08} width="0.84" height="0.84" rx="0.12" fill="url(#flow-hatch)" />
+      {/each}
       {#each game.paths as path, k (k)}
         {#if path.length > 1}
-          <polyline class="path" stroke={PALETTE[k]} points={path.map((cell) => `${center(cell).x},${center(cell).y}`).join(' ')} />
+          <path class="path" stroke={PALETTE[k]} d={pathD(path)} />
         {/if}
+      {/each}
+      <!-- Bridges: a tube across the square, open at both ends. Drawn over the paths, its body
+           hides a path going down (it passes under); a path going across is drawn again on top. -->
+      {#each board.bridges as cell (cell)}
+        {@const x = cell % n}
+        {@const y = Math.floor(cell / n) + 0.5}
+        <!-- Inset from the square's edges, like a hole's hatching, so it doesn't touch the grid lines. -->
+        <rect class="bridge-body" x={x + 0.08} y={y - 0.3} width="0.84" height="0.6" />
+        <path class="bridge-side" d="M{x + 0.08} {y - 0.3}h0.84M{x + 0.08} {y + 0.3}h0.84" />
+      {/each}
+      {#each overpasses as { b, k } (b)}
+        {@const p = center(b)}
+        <line class="path" stroke={PALETTE[k]} x1={p.x - 0.5} y1={p.y} x2={p.x + 0.5} y2={p.y} />
+      {/each}
+
+      {#each board.walls as [a, b] (`${a}-${b}`)}
+        {@const vertical = b - a === 1}
+        {@const x = vertical ? (b % n) : (a % n)}
+        {@const y = vertical ? Math.floor(a / n) : Math.floor(b / n)}
+        <line class="wall" x1={x} y1={y} x2={vertical ? x : x + 1} y2={vertical ? y + 1 : y} />
       {/each}
 
       {#each game.dots as pair, k (k)}

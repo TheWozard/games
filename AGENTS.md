@@ -104,10 +104,10 @@ only forwards old links), `blocks` (Sliding Blocks).
   2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
      buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
   3. A `.status` note only for a state the player must act on (Mahjong stuck → Shuffle). Wins and
-     losses (including dead ends, like Color Sort with no pour left) just bring up Next; toasts
-     (`toastOnFinish` in `src/shared/finish.svelte.ts`) are for in-game nudges, like Flow's "now fill
-     every square". No how-to text on the game
-     screen: instructions live behind the card's **i** button in `src/index.html`.
+     losses (Mines' mine) just bring up Next; dead ends aren't called (Color Sort: Undo out of it), and
+     nothing nudges a player toward the finish (Flow says nothing when every pair is joined but
+     squares are empty). No how-to text on the game screen: instructions live behind the card's
+     **i** button in `src/index.html`.
 - **Color as the piece** (Color Sort, Flow): use `PALETTE` from `src/shared/palette.ts`, twelve
   colors chosen to stay distinct on the dark background; take them from the start of the list.
 - **Toggles** use `aria-pressed`. `base.css` styles `[aria-pressed="true"]` as selected.
