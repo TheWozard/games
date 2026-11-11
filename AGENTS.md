@@ -81,8 +81,6 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
-- **Make up your own designs.** Use generic genre names (Mines, Bridges, Mahjong), original
-  layouts and original artwork. Never copy a specific commercial game's name, art or levels.
 
 ## UI conventions
 
@@ -118,9 +116,10 @@ Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradien
   `<div class="board-area">`, which fills the space left between header and controls, and size
   it with container units: `width: min(100cqw, 100cqh * cols / rows); aspect-ratio: cols / rows`. For grids, set both `grid-template-columns` and
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
-  One exception: on thin screens Solitaire's and FreeCell's columns are wider than the screen so
-  the cards stay large, and pan sideways under a finger (`src/shared/pan.ts`; not page scrolling:
-  the page itself never moves).
+  One exception: on thin screens Solitaire's and FreeCell's columns, and Mahjong's wide layouts,
+  are wider than the screen so cards and tiles stay large, and pan sideways under a finger
+  (`src/shared/pan.ts`; not page scrolling: the page itself never moves). These games use
+  `GameScreen`'s `wide`, so a tablet or desktop shows everything and only pans if it must.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.

@@ -28,23 +28,29 @@
 
   // ---- Layout, in pixels, from the space the board has ----
   // Laid out for a phone held upright, like Solitaire: the foundations centered along the top, the
-  // columns below, and the free cells centered along the bottom, where a thumb reaches. Cards are
-  // sized for five columns across, so they're big enough to read and drag; the eight columns then
-  // come out wider than the screen and pan sideways (scrollX), while the foundations and free
-  // cells stay put. On a short screen cards shrink to leave the columns room, but never below
-  // eight across.
+  // columns below, and the free cells centered along the bottom, where a thumb reaches. Card size:
+  // all eight columns across the space if they fit, but never smaller than five across an upright
+  // phone (PHONE_W), so cards stay big enough to read and drag; and never so tall the columns lose
+  // their room. On a phone the columns then come out wider than the screen and pan sideways
+  // (scrollX), while the foundations and free cells stay put. A wider screen uses its extra width
+  // and only pans if it must.
 
   let width = $state(360);
   let height = $state(560);
-  const gap = $derived(Math.max(3, width * 0.012));
-  const across = (n: number) => (width - gap * (n - 1)) / n;
-  const cw = $derived(Math.max(across(COLUMNS), Math.min(across(5), height / (5.5 * 1.4))));
+  const PHONE_W = 400;
+  const gap = $derived(Math.max(3, Math.min(width, PHONE_W) * 0.012));
+  const across = (n: number, w = width) => (w - gap * (n - 1)) / n;
+  const heightCap = $derived(height / (5.5 * 1.4));
+  const cw = $derived(Math.max(Math.min(across(COLUMNS), heightCap), Math.min(across(5, Math.min(width, PHONE_W)), heightCap)));
   const ch = $derived(cw * 1.4);
-  const maxScroll = $derived(Math.max(0, COLUMNS * cw + (COLUMNS - 1) * gap - width));
+  const columnsW = $derived(COLUMNS * cw + (COLUMNS - 1) * gap);
+  const maxScroll = $derived(Math.max(0, columnsW - width));
+  // When the columns fit with room to spare, they're centered.
+  const columnsLeft = $derived(Math.max(0, (width - columnsW) / 2));
   // null: not panned since the deal, so the columns sit centered.
   let scrollX = $state<number | null>(null);
   const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
-  const colX = (col: number) => col * (cw + gap) - sx;
+  const colX = (col: number) => columnsLeft + col * (cw + gap) - sx;
   // On a tall screen the table is centered as a block: the top row, room for columns about as
   // long as a game usually gets (COLUMNS_H card heights), and the bottom row. It's a fixed size
   // rather than fitted to the cards, so it doesn't jump about as columns grow.
@@ -157,7 +163,7 @@
       const i = cells[under] === null ? under : cells.indexOf(null);
       return i === -1 ? null : { to: 'cell', i };
     }
-    return { to: 'column', col: Math.min(COLUMNS - 1, Math.max(0, Math.floor((cx + sx + gap / 2) / (cw + gap)))) };
+    return { to: 'column', col: Math.min(COLUMNS - 1, Math.max(0, Math.floor((cx - columnsLeft + sx + gap / 2) / (cw + gap)))) };
   }
 
   function pointerUp(e: PointerEvent) {
@@ -204,6 +210,7 @@
 </script>
 
 <GameScreen
+  wide
   title="FreeCell"
   subtitle="{DIFFICULTIES[game.difficulty].label} · {DIFFICULTIES[game.difficulty].cells} free cells"
   onundo={() => dispatch({ type: 'undo' })}

@@ -21,19 +21,26 @@
 
   let width = $state(360);
   let height = $state(560);
-  const gap = $derived(Math.max(4, width * 0.014));
-  // Cards are sized for five columns across the screen, so they're big enough to read and tap;
-  // the seven columns then come out wider than the screen and pan sideways under a finger
-  // (scrollX), while the foundations, stock and waste stay put. On a short screen the cards
-  // shrink so the columns still have room to grow, but never below seven across.
-  const across = (n: number) => (width - gap * (n - 1)) / n;
-  const cw = $derived(Math.max(across(7), Math.min(across(5), height / (5.5 * 1.4))));
+  // Card size: all seven columns across the space if they fit, but never smaller than five across
+  // an upright phone (PHONE_W), so cards stay big enough to read and tap; and never so tall the
+  // columns lose their room. On a phone the columns then come out wider than the screen and pan
+  // sideways under a finger (scrollX), while the foundations, stock and waste stay put. A wider
+  // screen (a tablet, a desktop) uses its extra width and only pans if it must.
+  const PHONE_W = 400;
+  const gap = $derived(Math.max(4, Math.min(width, PHONE_W) * 0.014));
+  const across = (n: number, w = width) => (w - gap * (n - 1)) / n;
+  const heightCap = $derived(height / (5.5 * 1.4));
+  const cw = $derived(Math.max(Math.min(across(7), heightCap), Math.min(across(5, Math.min(width, PHONE_W)), heightCap)));
   const ch = $derived(cw * 1.4);
-  const maxScroll = $derived(Math.max(0, 7 * cw + 6 * gap - width));
+  const columnsW = $derived(7 * cw + 6 * gap);
+  const maxScroll = $derived(Math.max(0, columnsW - width));
+  // When the columns fit with room to spare, they're centered, and the stock and waste line up
+  // with their right edge.
+  const columnsLeft = $derived(Math.max(0, (width - columnsW) / 2));
   // null: not panned since the deal, so the columns sit centered.
   let scrollX = $state<number | null>(null);
   const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
-  const colX = (col: number) => col * (cw + gap) - sx;
+  const colX = (col: number) => columnsLeft + col * (cw + gap) - sx;
   // Laid out for a phone held upright: the four foundations centered along the top, the columns
   // fanning down below them, and the stock in the bottom-right corner with the waste just left of
   // it, where a thumb reaches. Long columns squeeze to stay clear of the bottom row.
@@ -46,7 +53,7 @@
   const bottomY = $derived(Math.max(0, height - topY - ch));
   const tableauY = $derived(topY + ch + gap * 2.5);
   const foundationX = (suit: number) => (width - (4 * cw + 3 * gap)) / 2 + suit * (cw + gap);
-  const stockX = $derived(width - cw);
+  const stockX = $derived(Math.min(width, columnsLeft + columnsW) - cw);
   const wasteX = $derived(stockX - cw - gap);
 
   interface Placed {
@@ -150,6 +157,7 @@
 <svelte:document onkeydown={onKey} />
 
 <GameScreen
+  wide
   title="Solitaire"
   subtitle="Draw {game.draw}"
   onundo={() => dispatch({ type: 'undo' })}
