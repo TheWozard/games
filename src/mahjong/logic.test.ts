@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deal, freePairs, isFree, LAYOUTS, neighbors, reshuffle, type LayoutName } from './logic';
+import { deal, drawOrder, freePairs, isFree, LAYOUTS, neighbors, reshuffle, type LayoutName } from './logic';
 
 /** Replays an order of pairs: each must be free, matching, and together they clear the board. */
 function replays(kinds: number[], near: ReturnType<typeof neighbors>, gone: boolean[], order: [number, number][]): boolean {
@@ -26,6 +26,25 @@ describe('layouts', () => {
       for (const s of slots) for (const t of slots) {
         if (s !== t && s.z === t.z) expect(Math.abs(s.x - t.x) >= 2 || Math.abs(s.y - t.y) >= 2).toBe(true);
       }
+    }
+  });
+});
+
+describe('drawOrder', () => {
+  it('draws every tile before the neighbors that cover its side and shadow', () => {
+    for (const { slots } of Object.values(LAYOUTS)) {
+      const order = drawOrder(slots);
+      expect([...order].sort((a, b) => a - b)).toEqual(slots.map((_, i) => i));
+      const at = new Map(order.map((slot, k) => [slot, k]));
+      slots.forEach((a, i) => slots.forEach((b, j) => {
+        // Lower layers first: a higher tile always covers a lower one.
+        if (b.z > a.z) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
+        if (b.z !== a.z) return;
+        // On one layer: the tile touching its right side, or its bottom, even half a tile offset.
+        const right = b.x === a.x + 2 && Math.abs(b.y - a.y) < 2;
+        const below = b.y === a.y + 2 && Math.abs(b.x - a.x) < 2;
+        if (right || below) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
+      }));
     }
   });
 });

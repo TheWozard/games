@@ -122,6 +122,19 @@ export const LAYOUTS = {
 
 export type LayoutName = keyof typeof LAYOUTS;
 
+/**
+ * Slot indexes in the order to draw them, back to front: lower layers first, then within a layer by
+ * x + y. A tile's side and shadow fall down and to the right, so every neighbor that covers them (a
+ * tile to its right or below, even half a tile up or across) must be drawn later. Rows alone get
+ * this wrong where rows are staggered by half a tile, like the Cross's arms.
+ */
+export function drawOrder(slots: readonly Slot[]): number[] {
+  return slots
+    .map((s, i) => ({ ...s, i }))
+    .sort((a, b) => a.z - b.z || a.x + a.y - (b.x + b.y) || a.y - b.y)
+    .map((s) => s.i);
+}
+
 export const isLayout = (value: unknown): value is LayoutName =>
   typeof value === 'string' && Object.hasOwn(LAYOUTS, value);
 

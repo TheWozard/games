@@ -4,7 +4,7 @@
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
-  import { isLayout, LAYOUTS } from './logic';
+  import { drawOrder, isLayout, LAYOUTS } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
@@ -24,12 +24,8 @@
     return { w: maxX * 1.5 + DEPTH + maxZ * LIFT, h: maxY * 2 + DEPTH + maxZ * LIFT, maxZ };
   });
 
-  // Draw back to front: lower layers first, then top to bottom, left to right.
-  const order = $derived(
-    layout.slots
-      .map((s, i) => ({ ...s, i }))
-      .sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x),
-  );
+  // Back to front, so each tile's side and shadow land under the neighbors that should cover them.
+  const order = $derived(drawOrder(layout.slots).map((i) => ({ ...layout.slots[i], i })));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
