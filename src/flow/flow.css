@@ -4,8 +4,6 @@
   width: min(100cqw, 100cqh);
   aspect-ratio: 1;
   background: var(--surface);
-  border: 2px solid var(--line-strong);
-  border-radius: 8px;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
