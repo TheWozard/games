@@ -24,6 +24,7 @@
   import GameScreen from './GameScreen.svelte';
   import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
   import { loadJSON, saveJSON } from './storage';
+  import VariantPicker, { parsePick, type Games } from './VariantPicker.svelte';
   import './grid.css';
 
   interface Props {
@@ -33,12 +34,25 @@
     isValid: (value: unknown) => value is G;
     create: (difficulty: string) => G;
     layout: (game: G) => GridLayout;
+    /**
+     * For a page holding several such games (Sudoku: Classic and Killer): all of them, this one's
+     * key, and what to do when the New Game dialog plays another ("<game>:<difficulty>").
+     */
+    variants?: { games: Games; current: string; onswitch: (pick: string) => void };
+    /** Start a new game at this difficulty instead of resuming the saved one. */
+    first?: string;
   }
 
-  let { title, storageKey, difficulties, isValid, create, layout }: Props = $props();
+  let { title, storageKey, difficulties, isValid, create, layout, variants, first }: Props = $props();
 
   // The whole game is one immutable value; every move replaces it via the reducer in grid.ts.
-  let game = $state.raw(untrack(() => loadJSON(storageKey, isValid) ?? create(Object.keys(difficulties)[0])));
+  let game = $state.raw(
+    untrack(() =>
+      first !== undefined && Object.hasOwn(difficulties, first)
+        ? create(first)
+        : (loadJSON(storageKey, isValid) ?? create(Object.keys(difficulties)[0])),
+    ),
+  );
   const shape = $derived(layout(game));
   const dispatch = (action: GridAction) => (game = gridReducer(game, action, shape));
 
@@ -76,8 +90,19 @@
   // Save after every change (the reducer returns a new object only when something changed).
   $effect(() => saveJSON(storageKey, game));
 
-  function start(difficulty: string) {
-    if (Object.hasOwn(difficulties, difficulty)) game = create(difficulty);
+  // With variants, the New Game dialog's pick ("<game>:<difficulty>"), reset each time it opens.
+  let pick = $state('');
+  let pickerOpens = $state(0);
+
+  function start(value: string) {
+    if (!variants) {
+      if (Object.hasOwn(difficulties, value)) game = create(value);
+      return;
+    }
+    const chosen = value === 'start' ? parsePick(variants.games, pick) : null;
+    if (!chosen) return;
+    if (chosen.game !== variants.current) variants.onswitch(pick);
+    else if (Object.hasOwn(difficulties, chosen.setting)) game = create(chosen.setting);
   }
 
   function onKey(e: KeyboardEvent) {
@@ -91,13 +116,19 @@
 
 <svelte:document onkeydown={onKey} />
 
+{#snippet variantPicker()}
+  {#key pickerOpens}<VariantPicker games={variants!.games} bind:value={pick} />{/key}
+{/snippet}
+
 <GameScreen
   {title}
-  subtitle={difficulties[game.difficulty]?.label ?? ''}
+  subtitle={[variants?.games[variants.current].label, difficulties[game.difficulty]?.label].filter(Boolean).join(' · ')}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  options={variants ? [] : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
   current={game.difficulty}
+  picker={variants ? variantPicker : undefined}
+  onopennew={() => { if (variants) { pick = `${variants.current}:${game.difficulty}`; pickerOpens++; } }}
   onstart={start}
   finished={game.done}
   onnext={() => (game = create(game.difficulty))}

@@ -7,8 +7,8 @@
   import { attachPan } from '../../shared/pan';
   import { bestTarget, type Card, type Draw, type Source } from './logic';
   import { untrack } from 'svelte';
-  import Picker from '../Picker.svelte';
-  import { KLONDIKE, parse, type VariantProps } from '../variants';
+  import VariantPicker from '../../shared/VariantPicker.svelte';
+  import { GAMES, KLONDIKE, parse, type VariantProps } from '../variants';
 
   let { start: first, onswitch }: VariantProps = $props();
   // The New dialog's pick, "<variant>:<setting>", starting on this game each time it opens.
@@ -183,7 +183,7 @@
   onnext={() => deal(newGame(game.draw))}
 >
   {#snippet picker()}
-    {#key pickerOpens}<Picker bind:value={pick} />{/key}
+    {#key pickerOpens}<VariantPicker games={GAMES} bind:value={pick} />{/key}
   {/snippet}
   <div class="board-area">
     <div

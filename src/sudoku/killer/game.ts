@@ -1,9 +1,9 @@
 // Killer Sudoku on top of the shared grid mechanics (../shared/grid.ts). Cells can't repeat a
 // digit with their row, column, box or cage; each cage is a colored zone with its sum in the
 // corner, and boxes are thick lines.
-import type { GridLayout } from '../shared/GridPlay.svelte';
-import { gridStart, isGridState, type GridState } from '../shared/grid';
-import { colOf, PEERS, rowOf } from '../sudoku/logic';
+import type { GridLayout } from '../../shared/GridPlay.svelte';
+import { gridStart, isGridState, type GridState } from '../../shared/grid';
+import { colOf, PEERS, rowOf } from '../classic/logic';
 import { cageSatisfied, generate, isDifficulty, type Cage, type Difficulty } from './logic';
 
 export const STORAGE_KEY = 'games.killer.v1';

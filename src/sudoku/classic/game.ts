@@ -1,6 +1,6 @@
 // Sudoku on top of the shared grid mechanics (../shared/grid.ts). The saved shape matches what
 // earlier versions saved under the same key, so games in progress carry over.
-import { gridReducer, gridStart, isGridState, type GridAction, type GridShape, type GridState } from '../shared/grid';
+import { gridReducer, gridStart, isGridState, type GridAction, type GridShape, type GridState } from '../../shared/grid';
 import { colOf, generate, isDifficulty, PEERS, rowOf, type Difficulty } from './logic';
 
 export const STORAGE_KEY = 'games.sudoku.v1';

@@ -2,7 +2,7 @@
 // of cells whose digits add up to the cage's sum, with no digit repeated inside a cage.
 // Puzzles have a unique solution: random solved grid → random cages → solver check, and wherever
 // two solutions disagree that cell becomes a given, until only one solution remains.
-import { PEERS, solvedGrid } from '../sudoku/logic';
+import { PEERS, solvedGrid } from '../classic/logic';
 
 // `sizes`: cage sizes to draw from (cages may end up split smaller to keep the solution unique).
 // `extra`: additional givens on top of any needed for uniqueness, to ease the start.

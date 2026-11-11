@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PEERS, solvedGrid } from '../sudoku/logic';
+import { PEERS, solvedGrid } from '../classic/logic';
 import { cageSatisfied, combinations, DIFFICULTIES, generate, solve, type Difficulty } from './logic';
 
 const orthogonal = (a: number, b: number) =>

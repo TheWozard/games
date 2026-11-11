@@ -47,7 +47,8 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
 
-Games: `sudoku` and `killer` (both use `GridPlay`), `mines`, `bridges`, `gradient`, `untangle`,
+Games: `sudoku` (Classic and Killer, one page: `src/sudoku/classic/` and `src/sudoku/killer/`,
+both on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
 `mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire` (Klondike and FreeCell, one page:
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
@@ -65,10 +66,10 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Saved games:** key `games.<name>.v1`. `isGame()` must reject anything that doesn't fit the
   current shape, so a stale save falls back to a new game instead of crashing. If you change the
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
-- **Digit-grid games** (Sudoku-like) don't need their own component: mount `GridPlay` from
-  `main.ts` with a `layout(game)` that gives size, peers (cells that can't share a digit), thick
-  walls, zone colors (0–4, drawn inset from each zone's outline; touching zones must differ) and corner labels. See
-  `src/killer/`.
+- **Digit-grid games** (Sudoku-like) don't need their own component: use `GridPlay` with a
+  `layout(game)` that gives size, peers (cells that can't share a digit), thick walls, zone colors
+  (0–4, drawn inset from each zone's outline; touching zones must differ) and cage labels. See
+  `src/sudoku/killer/` and `src/sudoku/App.svelte` (two games on one page, via `variants`).
 
 ### Puzzle quality rules
 

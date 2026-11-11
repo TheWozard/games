@@ -5,8 +5,7 @@ Simple puzzle games as an installable, offline-capable PWA, served by GitHub Pag
 TypeScript, built with [Vite](https://vite.dev) into small static files.
 
 Games:
-- [Sudoku](src/sudoku/): generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
-- [Killer Sudoku](src/killer/): Sudoku plus colored cages that add up to their sums; every puzzle has a unique solution and almost no givens.
+- [Sudoku](src/sudoku/): Classic or Killer (colored cages that add up to their sums, almost no givens), picked when you start a game; generated puzzles (easy, medium, hard) with a unique solution, pencil marks, undo, and progress saved on the device.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
 - [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop.
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network, with optional colored islands, blocks and diagonal bridges; every puzzle has a unique solution.
@@ -50,7 +49,7 @@ The service worker only exists in the production build, so test offline behavior
   registration ([app.ts](src/shared/app.ts)), a safe `localStorage` wrapper ([storage.ts](src/shared/storage.ts))
   a modal [Dialog.svelte](src/shared/Dialog.svelte), and [GameScreen.svelte](src/shared/GameScreen.svelte),
   the frame every game screen shares (header, Next button, New dialog, Ctrl/Cmd+Z undo).
-- Digit-grid games (Sudoku, Killer Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
+- Digit-grid games (Classic and Killer Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
   pencil marks, undo, win) and their whole screen ([GridPlay.svelte](src/shared/GridPlay.svelte)).
   Each one only supplies a puzzle generator and a `layout` (size, which cells can't repeat a
   digit, thick lines, dashed outlines, corner labels).
@@ -74,7 +73,7 @@ an open app downloads it in the background and reloads onto it.
    entry automatically.
 2. In `main.ts`, import `../shared/app` first (shared styles + offline support), then `mount()` your
    game's `.svelte` component (see [src/mines/main.ts](src/mines/main.ts)). Use `<script lang="ts">`.
-   A digit-grid game can mount `GridPlay` directly instead (see [src/killer/main.ts](src/killer/main.ts)).
+   A digit-grid game can use `GridPlay` instead of its own component (see [src/sudoku/App.svelte](src/sudoku/App.svelte)).
    Keep game rules in plain `.ts` modules with `*.test.ts` tests beside them; see
    [src/mines/logic.ts](src/mines/logic.ts) and [src/mines/game.ts](src/mines/game.ts).
 3. Add a card for it to [src/index.html](src/index.html) and a line to the list above.

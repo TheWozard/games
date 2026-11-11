@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { gridReducer, type GridAction } from '../shared/grid';
+import { gridReducer, type GridAction } from '../../shared/grid';
 import { isGame, layout, newGame, ZONES, type Game } from './game';
 
 const play = (g: Game, ...actions: GridAction[]) => actions.reduce((s, a) => gridReducer(s, a, layout(s)), g);
