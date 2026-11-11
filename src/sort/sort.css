@@ -16,6 +16,8 @@
 /* A solid capsule: the card color, a firm edge. */
 .sort-board .body { fill: var(--surface); stroke: var(--line-strong); stroke-width: 0.045; }
 .sort-board .run { transition: y 0.18s ease, height 0.18s ease; }
+/* Mystery rule: the layers whose color isn't shown yet, as one plain gray block. */
+.sort-board .run.hidden { fill: var(--line); }
 .sort-board .tube.selected .body { stroke: var(--accent); stroke-width: 0.08; }
 .sort-board .tube.full .body { stroke: var(--text); stroke-width: 0.06; }
 

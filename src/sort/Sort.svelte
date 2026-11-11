@@ -1,30 +1,40 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
   import { PALETTE } from '../shared/palette';
+  import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, stuck, type Action } from './game';
-  import { CAPACITY, DIFFICULTIES, isDifficulty, pourAmount } from './logic';
+  import { capacity, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { DIFFICULTIES, isDifficulty, NO_RULES, pourAmount, RULES, type Difficulty, type Rule, type Rules } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
-  const label = $derived(DIFFICULTIES[game.difficulty].label);
+  const label = $derived(
+    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+  );
 
   // Layout, in tube widths: up to six tubes a row; a little headroom above each row for lifting.
-  // A tube is a solid capsule exactly four layers tall, with an inset where the color sits.
+  // A tube is a solid capsule exactly as many layers tall as it holds, with an inset where the
+  // color sits.
   const INSET = 0.12;
   const LAYER = 0.8;
-  const TUBE_H = CAPACITY * LAYER + INSET * 2;
+  const cap = $derived(capacity(game));
+  const TUBE_H = $derived(cap * LAYER + INSET * 2);
   const GAP = 0.32;
   const ROW_GAP = 0.8;
 
-  /** A tube's layers as runs of one color, bottom first: [color, from layer, count]. */
-  const runs = (tube: number[]) => {
+  /**
+   * A tube's layers as runs of one color, bottom first: [color, from layer, count]. Hidden layers
+   * (mystery rule) count as one gray color, -1, so the hidden part of a tube is one plain block.
+   */
+  const HIDDEN = -1;
+  const runs = (tube: number[], hidden: boolean[]) => {
     const out: [number, number, number][] = [];
     tube.forEach((c, k) => {
+      const color = hidden[k] ? HIDDEN : c;
       const last = out[out.length - 1];
-      if (last && last[0] === c) last[2]++;
-      else out.push([c, k, 1]);
+      if (last && last[0] === color) last[2]++;
+      else out.push([color, k, 1]);
     });
     return out;
   };
@@ -65,14 +75,21 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  function start(difficulty: string) {
-    if (isDifficulty(difficulty)) game = newGame(difficulty);
+  const sizes = Object.fromEntries(
+    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.colors} colors` }]),
+  ) as Record<Difficulty, { label: string; detail: string }>;
+
+  // The New Game picks, starting from the current game's; Play starts them.
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+
+  function start(value: string) {
+    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
   }
 
   function tap(t: number) {
     const from = game.selected;
     // A pour that isn't allowed onto a tube that's full or empty: give it a little shake.
-    if (from !== null && from !== t && pourAmount(game.tubes, from, t) === 0 && !game.tubes[t].length) {
+    if (from !== null && from !== t && pourAmount(game.tubes, from, t, cap) === 0 && !game.tubes[t].length) {
       clearTimeout(shakeTimer);
       shaking = t;
       shakeTimer = setTimeout(() => (shaking = null), 300);
@@ -83,24 +100,26 @@
 
 <svelte:window bind:innerWidth={viewW} bind:innerHeight={viewH} />
 
-<!-- Next once sorted, or once stuck with no useful pour left (Undo still backs out of it). -->
+<!-- Next once sorted. A dead end isn't called: Undo backs out of it, or + starts a new deal. -->
 <GameScreen
   title="Color Sort"
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={Object.entries(DIFFICULTIES).map(([value, d]) => ({ value, label: d.label, detail: `${d.colors} colors` }))}
-  current={game.difficulty}
+  onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
   onstart={start}
-  finished={game.done || stuck(game)}
-  onnext={() => (game = newGame(game.difficulty))}
+  finished={game.done}
+  onnext={() => (game = newGame(game.difficulty, game.rules))}
 >
+  {#snippet picker()}
+    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+  {/snippet}
   <div class="board-area">
     <svg class={['sort-board', { done: game.done }]} viewBox="0 0 {box.w} {box.h}" style:--w={box.w} style:--h={box.h} role="group" aria-label="Tubes">
       {#each game.tubes as tube, t (t)}
         {@const p = place(t)}
         <g
-          class={['tube', { selected: game.selected === t, shake: shaking === t, full: tube.length === CAPACITY && tube.every((c) => c === tube[0]) }]}
+          class={['tube', { selected: game.selected === t, shake: shaking === t, full: tube.length === cap && tube.every((c) => c === tube[0]) && !game.hidden[t].some(Boolean) }]}
           style:transform="translate({p.x}px, {p.y}px)"
           role="button"
           tabindex="-1"
@@ -112,15 +131,15 @@
             <rect class="hit" x={-GAP / 2} y="-0.5" width={1 + GAP} height={TUBE_H + 0.8} />
             <rect class="body" x="0" y="0" width="1" height={TUBE_H} rx="0.5" />
             <!-- Each run of one color is a single rounded block, with a small gap between runs. -->
-            {#each runs(tube) as [color, from, count] (from)}
+            {#each runs(tube, game.hidden[t]) as [color, from, count] (from)}
               <rect
-                class="run"
+                class={['run', { hidden: color === HIDDEN }]}
                 x={INSET}
                 y={TUBE_H - INSET - (from + count) * LAYER + 0.04}
                 width={1 - INSET * 2}
                 height={count * LAYER - 0.08}
                 rx={(1 - INSET * 2) / 2}
-                fill={PALETTE[color]}
+                fill={color === HIDDEN ? undefined : PALETTE[color]}
               />
             {/each}
           </g>

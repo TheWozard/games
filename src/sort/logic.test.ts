@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAPACITY, DIFFICULTIES, generate, isSorted, pour, pourAmount, solve, type Difficulty } from './logic';
+import { CAPACITY, DIFFICULTIES, generate, isSorted, pour, pourAmount, solve, TALL, type Difficulty } from './logic';
 
 describe('generate', () => {
   for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
@@ -18,6 +18,24 @@ describe('generate', () => {
           t = pour(t, from, to);
         }
         expect(isSorted(t)).toBe(true);
+      }
+    });
+  }
+});
+
+describe('generate, tall tubes', () => {
+  for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
+    it(`deals a ${difficulty} game of ${TALL}-layer tubes that can be sorted`, () => {
+      const { colors } = DIFFICULTIES[difficulty];
+      for (let run = 0; run < 3; run++) {
+        const tubes = generate(difficulty, TALL);
+        for (let c = 0; c < colors; c++) expect(tubes.flat().filter((x) => x === c)).toHaveLength(TALL);
+        let t = tubes;
+        for (const [from, to] of solve(tubes, Infinity, TALL)!) {
+          expect(pourAmount(t, from, to, TALL)).toBeGreaterThan(0);
+          t = pour(t, from, to, TALL);
+        }
+        expect(isSorted(t, TALL)).toBe(true);
       }
     });
   }
