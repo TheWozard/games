@@ -1,6 +1,6 @@
 // Mahjong solitaire game state and moves, as a pure reducer (apart from Shuffle, which uses
 // Math.random unless a source is passed in).
-import { deal, freePairs, isFree, isLayout, LAYOUTS, matches, neighbors, reshuffle, type LayoutName, type Neighbors } from './logic';
+import { deal, freePairs, isDifficulty, isFree, isLayout, LAYOUTS, matches, neighbors, reshuffle, type Difficulty, type LayoutName, type Neighbors } from './logic';
 
 export const STORAGE_KEY = 'games.mahjong.v1';
 
@@ -8,6 +8,7 @@ type Move = { pair: [number, number] } | { shuffled: number[] }; // what to rest
 
 export interface Game {
   layout: LayoutName;
+  difficulty: Difficulty;
   kinds: number[]; // face per slot of LAYOUTS[layout]
   gone: boolean[];
   selected: number | null;
@@ -23,16 +24,28 @@ export type Action =
 const NEAR = new Map<LayoutName, Neighbors>();
 export const near = (d: LayoutName) => NEAR.get(d) ?? NEAR.set(d, neighbors(LAYOUTS[d].slots)).get(d)!;
 
-export function newGame(layout: LayoutName): Game {
-  const { kinds } = deal(layout);
-  return { layout, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
+export function newGame(layout: LayoutName, difficulty: Difficulty = 'medium'): Game {
+  const { kinds } = deal(layout, difficulty);
+  return { layout, difficulty, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
 }
 
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
-  if (!isLayout(g?.layout)) return false;
+  if (!isLayout(g?.layout) || !isDifficulty(g.difficulty)) return false;
   const n = LAYOUTS[g.layout].slots.length;
   return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history);
+}
+
+/**
+ * A saved game in the current shape, or one saved before deals had a difficulty (it plays on as
+ * Medium, the old deals' middle ground); else null.
+ */
+export function fromSaved(value: unknown): Game | null {
+  if (isGame(value)) return value;
+  const old = value as Partial<Game> | null;
+  if (typeof old !== 'object' || old === null || 'difficulty' in old) return null;
+  const upgraded = { ...old, difficulty: 'medium' };
+  return isGame(upgraded) ? upgraded : null;
 }
 
 export const free = (g: Game, i: number) => !g.gone[i] && isFree(i, near(g.layout), g.gone);

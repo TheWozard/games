@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { free, isGame, newGame, pairsLeft, reducer, type Game } from './game';
+import { free, fromSaved, isGame, newGame, pairsLeft, reducer, type Game } from './game';
 
 /** A game played with random free pairs until no match is left (common in Mahjong). */
 function stuck(): Game {
@@ -68,10 +68,21 @@ describe('reducer', () => {
 
   it('is done when the board is clear, following the dealer’s order', () => {
     const { kinds, order } = deal('fortress');
-    let g: Game = { layout: 'fortress', kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
+    let g: Game = { layout: 'fortress', difficulty: 'medium', kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
     for (const [a, b] of order) g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
     expect(g.done).toBe(true);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
+  });
+
+  it('keeps its difficulty, and loads saves from before there was one as Medium', () => {
+    const g = newGame('pyramid', 'hard');
+    expect(g.difficulty).toBe('hard');
+    expect(fromSaved(JSON.parse(JSON.stringify(g)))).toEqual(g);
+    const { difficulty: _, ...old } = g;
+    expect(isGame(old)).toBe(false);
+    expect(fromSaved(JSON.parse(JSON.stringify(old)))).toEqual({ ...g, difficulty: 'medium' });
+    expect(fromSaved({ ...g, difficulty: 'expert' })).toBeNull();
+    expect(fromSaved(null)).toBeNull();
   });
 
   it('loads games saved with the old Hint button', () => {

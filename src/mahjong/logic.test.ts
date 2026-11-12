@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deal, drawOrder, facesFor, FLOWERS, freePairs, group, isFree, LAYOUTS, matches, neighbors, reshuffle, SEASONS, type LayoutName } from './logic';
+import { deal, DIFFICULTIES, drawOrder, facesFor, FLOWERS, freePairs, grader, group, isFree, LAYOUTS, matches, neighbors, reshuffle, SEASONS, TIERS, type LayoutName } from './logic';
 
 /** Replays an order of pairs: each must be free, matching, and together they clear the board. */
 function replays(kinds: number[], near: ReturnType<typeof neighbors>, gone: boolean[], order: [number, number][]): boolean {
@@ -76,22 +76,82 @@ describe('drawOrder', () => {
 
 describe('deal', () => {
   for (const layout of Object.keys(LAYOUTS) as LayoutName[]) {
-    it(`deals ${layout} in pairs that can be cleared`, () => {
+    it(`deals ${layout} in pairs that can be cleared, at every difficulty`, () => {
       const { slots } = LAYOUTS[layout];
       const near = neighbors(slots);
-      for (let run = 0; run < 3; run++) {
-        const { kinds, order } = deal(layout);
-        expect(kinds).toHaveLength(slots.length);
-        // Every group comes in pairs; no face more than four times, no flower or season twice.
-        const counts = new Map<number, number>();
-        for (const k of kinds) counts.set(group(k), (counts.get(group(k)) ?? 0) + 1);
-        for (const n of counts.values()) expect(n % 2).toBe(0);
-        for (const k of new Set(kinds)) expect(kinds.filter((x) => x === k).length).toBeLessThanOrEqual(k >= FLOWERS ? 1 : 4);
-        expect(freePairs(kinds, near, slots.map(() => false)).length).toBeGreaterThan(0);
-        expect(replays(kinds, near, slots.map(() => false), order)).toBe(true);
+      for (const difficulty of DIFFICULTIES) {
+        for (let run = 0; run < 2; run++) {
+          const { kinds, order } = deal(layout, difficulty);
+          expect(kinds).toHaveLength(slots.length);
+          // Every group comes in pairs; no face more than four times, no flower or season twice.
+          const counts = new Map<number, number>();
+          for (const k of kinds) counts.set(group(k), (counts.get(group(k)) ?? 0) + 1);
+          for (const n of counts.values()) expect(n % 2).toBe(0);
+          for (const k of new Set(kinds)) expect(kinds.filter((x) => x === k).length).toBeLessThanOrEqual(k >= FLOWERS ? 1 : 4);
+          expect(freePairs(kinds, near, slots.map(() => false)).length).toBeGreaterThan(0);
+          expect(replays(kinds, near, slots.map(() => false), order)).toBe(true);
+        }
       }
     });
   }
+});
+
+/** The share of `runs` games won taking any free matching pair at random: slow, but plainly right. */
+function carelessWins(kinds: number[], near: ReturnType<typeof neighbors>, runs: number): number {
+  let won = 0;
+  for (let run = 0; run < runs; run++) {
+    const gone = kinds.map(() => false);
+    for (let pairs = freePairs(kinds, near, gone); pairs.length; pairs = freePairs(kinds, near, gone)) {
+      const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+      gone[a] = gone[b] = true;
+    }
+    if (gone.every(Boolean)) won++;
+  }
+  return won / runs;
+}
+
+describe('difficulty', () => {
+  it('grades a deal as plain careless play does', () => {
+    const near = neighbors(LAYOUTS.pyramid.slots);
+    const grade = grader(near);
+    for (const difficulty of DIFFICULTIES) {
+      const { kinds } = deal('pyramid', difficulty);
+      expect(Math.abs(grade(kinds, 1000) - carelessWins(kinds, near, 1000))).toBeLessThan(0.08);
+    }
+  });
+
+  it('grades a board that cannot go wrong as always won, and a dead one as never', () => {
+    // One layer, one row: every free pair is safe to take when the row is all one face per end.
+    const slots = Array.from({ length: 4 }, (_, i) => ({ x: i * 2, y: 0, z: 0 }));
+    const grade = grader(neighbors(slots));
+    expect(grade([0, 1, 1, 0])).toBe(1); // the ends match, then the middle pair
+    expect(grade([0, 1, 0, 1])).toBe(0); // the ends don't match: nothing to take
+  });
+
+  it('deals each difficulty inside its tier of careless wins', () => {
+    let inside = 0;
+    let dealt = 0;
+    for (const layout of Object.keys(LAYOUTS) as LayoutName[]) {
+      const grade = grader(neighbors(LAYOUTS[layout].slots));
+      for (const difficulty of DIFFICULTIES) {
+        const [from, to] = TIERS[difficulty];
+        for (let run = 0; run < 2; run++) {
+          const share = grade(deal(layout, difficulty).kinds, 400);
+          // Grades are estimates, so allow a little either side, and a rare miss a little further.
+          expect(share).toBeGreaterThanOrEqual(from - 0.15);
+          expect(share).toBeLessThanOrEqual(to + 0.15);
+          if (share >= from - 0.05 && share <= to + 0.05) inside++;
+          dealt++;
+        }
+      }
+    }
+    expect(inside / dealt).toBeGreaterThanOrEqual(0.85);
+  });
+
+  it('can be driven by a seeded random source', () => {
+    const seeded = (seed: number) => () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    expect(deal('diamond', 'hard', seeded(7))).toEqual(deal('diamond', 'hard', seeded(7)));
+  });
 });
 
 describe('the full set', () => {

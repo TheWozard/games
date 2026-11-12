@@ -16,7 +16,7 @@ Games:
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color, with optional mystery layers and tall tubes; every deal is checked to be sortable.
 - [Solitaire](src/solitaire/): Klondike (draw 1 or 3) or FreeCell (two to four free cells), picked when you start a game; tap a card to send it to its best move, and every deal is checked winnable.
 - [Sliding Blocks](src/blocks/): slide blocks to free the red one; Classic, Pillars (fixed squares), Big (8×8) and Two Keys (a second block leaves through the bottom); 100 pre-made levels for each (10 Easy, then 30 Medium, then 60 Hard), chosen for how interesting their shortest solutions are, played in order or picked by number, with the fewest moves shown.
-- [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
+- [Mahjong](src/mahjong/): tile-matching solitaire on fifteen original layouts at three difficulties; deals are built by playing backwards, so every one can be cleared, and graded by how often careless play still clears them.
 
 ## Installing on a phone
 

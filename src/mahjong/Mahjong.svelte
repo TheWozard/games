@@ -5,10 +5,11 @@
   import { createShake } from '../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
-  import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
-  import { drawOrder, isLayout, LAYOUTS } from './logic';
+  import { free, fromSaved, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
+  import { DIFFICULTIES, drawOrder, isLayout, LAYOUTS, type Difficulty } from './logic';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('pyramid'));
+  const anything = (_value: unknown): _value is unknown => true;
+  let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const layout = $derived(LAYOUTS[game.layout]);
@@ -56,10 +57,18 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  // The New dialog's pick, starting on the current layout; Start deals it.
+  // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
+  const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
+    easy: { label: 'Easy', detail: 'forgiving' },
+    medium: { label: 'Medium', detail: 'a few traps' },
+    hard: { label: 'Hard', detail: 'plan ahead' },
+  };
+
+  // The New dialog's picks, starting on the current game's; Play deals them.
   let choice = $state('');
+  let level = $state<Difficulty>('medium');
   function start(value: string) {
-    if (value === 'start' && isLayout(choice)) deal(newGame(choice));
+    if (value === 'start' && isLayout(choice)) deal(newGame(choice, level));
   }
 
   function deal(next: typeof game) {
@@ -80,13 +89,13 @@
 <GameScreen
   wide
   title="Mahjong"
-  subtitle={layout.name}
+  subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => (choice = game.layout)}
+  onopennew={() => ((choice = game.layout), (level = game.difficulty))}
   onstart={start}
   finished={game.done}
-  onnext={() => deal(newGame(game.layout))}
+  onnext={() => deal(newGame(game.layout, game.difficulty))}
 >
   {#snippet status()}
     {#if !game.done}
@@ -97,6 +106,14 @@
     {/if}
   {/snippet}
   {#snippet picker()}
+    <h3 class="pick-title">Difficulty</h3>
+    <div class="pick">
+      {#each DIFFICULTIES as d (d)}
+        <button type="button" class="btn" aria-pressed={level === d} onclick={() => (level = d)}>
+          <strong>{LEVELS[d].label}</strong><span>{LEVELS[d].detail}</span>
+        </button>
+      {/each}
+    </div>
     <h3 class="pick-title">Layout</h3>
     <div class="mj-layouts">
       {#each Object.entries(LAYOUTS) as [key, l] (key)}

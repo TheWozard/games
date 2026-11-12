@@ -260,30 +260,41 @@ export function freePairs(kinds: readonly number[], near: Neighbors, gone: reado
 
 // ---- Dealing ----
 
+/** How the dealer pairs things up: what makes a deal lean easy or hard (see `deal`). */
+interface Style {
+  /** Deal both pairs of a group one after the other, so all four copies are free about together. */
+  together: boolean;
+  /** Take the free tiles that had the most resting on them, rather than any free tiles. */
+  covered: boolean;
+}
+
+const PLAIN: Style = { together: false, covered: true };
+
 /**
  * Faces for the slots not yet `gone`, using `faces` (an even count of each group), such that the
  * board can be cleared: or null if this ordering hit a dead end (try again).
  */
-function assign(near: Neighbors, gone: readonly boolean[], faces: number[], random: Random): Dealt | null {
+function assign(near: Neighbors, gone: readonly boolean[], faces: number[], random: Random, style = PLAIN): Dealt | null {
   // Pair up the faces at random within their groups (two flowers make a pair), then deal pairs
   // onto tiles that would be free together.
   const byGroup = new Map<number, number[]>();
   for (const f of faces) byGroup.set(group(f), [...(byGroup.get(group(f)) ?? []), f]);
-  const pairs = shuffle(
-    [...byGroup.values()].flatMap((fs) => {
+  const groups = shuffle(
+    [...byGroup.values()].map((fs) => {
       shuffle(fs, random);
       return Array.from({ length: fs.length / 2 }, (_, k) => [fs[2 * k], fs[2 * k + 1]] as const);
     }),
     random,
   );
+  const pairs = style.together ? groups.flat() : shuffle(groups.flat(), random);
   const left = gone.slice();
   const kinds = new Array<number>(gone.length).fill(-1);
   const order: [number, number][] = [];
   for (const [first, second] of pairs) {
     const free = shuffle(left.flatMap((g, i) => (!g && isFree(i, near, left) ? [i] : [])), random);
     if (free.length < 2) return null;
-    // Prefer taking from the top, so deep tiles aren't left stranded with no partner.
-    free.sort((a, b) => near[b].above.length - near[a].above.length);
+    // Taking from the top keeps deep tiles from being left stranded with no partner.
+    if (style.covered) free.sort((a, b) => near[b].above.length - near[a].above.length);
     const [a, b] = free;
     kinds[a] = first;
     kinds[b] = second;
@@ -313,14 +324,160 @@ export function facesFor(count: number, random: Random = Math.random): number[] 
   return faces;
 }
 
-export function deal(layout: LayoutName, random: Random = Math.random): Dealt {
+// ---- Difficulty ----
+//
+// A deal's difficulty is how forgiving it is: the share of games a careless player wins, one who
+// takes any free matching pair at random. Easy deals are won that way most of the time; Hard ones
+// almost never, since they hide traps (copies of a face buried so that the wrong pair taken
+// early strands one later) and need looking ahead. Every deal can still be cleared.
+
+export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+export const isDifficulty = (value: unknown): value is Difficulty => DIFFICULTIES.includes(value as Difficulty);
+
+/** The share of careless games each difficulty wins: from, to (inclusive). */
+export const TIERS: Record<Difficulty, readonly [number, number]> = {
+  easy: [0.6, 1],
+  medium: [0.2, 0.5],
+  hard: [0, 0.1],
+};
+
+/** Careless games played to grade a deal quickly, and to confirm a grade. */
+export const RUNS = 40;
+const CONFIRM = 160;
+
+/**
+ * A grader for one layout: the share of `runs` careless games that clear the board. Each game picks
+ * uniformly among the free matching pairs until none is left. Kept fast (no searching), since a deal
+ * is graded many times while it's made.
+ */
+export function grader(near: Neighbors) {
+  const n = near.length;
+  // For each tile, the tiles whose way out it blocks: those under it, to its right, to its left.
+  const under: number[][] = near.map(() => []);
+  const toRight: number[][] = near.map(() => []);
+  const toLeft: number[][] = near.map(() => []);
+  near.forEach(({ above, left, right }, j) => {
+    for (const i of above) under[i].push(j);
+    for (const i of left) toRight[i].push(j);
+    for (const i of right) toLeft[i].push(j);
+  });
+  const cover = new Int32Array(n);
+  const lefts = new Int32Array(n);
+  const rights = new Int32Array(n);
+  const isOut = new Uint8Array(n); // free (in a pool) or gone
+  const pools: number[][] = Array.from({ length: KINDS }, () => []);
+  const at = new Int32Array(n); // position in its pool
+
+  return (kinds: readonly number[], runs = RUNS, random: Random = Math.random): number => {
+    let won = 0;
+    for (let run = 0; run < runs; run++) {
+      for (const p of pools) p.length = 0;
+      const release = (j: number) => {
+        if (isOut[j] || cover[j] > 0 || (lefts[j] > 0 && rights[j] > 0)) return;
+        isOut[j] = 1;
+        const p = pools[group(kinds[j])];
+        at[j] = p.length;
+        p.push(j);
+      };
+      for (let i = 0; i < n; i++) {
+        cover[i] = near[i].above.length;
+        lefts[i] = near[i].left.length;
+        rights[i] = near[i].right.length;
+        isOut[i] = 0;
+      }
+      for (let i = 0; i < n; i++) release(i);
+      const take = (i: number) => {
+        const p = pools[group(kinds[i])];
+        const last = p.pop()!;
+        if (last !== i) {
+          p[at[i]] = last;
+          at[last] = at[i];
+        }
+        for (const j of under[i]) cover[j]--, release(j);
+        for (const j of toRight[i]) lefts[j]--, release(j);
+        for (const j of toLeft[i]) rights[j]--, release(j);
+      };
+      let left = n;
+      for (;;) {
+        let total = 0;
+        for (const p of pools) total += (p.length * (p.length - 1)) / 2;
+        if (total === 0) break;
+        let r = Math.floor(random() * total);
+        let p = pools[0];
+        for (p of pools) {
+          const c = (p.length * (p.length - 1)) / 2;
+          if (r < c) break;
+          r -= c;
+        }
+        const a = Math.floor(random() * p.length);
+        let b = Math.floor(random() * (p.length - 1));
+        if (b >= a) b++;
+        const [x, y] = [p[a], p[b]];
+        take(x);
+        take(y);
+        left -= 2;
+      }
+      if (left === 0) won++;
+    }
+    return won / runs;
+  };
+}
+
+/** How far a careless-win share lies outside a difficulty's tier (0 inside it). */
+const miss = (share: number, [from, to]: readonly [number, number]) => Math.max(0, from - share, share - to);
+
+/** Quick grades (or the work of one) a deal may take, in all, before settling for the closest found. */
+const BUDGET = 600;
+
+/**
+ * A deal of the layout at the difficulty. The dealer pairs tiles in a style that leans toward it,
+ * then moves faces between its pairs (which keeps its order of play working, so the deal can still
+ * be cleared) until careless play wins about the tier's share; a deal that won't get there is
+ * dropped for a fresh one. Within the budget it nearly always lands in the tier; past it, the
+ * closest deal found is played.
+ */
+export function deal(layout: LayoutName, difficulty: Difficulty = 'medium', random: Random = Math.random): Dealt {
   const { slots } = LAYOUTS[layout];
   const near = neighbors(slots);
+  const grade = grader(near);
+  const tier = TIERS[difficulty];
   const gone = slots.map(() => false);
-  for (;;) {
-    const dealt = assign(near, gone, facesFor(slots.length, random), random);
-    if (dealt) return dealt;
+  const style: Style = difficulty === 'hard' ? { together: true, covered: true } : { together: false, covered: difficulty === 'medium' };
+  let best: { dealt: Dealt; off: number } | null = null;
+  let steps = 0;
+  // A quick grade, then, once that looks inside the tier, a closer one to confirm it: a deal picked
+  // for a quick grade inside the tier is often one that got lucky near its edge.
+  const check = (kinds: number[]) => {
+    steps++;
+    const quick = miss(grade(kinds, RUNS, random), tier);
+    if (quick > 0) return quick;
+    steps += CONFIRM / RUNS;
+    return miss(grade(kinds, CONFIRM, random), tier);
+  };
+  while (steps < BUDGET) {
+    const dealt = assign(near, gone, facesFor(slots.length, random), random, style);
+    steps++;
+    if (!dealt) continue;
+    let off = check(dealt.kinds);
+    // Swap the faces of two of the dealer's pairs, keeping the swap if it brings the deal no
+    // further from the tier.
+    for (let tries = 0; off > 0 && tries < 30 && steps < BUDGET; tries++) {
+      const { kinds, order } = dealt;
+      const p = order[Math.floor(random() * order.length)];
+      const q = order[Math.floor(random() * order.length)];
+      const swapped = kinds.slice();
+      [swapped[p[0]], swapped[p[1]], swapped[q[0]], swapped[q[1]]] = [kinds[q[0]], kinds[q[1]], kinds[p[0]], kinds[p[1]]];
+      const next = check(swapped);
+      if (next <= off) {
+        dealt.kinds = swapped;
+        off = next;
+      }
+    }
+    if (!best || off < best.off) best = { dealt, off };
+    if (off === 0) break;
   }
+  return best!.dealt;
 }
 
 /**
