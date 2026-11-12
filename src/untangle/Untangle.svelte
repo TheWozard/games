@@ -1,5 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { cubicOut } from 'svelte/easing';
+  import { Tween } from 'svelte/motion';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { DEFAULT, describe, fromSaved, newGame, reducer, settingsOf, STORAGE_KEY, type Action } from './game';
@@ -15,11 +17,31 @@
 
   let svg: SVGSVGElement;
 
+  // Where the dots are drawn: right where the game has them, except that after a drop, dots the
+  // game nudged off lines (or clear of each other) glide there.
+  const shown = new Tween<Point[]>(untrack(() => game.points), { easing: cubicOut });
+  let glide = false;
+  // Before drawing, so a drag follows the finger in the same frame.
+  $effect.pre(() => {
+    const points = game.points;
+    shown.set(points, { duration: untrack(() => glide) ? 260 : 0 });
+    glide = false;
+  });
+  // A new puzzle may have more dots than the last: until the tween has caught up, its own.
+  const view = $derived(shown.current.length === game.points.length ? shown.current : game.points);
+
   // The dot being dragged, where it started, and the layout before the drag (for undo).
   let dragging = $state<number | null>(null);
   let grab: Point = [0, 0];
   let before: Point[] = [];
 
+  /** The lines in drawing order: the held dot's last, so nothing covers them. */
+  const edgeOrder = $derived.by(() => {
+    const ks = game.edges.map((_, k) => k);
+    if (dragging === null) return ks;
+    const held = (k: number) => game.edges[k][0] === dragging || game.edges[k][1] === dragging;
+    return [...ks.filter((k) => !held(k)), ...ks.filter(held)];
+  });
   const neighbors = $derived(
     dragging === null ? new Set<number>() : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
   );
@@ -65,6 +87,7 @@
     if (dragging === null) return;
     const index = dragging;
     dragging = null;
+    glide = true;
     dispatch({ type: 'drop', index, before });
   }
 
@@ -135,16 +158,16 @@
       onpointerup={pointerUp}
       onpointercancel={pointerUp}
     >
-      {#each game.edges as [a, b], k (k)}
-        <line
-          class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}
-          x1={game.points[a][0]}
-          y1={game.points[a][1]}
-          x2={game.points[b][0]}
-          y2={game.points[b][1]}
-        />
+      <!-- Each line over a casing in the background color, so where lines cross the later one cuts a
+           small gap in the earlier and they read as separate strands. -->
+      {#each edgeOrder as k (k)}
+        {@const [a, b] = game.edges[k]}
+        <g class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}>
+          <line class="casing" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
+          <line class="strand" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
+        </g>
       {/each}
-      {#each game.points as [x, y], i (i)}
+      {#each view as [x, y], i (i)}
         <g
           class={['dot', { held: dragging === i, near: neighbors.has(i), touching: tangle.touching[i] }]}
           role="button"

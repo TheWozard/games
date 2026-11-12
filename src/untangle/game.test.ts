@@ -35,6 +35,25 @@ describe('reducer', () => {
     expect(Math.hypot(g.points[0][0] - g.points[1][0], g.points[0][1] - g.points[1][1])).toBeGreaterThan(5);
   });
 
+  it('nudges a dot dropped on a line off it, in the same move', () => {
+    const g0: Game = {
+      ...newGame({ size: 'd10', style: 'lines', start: 'circle' }),
+      points: [[10, 50], [90, 50], [50, 70], [50, 90]],
+      edges: [[0, 1], [2, 3]],
+      history: [],
+      moves: 0,
+      done: false,
+    };
+    const before = g0.points;
+    let g = reducer(g0, { type: 'drag', index: 2, to: [50, 50.4] });
+    expect(crossings(g.points, g.edges).count).toBe(1);
+    g = reducer(g, { type: 'drop', index: 2, before });
+    expect(crossings(g.points, g.edges).count).toBe(0);
+    expect(g.points[2][1]).toBeGreaterThan(52);
+    expect(g.history).toHaveLength(1);
+    expect(g.done).toBe(true);
+  });
+
   it('is done when the last crossing goes, and round-trips through JSON', () => {
     const settings = { size: 'd15', style: 'mesh', start: 'circle' } as const;
     const { edges, solution } = generate(settings);

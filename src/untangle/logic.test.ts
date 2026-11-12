@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  boardFor, crossings, DEFAULT_BOARD, delaunay, distanceToSegment, dotGap, generate, MARGIN, nudge, rescale, segmentsCross,
+  boardFor, crossings, DEFAULT_BOARD, delaunay, distanceToSegment, dotGap, dotRadius, generate, MARGIN, nudge, rescale, segmentsCross, settle,
   SIZES, STARTS, STYLES, type Board, type Size, type Start, type Style,
 } from './logic';
 
@@ -84,6 +84,33 @@ describe('crossings', () => {
   it('doesn’t count a dot touching its own lines', () => {
     const points: [number, number][] = [[10, 10], [50, 50], [90, 10]];
     expect(crossings(points, [[0, 1], [1, 2]]).count).toBe(0);
+  });
+});
+
+describe('settle', () => {
+  it('moves a dot off a line it sits on, to the side it was on, and nothing else', () => {
+    // Dot 2 (joined only to 3) just below the line from 0 to 1.
+    const points: [number, number][] = [[10, 50], [90, 50], [50, 50.5], [50, 90]];
+    const edges: [number, number][] = [[0, 1], [2, 3]];
+    const out = settle(points, edges, DEFAULT_BOARD);
+    expect(crossings(out, edges).count).toBe(0);
+    expect(out[2][0]).toBeCloseTo(50);
+    expect(out[2][1]).toBeGreaterThanOrEqual(50 + dotRadius(4)); // clear of the line, below it
+    expect(out[2][1]).toBeLessThan(55); // a nudge, not a leap
+    expect([out[0], out[1], out[3]]).toEqual([points[0], points[1], points[3]]);
+  });
+
+  it('with a dot to settle around, leaves dots on other lines alone', () => {
+    // Dot 2 sits on line 0–1; dot 4 is free. Settling around dot 4 changes nothing; around 0, dot 2 moves.
+    const points: [number, number][] = [[10, 50], [90, 50], [50, 50.5], [50, 90], [20, 20]];
+    const edges: [number, number][] = [[0, 1], [2, 3]];
+    expect(settle(points, edges, DEFAULT_BOARD, undefined, 4)).toBe(points);
+    expect(settle(points, edges, DEFAULT_BOARD, undefined, 0)[2]).not.toEqual(points[2]);
+  });
+
+  it('returns the same layout when no dot sits on a line', () => {
+    const points: [number, number][] = [[10, 50], [90, 50], [50, 70], [50, 90]];
+    expect(settle(points, [[0, 1], [2, 3]], DEFAULT_BOARD)).toBe(points);
   });
 });
 

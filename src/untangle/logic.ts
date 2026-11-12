@@ -191,6 +191,56 @@ export function nudge(points: readonly Point[], i: number, board: Board, random:
   return out;
 }
 
+/**
+ * Moves dots off lines they sit on but aren't part of: each one sideways from the line to
+ * `clearance` (by default just clear of the dot), toward the side it's already on if that helps,
+ * else the other. A step is kept only if it leaves fewer crossings, so dots never get pushed into
+ * a worse tangle. With `around`, only where that dot is involved: it sitting on a line, or one of
+ * its lines over another dot (what a drop of it changed). Returns the same array when nothing moved.
+ */
+export function settle(
+  points: readonly Point[],
+  edges: readonly Edge[],
+  board: Board,
+  clearance = dotRadius(points.length) + 0.6,
+  around?: number,
+): readonly Point[] {
+  const touch = touchDistance(points.length);
+  let out = points;
+  let tangle = crossings(out, edges);
+  for (let pass = 0; pass < 20 && tangle.touching.includes(true); pass++) {
+    let improved = false;
+    for (let k = 0; k < out.length; k++) {
+      if (!tangle.touching[k]) continue;
+      const involved = (a: number, b: number) => around === undefined || k === around || a === around || b === around;
+      const e = edges.find(([a, b]) => a !== k && b !== k && involved(a, b) && distanceToSegment(out[k], out[a], out[b]) < touch);
+      if (!e) continue;
+      const [a, b] = [out[e[0]], out[e[1]]];
+      // Sideways from the line, starting on the side the dot is on.
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const len = Math.hypot(dx, dy) || 1;
+      let nx = -dy / len;
+      let ny = dx / len;
+      if ((out[k][0] - a[0]) * nx + (out[k][1] - a[1]) * ny < 0) [nx, ny] = [-nx, -ny];
+      const move = Math.max(0, clearance - distanceToSegment(out[k], a, b));
+      for (const sign of [1, -1]) {
+        const trial = out.slice();
+        trial[k] = clamp([out[k][0] + sign * nx * move, out[k][1] + sign * ny * move], board);
+        const next = crossings(trial, edges);
+        if (next.count < tangle.count) {
+          out = trial;
+          tangle = next;
+          improved = true;
+          break;
+        }
+      }
+    }
+    if (!improved) break;
+  }
+  return out;
+}
+
 // ---- Generation ----
 
 export interface Settings {
@@ -222,41 +272,12 @@ export function generate({ size, style, start }: Settings, board: Board = DEFAUL
 
 /**
  * Pushes dots off lines they're touching but aren't part of (near-misses where three lines almost
- * meet), one small step at a time, keeping only steps that leave the layout less tangled.
- * Returns the repaired layout, or null if it can't be untangled this way.
+ * meet), for a made puzzle's answer. Returns the repaired layout, or null if it still has real
+ * crossings.
  */
 function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): Point[] | null {
-  let points = start.slice();
-  let tangle = crossings(points, edges);
-  const touch = touchDistance(points.length);
-  for (let step = 0; step < 200 && tangle.count > 0; step++) {
-    const k = tangle.touching.indexOf(true);
-    if (k === -1) return null; // real crossings: not a near-miss, give up
-    const e = edges.find(([a, b]) => a !== k && b !== k && distanceToSegment(points[k], points[a], points[b]) < touch)!;
-    const [a, b] = [points[e[0]], points[e[1]]];
-    // Step away from the line, perpendicular to it.
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    let nx = -dy / len;
-    let ny = dx / len;
-    if ((points[k][0] - a[0]) * nx + (points[k][1] - a[1]) * ny < 0) [nx, ny] = [-nx, -ny];
-    const move = touch - distanceToSegment(points[k], a, b) + 0.3;
-    let improved = false;
-    for (const sign of [1, -1]) {
-      const trial = points.slice();
-      trial[k] = clamp([points[k][0] + sign * nx * move, points[k][1] + sign * ny * move], board);
-      const next = crossings(trial, edges);
-      if (next.count < tangle.count) {
-        points = trial;
-        tangle = next;
-        improved = true;
-        break;
-      }
-    }
-    if (!improved) return null;
-  }
-  return tangle.count === 0 ? points : null;
+  const points = settle(start, edges, board, touchDistance(start.length) + 0.3);
+  return crossings(points, edges).count === 0 ? points.slice() : null;
 }
 
 /** Random lines in general position; each crossing is a dot, each stretch between is an edge. */

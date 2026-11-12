@@ -1,8 +1,9 @@
 // Untangle game state and moves, as a pure reducer. A drag moves a dot live ('drag'), and letting
-// go ('drop') nudges it clear of any dot it landed on, records the move for undo, and checks
-// whether the tangle is gone. When the screen changes shape ('resize'), the dots stretch to fit.
+// go ('drop') nudges it clear of any dot it landed on and off any line it landed on (and any dot
+// its lines now run over), records the move for undo, and checks whether the tangle is gone. When
+// the screen changes shape ('resize'), the dots stretch to fit.
 import {
-  clamp, crossings, DEFAULT_BOARD, generate, isSize, isStart, isStyle, nudge, rescale, sameBoard, SIZES, STARTS, STYLES,
+  clamp, crossings, DEFAULT_BOARD, generate, isSize, isStart, isStyle, nudge, rescale, sameBoard, settle, SIZES, STARTS, STYLES,
   type Board, type Edge, type Point, type Settings,
 } from './logic';
 
@@ -83,8 +84,12 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
     }
     case 'drop': {
       if (g.done) return g;
-      const nudged = nudge(g.points, action.index, g, random);
-      const points = nudged === g.points ? g.points : nudged.slice();
+      // A drop where nothing moved (a tap) changes nothing.
+      if (action.before.every((p, i) => p[0] === g.points[i][0] && p[1] === g.points[i][1])) return g;
+      // Clear of any dot it landed on, then off any line it landed on, and any dot its lines now
+      // run over nudged off them (dots already on lines elsewhere stay put): all one move.
+      const settled = settle(nudge(g.points, action.index, g, random), g.edges, g, undefined, action.index);
+      const points = settled === g.points ? g.points : settled.slice();
       const moved = action.before.some((p, i) => p[0] !== points[i][0] || p[1] !== points[i][1]);
       if (!moved) return points === g.points ? g : { ...g, points };
       return {

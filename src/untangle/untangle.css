@@ -15,14 +15,17 @@
   touch-action: none; /* dragging a dot must not scroll the page */
 }
 
-.untangle-board .edge {
-  stroke: var(--accent);
-  stroke-width: 0.8;
-  stroke-linecap: round;
-  transition: stroke 0.25s ease, opacity 0.25s ease;
-}
-.untangle-board .edge.crossed { stroke: var(--danger); opacity: 0.55; }
-.untangle-board .edge.active { opacity: 1; stroke-width: 1.1; }
+/* Lines are solid colors, never see-through, so overlaps don't pile up into bright knots. Clear
+   lines are the accent; crossed ones a muted red, quiet enough that the board brightens as it's
+   untangled. Each sits on a casing in the background color: where lines cross, the one drawn
+   later cuts a small gap in the other. */
+.untangle-board .edge { --strand: var(--accent); stroke-linecap: round; }
+.untangle-board .edge.crossed { --strand: color-mix(in srgb, var(--danger) 45%, var(--bg)); }
+.untangle-board .edge .casing { stroke: var(--bg); stroke-width: 1.9; }
+.untangle-board .edge .strand { stroke: var(--strand); stroke-width: 0.8; transition: stroke 0.25s ease; }
+/* The held dot's lines: on top, a little wider, and a crossed one in full red. */
+.untangle-board .edge.active .strand { stroke-width: 1.1; }
+.untangle-board .edge.active.crossed { --strand: var(--danger); }
 
 .untangle-board .dot { cursor: grab; outline: none; }
 .untangle-board.dragging .dot { cursor: grabbing; }
@@ -39,6 +42,6 @@
 .untangle-board .dot.touching .mark { stroke: var(--danger); stroke-width: 1.1; }
 
 /* Untangled: everything settles into the calm accent color. */
-.untangle-board.done .edge { stroke: var(--accent); opacity: 0.9; }
+.untangle-board.done .edge { --strand: var(--accent); }
 .untangle-board.done .dot { cursor: default; }
 .untangle-board.done .dot .mark { fill: var(--accent); }
