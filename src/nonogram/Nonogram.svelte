@@ -200,6 +200,19 @@
   const rowFit = $derived(game.rows.map((clue, r) => fitOf(rowOf(shown, n, r), clue)));
   const colFit = $derived(game.cols.map((clue, c) => fitOf(colOf(shown, n, c), clue)));
 
+  // The lines between blocks, one cell's side at a time, leaving out the sides with shaded cells on
+  // both: those are covered, like the thin lines between shaded neighbors.
+  const blockEdges = $derived.by(() => {
+    const edges: { x1: number; y1: number; x2: number; y2: number }[] = [];
+    for (let at = block; at < n; at += block) {
+      for (let t = 0; t < n; t++) {
+        if (!(shown[t * n + at - 1] > 0 && shown[t * n + at] > 0)) edges.push({ x1: at, y1: t, x2: at, y2: t + 1 });
+        if (!(shown[(at - 1) * n + t] > 0 && shown[at * n + t] > 0)) edges.push({ x1: t, y1: at, x2: t + 1, y2: at });
+      }
+    }
+    return edges;
+  });
+
   // The row and column under a stroke get their clues lit, to find them on a big board.
   const focus = $derived(stroke ? { r: Math.floor(stroke.end / n), c: stroke.end % n } : null);
 
@@ -275,19 +288,19 @@
             {@const x = left + (i % n)}
             {@const y = top + Math.floor(i / n)}
             {#if v > 0}
-              <rect class="cell" x={x + (game.done ? 0 : 0.03)} y={y + (game.done ? 0 : 0.03)} width={game.done ? 1 : 0.94} height={game.done ? 1 : 0.94} rx={game.done ? 0 : 0.08} fill={colorOf(v)} />
+              <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
+                   over, so no seam shows where two meet. -->
+              <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
             {:else}
-              <rect class="cell empty" x={x + 0.03} y={y + 0.03} width="0.94" height="0.94" rx="0.08" />
+              <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" rx="0.03" />
               {#if v === CROSS && !game.done}
                 <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
               {/if}
             {/if}
           {/each}
           <g class="blocks">
-            {#each { length: Math.floor((n - 1) / block) } as _, k (k)}
-              {@const at = (k + 1) * block}
-              <line x1={left + at} y1={top} x2={left + at} y2={top + n} />
-              <line x1={left} y1={top + at} x2={left + n} y2={top + at} />
+            {#each blockEdges as { x1, y1, x2, y2 }, k (k)}
+              <line x1={left + x1} y1={top + y1} x2={left + x2} y2={top + y2} />
             {/each}
             <rect x={left} y={top} width={n} height={n} />
           </g>
