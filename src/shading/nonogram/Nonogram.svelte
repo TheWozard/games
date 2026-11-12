@@ -4,9 +4,9 @@
   import GameScreen from '../../shared/GameScreen.svelte';
   import VariantPicker, { parsePick } from '../../shared/VariantPicker.svelte';
   import { attachPan } from '../../shared/pan';
-  import { PALETTE } from '../../shared/palette';
+  import { PALETTE, PALETTE_NAMES } from '../../shared/palette';
   import { loadJSON, saveJSON } from '../../shared/storage';
-  import { CROSS, EMPTY, isGame, newGame, reducer, shading, STORAGE_KEY, type Action } from './game';
+  import { CROSS, EMPTY, isGame, newGame, paletteOf, reducer, shading, STORAGE_KEY, type Action } from './game';
   import type { Switcher } from '../variants';
   import { colOf, DIFFICULTIES, fits, isDifficulty, rowOf, RULES, solveLine, type Rule, type Rules, type Run } from './logic';
 
@@ -16,7 +16,6 @@
 
   /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
   const MIN_CELL = 30;
-  const COLOR_NAMES = ['Red', 'Blue', 'Yellow', 'Green', 'Purple'];
   // Clue sizes, in cells: one number's width in a row clue, its height in a column clue.
   const CLUE_W = 0.62;
   const CLUE_W_WIDE = 0.9; // two digits
@@ -43,7 +42,7 @@
   const brushStops = $derived(
     brushes.map((b) => ({
       value: b,
-      name: b === CROSS ? 'X' : game.colors > 1 ? COLOR_NAMES[b - 1] : 'Shade',
+      name: b === CROSS ? 'X' : game.colors > 1 ? PALETTE_NAMES[palette[b - 1]] : 'Shade',
       color: b === CROSS ? undefined : colorOf(b),
     })),
   );
@@ -107,9 +106,11 @@
     }),
   );
 
-  const colorOf = (color: number) => (game.colors > 1 ? PALETTE[color - 1] : 'var(--accent)');
+  // Colored puzzles are drawn in the game's palette, picked at random for each one.
+  const palette = $derived(paletteOf(game));
+  const colorOf = (color: number) => (game.colors > 1 ? PALETTE[palette[color - 1]] : 'var(--accent)');
   // Clue numbers are in their run's color; plain ones in the text color (hidden ones muted, by CSS).
-  const clueColor = (run: Run) => (game.colors > 1 ? PALETTE[run.color - 1] : undefined);
+  const clueColor = (run: Run) => (game.colors > 1 ? PALETTE[palette[run.color - 1]] : undefined);
 
   // ---- Strokes ----
   // A press starts a stroke on a cell. Its value: a tap places the brush, a color or X (or clears
