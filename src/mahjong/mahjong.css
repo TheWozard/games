@@ -38,12 +38,7 @@
   outline-offset: -1px;
 }
 
-.mj-tile.shake { animation: mj-shake 0.3s ease; }
-
-@keyframes mj-shake {
-  25% { translate: -2px 0; }
-  75% { translate: 2px 0; }
-}
+.mj-tile.shake { --shake: 2px; animation: shake 0.3s ease; }
 
 /* Layout picker in the New dialog. */
 .mj-layouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

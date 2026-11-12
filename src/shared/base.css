@@ -153,6 +153,13 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 }
 @keyframes spin { to { rotate: 1turn; } }
 
+/* A piece's shake for a move the game won't make (shake.svelte.ts): side to side by --shake, which
+   each game sets for its pieces' size (in SVG, user units). */
+@keyframes shake {
+  25% { translate: calc(-1 * var(--shake, 3px)) 0; }
+  75% { translate: var(--shake, 3px) 0; }
+}
+
 /* A dialog is a see-through layer over the whole screen that scrolls as one; the box is its form,
    centered while it fits and running on past the bottom (scroll to reach the rest) when it doesn't,
    so the box itself never scrolls inside. A tap on the dimmed area around the box closes it. */

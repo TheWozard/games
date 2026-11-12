@@ -2,6 +2,7 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import { PALETTE } from '../shared/palette';
   import RulesPicker from '../shared/RulesPicker.svelte';
+  import { createShake } from '../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { capacity, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { DIFFICULTIES, isDifficulty, NO_RULES, pourAmount, RULES, type Difficulty, type Rule, type Rules } from './logic';
@@ -70,8 +71,7 @@
     return { x: 0.2 + indent + (t % perRow) * (1 + GAP), y: ROW_GAP + row * (TUBE_H + ROW_GAP) };
   };
 
-  let shaking = $state<number | null>(null);
-  let shakeTimer: ReturnType<typeof setTimeout> | undefined;
+  const shake = createShake<number>();
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
@@ -90,9 +90,7 @@
     const from = game.selected;
     // A pour that isn't allowed onto a tube that's full or empty: give it a little shake.
     if (from !== null && from !== t && pourAmount(game.tubes, from, t, cap, game.hidden) === 0 && !game.tubes[t].length) {
-      clearTimeout(shakeTimer);
-      shaking = t;
-      shakeTimer = setTimeout(() => (shaking = null), 300);
+      shake.start(t);
     }
     dispatch({ type: 'tap', tube: t });
   }
@@ -119,7 +117,7 @@
       {#each game.tubes as tube, t (t)}
         {@const p = place(t)}
         <g
-          class={['tube', { selected: game.selected === t, shake: shaking === t, full: tube.length === cap && tube.every((c) => c === tube[0]) && !game.hidden[t].some(Boolean) }]}
+          class={['tube', { selected: game.selected === t, shake: shake.current === t, full: tube.length === cap && tube.every((c) => c === tube[0]) && !game.hidden[t].some(Boolean) }]}
           style:transform="translate({p.x}px, {p.y}px)"
           role="button"
           tabindex="-1"

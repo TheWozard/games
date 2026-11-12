@@ -2,6 +2,7 @@
   import { scale } from 'svelte/transition';
   import GameScreen from '../shared/GameScreen.svelte';
   import { attachPan } from '../shared/pan';
+  import { createShake } from '../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { free, isGame, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
@@ -67,15 +68,9 @@
   }
 
   // A tap on a blocked tile gives it a little shake instead of doing nothing at all.
-  let shaking = $state<number | null>(null);
-  let shakeTimer: ReturnType<typeof setTimeout> | undefined;
+  const shake = createShake<number>();
   function tap(i: number) {
-    if (!free(game, i)) {
-      clearTimeout(shakeTimer);
-      shaking = i;
-      shakeTimer = setTimeout(() => (shaking = null), 300);
-      return;
-    }
+    if (!free(game, i)) return shake.start(i);
     dispatch({ type: 'tap', slot: i });
   }
 </script>
@@ -129,7 +124,7 @@
             class={['mj-tile', {
               blocked: !free(game, s.i),
               selected: game.selected === s.i,
-              shake: shaking === s.i,
+              shake: shake.current === s.i,
             }]}
             style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
             style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"

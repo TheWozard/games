@@ -3,6 +3,7 @@
   import CardFace from '../../shared/CardFace.svelte';
   import { cardName, isRed, SUITS, type Card } from '../../shared/cards';
   import { attachPan } from '../../shared/pan';
+  import { createShake } from '../../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import { bestTarget, canMove, COLUMNS, DIFFICULTIES, isDifficulty, lifted, type Source, type Target } from './logic';
@@ -115,8 +116,7 @@
   // A press must move a little before it counts as a drag, and the click after a drag is ignored.
 
   let board = $state<HTMLDivElement>();
-  let shaking = $state<Card | null>(null);
-  let shakeTimer: ReturnType<typeof setTimeout> | undefined;
+  const shake = createShake<Card>();
   let press: { id: number; source: Source; card: Card; x: number; y: number } | null = null;
   // sx0: the pan when the drag began. Cards lifted from a column stay under the finger as the
   // columns pan beneath them.
@@ -125,11 +125,6 @@
   const dragShift = $derived(drag?.fromColumn ? sx - drag.sx0 : 0);
   let swallowClick = false;
 
-  function shake(card: Card) {
-    clearTimeout(shakeTimer);
-    shaking = card;
-    shakeTimer = setTimeout(() => (shaking = null), 300);
-  }
 
   function tap(p: Placed) {
     if (swallowClick) {
@@ -137,7 +132,7 @@
       return;
     }
     if (!p.source || game.done) return;
-    if (!bestTarget(game.table, p.source)) return shake(p.card);
+    if (!bestTarget(game.table, p.source)) return shake.start(p.card);
     dispatch({ type: 'tap', source: p.source });
   }
 
@@ -186,7 +181,7 @@
       swallowClick = true;
       const target = dropTarget();
       if (target && canMove(game.table, press.source, target)) dispatch({ type: 'move', source: press.source, target });
-      else if (target && !(target.to === 'column' && press.source.from === 'column' && target.col === press.source.col)) shake(press.card);
+      else if (target && !(target.to === 'column' && press.source.from === 'column' && target.col === press.source.col)) shake.start(press.card);
     }
     press = null;
     drag = null;
@@ -266,7 +261,7 @@
         {@const lifting = drag?.cards.includes(p.card) ?? false}
         <button
           type="button"
-          class={['card', { red: isRed(p.card), live: p.source !== null, buried: p.buried, shake: shaking === p.card, dragging: lifting }]}
+          class={['card', { red: isRed(p.card), live: p.source !== null, buried: p.buried, shake: shake.current === p.card, dragging: lifting }]}
           style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y + (lifting ? drag!.dy : 0)}px)"
           style:z-index={lifting ? 1000 + p.z : p.z}
           aria-label={cardName(p.card)}

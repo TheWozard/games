@@ -1,5 +1,6 @@
 <script lang="ts">
   import GameScreen from '../../shared/GameScreen.svelte';
+  import { createShake } from '../../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import CardFace from '../../shared/CardFace.svelte';
@@ -131,18 +132,12 @@
 
   // ---- Taps ----
 
-  let shaking = $state<Card | null>(null);
-  let shakeTimer: ReturnType<typeof setTimeout> | undefined;
+  const shake = createShake<Card>();
 
   function tap(p: Placed) {
     if (p.source === 'stock') return dispatch({ type: 'stock' });
     if (!p.source) return;
-    if (!bestTarget(game.table, p.source)) {
-      clearTimeout(shakeTimer);
-      shaking = p.card;
-      shakeTimer = setTimeout(() => (shaking = null), 300);
-      return;
-    }
+    if (!bestTarget(game.table, p.source)) return shake.start(p.card);
     dispatch({ type: 'tap', source: p.source });
   }
 
@@ -214,7 +209,7 @@
       {#each placed as p (p.card)}
         <button
           type="button"
-          class={['card', { down: !p.up, red: isRed(p.card), shake: shaking === p.card, live: p.source !== null }]}
+          class={['card', { down: !p.up, red: isRed(p.card), shake: shake.current === p.card, live: p.source !== null }]}
           style:transform="translate({p.x}px, {p.y}px)"
           style:z-index={p.z}
           aria-label={p.up ? cardName(p.card) : 'Face-down card'}

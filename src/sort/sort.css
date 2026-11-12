@@ -21,8 +21,4 @@
 .sort-board .tube.selected .body { stroke: var(--accent); stroke-width: 0.08; }
 .sort-board .tube.full .body { stroke: var(--text); stroke-width: 0.06; }
 
-.sort-board .tube.shake .lift { animation: sort-shake 0.3s ease; }
-@keyframes sort-shake {
-  25% { transform: translateX(-0.08px); }
-  75% { transform: translateX(0.08px); }
-}
+.sort-board .tube.shake .lift { --shake: 0.08px; animation: shake 0.3s ease; }

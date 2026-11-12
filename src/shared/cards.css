@@ -76,11 +76,7 @@
   line-height: 1;
 }
 
-.card-table .card.shake { animation: card-shake 0.3s ease; }
-@keyframes card-shake {
-  25% { translate: -3px 0; }
-  75% { translate: 3px 0; }
-}
+.card-table .card.shake { animation: shake 0.3s ease; }
 
 /* Being dragged: follows the finger without easing, raised above the rest. */
 .card-table .card.dragging { transition: none; box-shadow: 0 6px 14px rgb(0 0 0 / 0.5); }
