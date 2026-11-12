@@ -1,6 +1,6 @@
 import '../shared/app';
 import './untangle.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Untangle from './Untangle.svelte';
 
-mount(Untangle, { target: document.getElementById('root')! });
+mountGame(Untangle);

@@ -1,6 +1,6 @@
 import '../shared/app';
 import './mahjong.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Mahjong from './Mahjong.svelte';
 
-mount(Mahjong, { target: document.getElementById('root')! });
+mountGame(Mahjong);

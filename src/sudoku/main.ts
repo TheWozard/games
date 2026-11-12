@@ -1,5 +1,5 @@
 import '../shared/app';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import App from './App.svelte';
 
-mount(App, { target: document.getElementById('root')! });
+mountGame(App);

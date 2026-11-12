@@ -1,6 +1,6 @@
 import '../shared/app';
 import './blocks.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Blocks from './Blocks.svelte';
 
-mount(Blocks, { target: document.getElementById('root')! });
+mountGame(Blocks);

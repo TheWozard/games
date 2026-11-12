@@ -1,6 +1,6 @@
 import '../shared/app';
 import './mines.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Mines from './Mines.svelte';
 
-mount(Mines, { target: document.getElementById('root')! });
+mountGame(Mines);

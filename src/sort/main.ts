@@ -1,6 +1,6 @@
 import '../shared/app';
 import './sort.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Sort from './Sort.svelte';
 
-mount(Sort, { target: document.getElementById('root')! });
+mountGame(Sort);

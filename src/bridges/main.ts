@@ -1,6 +1,6 @@
 import '../shared/app';
 import './bridges.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Bridges from './Bridges.svelte';
 
-mount(Bridges, { target: document.getElementById('root')! });
+mountGame(Bridges);

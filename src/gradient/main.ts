@@ -1,6 +1,6 @@
 import '../shared/app';
 import './gradient.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Gradient from './Gradient.svelte';
 
-mount(Gradient, { target: document.getElementById('root')! });
+mountGame(Gradient);

@@ -1,6 +1,6 @@
 import '../shared/app';
 import './loop.css';
-import { mount } from 'svelte';
+import { mountGame } from '../shared/mount';
 import Loop from './Loop.svelte';
 
-mount(Loop, { target: document.getElementById('root')! });
+mountGame(Loop);
