@@ -261,7 +261,7 @@
     >
       <defs>
         <clipPath id="nonogram-pan">
-          <rect x={left - 0.05} y="-0.05" width={shownW - left + 0.05} height={viewH} />
+          <rect x={left} y="-0.05" width={shownW - left} height={viewH} />
         </clipPath>
       </defs>
 
@@ -306,6 +306,9 @@
           </g>
         </g>
       </g>
+
+      <!-- The grid's left edge, kept beside the row clues while the grid pans under them. -->
+      <line class="edge" x1={left} y1={top} x2={left} y2={top + n} />
 
       {#if focus}
         <rect class="focus" x="0" y={top + focus.r} width={left - 0.04} height="1" rx="0.12" />
