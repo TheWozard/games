@@ -13,7 +13,7 @@ just test          # Vitest unit tests (npm test)
 just build         # svelte-check (fails on warnings) + production build into dist/
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
-just blocks        # remake the Sliding Blocks puzzle list (a couple of minutes)
+just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -82,8 +82,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   not how many givens it has: `src/sudoku/classic/grade.ts` solves like a person, and the
   generator keeps only puzzles that need the difficulty's own tier.
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
-  by `scripts/blocks.ts` (`just blocks`) into `src/blocks/puzzles.ts`, and played in order; its
-  tests re-check every stored puzzle.
+  by `scripts/blocks.ts` (`just blocks`, one thread per variant, about a quarter of an hour) into
+  `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs and keeps the most
+  interesting (`interest` in `src/blocks/logic.ts`), and the tests re-check every stored puzzle.
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.

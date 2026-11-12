@@ -263,7 +263,7 @@ dialog p.rule-text { margin: 0 0 4px; padding: 0 4px; font-size: 0.85rem; line-h
    sideways, without a scrollbar, if the tabs don't fit. */
 .pick-tabs {
   display: flex;
-  gap: 4px;
+  gap: 0; /* the tabs' own padding spaces them */
   margin-bottom: 4px;
   /* Sideways only: overflow-x alone makes the other axis scrollable too. The line under the row is
      drawn inside it (a shadow, not a border), so the tabs' underlines cover it without overhanging
@@ -281,7 +281,7 @@ dialog p.rule-text { margin: 0 0 4px; padding: 0 4px; font-size: 0.85rem; line-h
 .pick-tabs:focus { outline: none; }
 .pick-tabs [role="tab"] {
   flex: none;
-  padding: 8px 14px;
+  padding: 8px 10px; /* four tabs fit at 360px wide (Sliding Blocks) */
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;

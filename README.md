@@ -14,7 +14,7 @@ Games:
 - [Gradient](src/gradient/): swap color tiles back into a smooth four-corner blend (mixed in OKLab); dotted tiles are fixed.
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color, with optional mystery layers and tall tubes; every deal is checked to be sortable.
 - [Solitaire](src/solitaire/): Klondike (draw 1 or 3) or FreeCell (two to four free cells), picked when you start a game; tap a card to send it to its best move, and every deal is checked winnable.
-- [Sliding Blocks](src/blocks/): slide blocks to free the red one; 300 pre-made puzzles in three difficulties, played in order or picked by number, with the fewest moves shown.
+- [Sliding Blocks](src/blocks/): slide blocks to free the red one; Classic, Pillars (fixed squares), Big (8×8) and Two Keys (a second block leaves through the bottom); 100 pre-made puzzles per difficulty for each, chosen for how interesting their shortest solutions are, played in order or picked by number, with the fewest moves shown.
 - [Mahjong](src/mahjong/): tile-matching solitaire on ten original layouts; deals are built by playing backwards, so every one can be cleared.
 
 ## Installing on a phone

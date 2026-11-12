@@ -1,5 +1,5 @@
-.blocks-count { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.blocks-count small { font-size: 0.8em; opacity: 0.8; }
+.blocks-count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.blocks-count svg { width: 0.9em; height: 0.9em; }
 
 .blocks-board {
   width: min(100cqw, 100cqh);
@@ -17,15 +17,28 @@
 
 .blocks-board .block { cursor: grab; outline: none; transition: transform 0.15s ease; }
 .blocks-board .block.moving { cursor: grabbing; transition: none; }
-.blocks-board .block rect { fill: var(--accent-soft); stroke: var(--accent); stroke-opacity: 0.45; stroke-width: 0.05; }
-.blocks-board .block.key rect { stroke: rgb(255 255 255 / 0.35); }
+/* Each block its own tint of blue (--tint, 0–4, set per block): the soft accent with more or less
+   of the accent mixed in, so they read apart, then desaturated (half the chroma, same lightness) so
+   they stay quiet next to the key blocks. Browsers without relative colors get the full tint. No
+   outlines: the gaps between blocks set them apart. */
+.blocks-board .block {
+  --block-fill: color-mix(in srgb, var(--accent) calc(var(--tint, 2) * 7%), var(--accent-soft));
+}
+.blocks-board .block rect {
+  fill: var(--block-fill);
+  fill: oklch(from var(--block-fill) l calc(c * 0.5) h);
+}
 
-/* Free: the key block slides out through the gap. */
+/* Pillars: fixed squares, set in the board rather than lying on it. */
+.blocks-board .pillar { fill: var(--grid-line); }
+
+/* Out: a key block that reached its exit slides on out through the gap (--away: across or down). */
 .blocks-board.done .block { cursor: default; }
-.blocks-board.done .block.key {
-  translate: 2.4px 0;
+.blocks-board .block.out {
+  cursor: default;
+  translate: var(--away);
   opacity: 0;
-  transition: translate 0.6s ease-in 0.1s, opacity 0.3s ease 0.4s;
+  transition: transform 0.15s ease, translate 0.6s ease-in 0.1s, opacity 0.3s ease 0.4s;
 }
 
 /* New Game: every puzzle of the picked difficulty by number, ten to a row. */
