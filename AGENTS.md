@@ -49,7 +49,7 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 
 Games: `sudoku` (Classic, Killer and Jigsaw, one page: `src/sudoku/classic/`, `src/sudoku/killer/`
 and `src/sudoku/jigsaw/`, all on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`, `loop`, `sort` (Color Sort), `flow`, `solitaire` (Klondike and FreeCell, one page:
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `nonogram`, `solitaire` (Klondike and FreeCell, one page:
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
 
@@ -76,7 +76,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 ### Puzzle quality rules
 
 - **Every puzzle must be solvable, and where the genre expects it, uniquely.** Sudoku, Killer,
-  Bridges, Flow: unique solution, checked by a solver. Mines: no guessing needed, checked by a
+  Bridges, Flow: unique solution, checked by a solver. Nonogram: the line solver finishes it. Mines: no guessing needed, checked by a
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
   Untangle: built from a planar arrangement. Klondike, FreeCell: deals a solver can win. Tests must
   prove this, not assume it.
