@@ -41,13 +41,10 @@
 .nonogram.done :is(.blocks, .edge) { opacity: 0; transition: opacity 0.4s ease; }
 .nonogram.done .clue { opacity: 0.35; }
 
-/* The shading color: a circle at the bottom right, the other colors peeking out behind it. */
+/* What a tap places: a circle at the bottom right (a color, or X), the others peeking out behind it. */
 .brush-row { display: flex; justify-content: flex-end; }
 .brush {
-  --size: 52px;
-  --step: 20px;
   position: relative;
-  width: calc(var(--size) + (var(--count) - 1) * var(--step));
   height: var(--size);
   padding: 0;
   border: 0;
@@ -64,6 +61,13 @@
   border-radius: 50%;
   box-shadow: 0 0 0 3px var(--bg);
   z-index: calc(var(--count) - var(--at));
-  transform: translateX(calc(var(--at) * -1 * var(--step))) scale(calc(1 - var(--at) * 0.18));
   transition: transform 0.2s ease;
 }
+.brush .dot.cross {
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 2px var(--line-strong), 0 0 0 3px var(--bg);
+}
+.brush .dot.cross svg { width: 55%; height: 55%; }

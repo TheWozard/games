@@ -7,7 +7,6 @@
   import { CROSS, EMPTY, isGame, newGame, reducer, shading, STORAGE_KEY, type Action } from './game';
   import { colOf, DIFFICULTIES, fits, isDifficulty, NO_RULES, rowOf, RULES, solveLine, type Difficulty, type Rule, type Rules, type Run } from './logic';
 
-  const LONG_PRESS_MS = 350;
   /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
   const MIN_CELL = 30;
   const COLOR_NAMES = ['Red', 'Blue', 'Yellow', 'Green', 'Purple'];
@@ -25,10 +24,29 @@
     [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
   );
 
-  // The color a tap shades in (always 1 without the colors rule).
+  // What a tap places: a color (always 1 without the colors rule), or CROSS. The picker at the
+  // bottom right steps through them, colors first, then X.
   let brush = $state(1);
   $effect(() => {
-    if (brush > game.colors) brush = 1;
+    if (brush !== CROSS && brush > game.colors) brush = 1;
+  });
+  const brushes = $derived([...Array.from({ length: game.colors }, (_, k) => k + 1), CROSS]);
+  const brushName = (b: number) => (b === CROSS ? 'X' : game.colors > 1 ? COLOR_NAMES[b - 1] : 'Shade');
+  const nextBrush = $derived(brushes[(brushes.indexOf(brush) + 1) % brushes.length]);
+
+  // The picker's circles, front to back: each one smaller, and showing the same share of its own
+  // width past the one in front, so nearer ones show more than farther ones. In pixels.
+  const BRUSH_SIZE = 52;
+  const BRUSH_SHRINK = 0.18; // each circle back is this much smaller
+  const BRUSH_SHOWS = 0.4; // the share of its width each one behind shows
+  const stack = $derived.by(() => {
+    let edge = 0; // how far the stack reaches left of the front circle's left edge
+    return brushes.map((_, at) => {
+      const scale = 1 - at * BRUSH_SHRINK;
+      if (at > 0) edge += BRUSH_SHOWS * BRUSH_SIZE * scale;
+      // Its shift left, center to center, that puts its left edge `edge` past the front one's.
+      return { scale, shift: edge + (BRUSH_SIZE / 2) * (1 - scale), edge };
+    });
   });
 
   const sizes = Object.fromEntries(
@@ -87,10 +105,11 @@
   const clueColor = (run: Run) => (game.colors > 1 ? PALETTE[run.color - 1] : undefined);
 
   // ---- Strokes ----
-  // A press starts a stroke on a cell. Its value: a tap shades the cell in the brush color (or
-  // clears it if it already is, or is crossed); a long-press or right-click crosses it (or clears
-  // a cross). Dragging carries that value along the row or column the drag first moves in, to
-  // every cell that started out like the first one. It's drawn as it goes and applied on release.
+  // A press starts a stroke on a cell. Its value: a tap places the brush, a color or X (or clears
+  // the cell if it already holds that; a crossed cell clears too when shading); a mouse's
+  // right-click crosses it whatever the brush (or clears a cross). Dragging carries that value
+  // along the row or column the drag first moves in, to every cell that started out like the first
+  // one. It's drawn as it goes and applied on release.
 
   interface Stroke {
     pointer: number;
@@ -102,11 +121,10 @@
   }
 
   let stroke = $state.raw<Stroke | null>(null);
-  let pressTimer: ReturnType<typeof setTimeout> | undefined;
   let svg = $state<SVGSVGElement>();
 
-  const tapValue = (from: number) => (from === brush || from === CROSS ? EMPTY : brush);
   const crossValue = (from: number) => (from === CROSS ? EMPTY : CROSS);
+  const tapValue = (from: number) => (brush === CROSS ? crossValue(from) : from === brush || from === CROSS ? EMPTY : brush);
 
   function strokeCells(s: Stroke): number[] {
     const r0 = Math.floor(s.start / n);
@@ -143,19 +161,12 @@
     const from = game.cells[i];
     const cross = e.button === 2;
     stroke = { pointer: e.pointerId, start: i, end: i, from, value: cross ? crossValue(from) : tapValue(from), axis: null };
-    clearTimeout(pressTimer);
-    if (!cross) {
-      pressTimer = setTimeout(() => {
-        if (stroke && stroke.end === stroke.start) stroke = { ...stroke, value: crossValue(stroke.from) };
-      }, LONG_PRESS_MS);
-    }
   }
 
   function move(e: PointerEvent) {
     if (!stroke || e.pointerId !== stroke.pointer) return;
     const i = cellAt(e);
     if (i === null || i === stroke.end) return;
-    clearTimeout(pressTimer);
     const dr = Math.floor(i / n) - Math.floor(stroke.start / n);
     const dc = (i % n) - (stroke.start % n);
     const axis = stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
@@ -170,7 +181,6 @@
 
   function up(e: PointerEvent) {
     if (!stroke || e.pointerId !== stroke.pointer) return;
-    clearTimeout(pressTimer);
     const s = stroke;
     stroke = null;
     dispatch({ type: 'paint', indices: strokeCells(s), value: s.value });
@@ -178,7 +188,6 @@
 
   function cancel(e: PointerEvent) {
     if (!stroke || e.pointerId !== stroke.pointer) return;
-    clearTimeout(pressTimer);
     stroke = null;
   }
 
@@ -327,21 +336,31 @@
     </svg>
   </div>
 
-  {#if game.colors > 1}
-    <!-- The color a tap shades in, in front; the others stacked behind it in the order a tap
-         brings them forward. -->
-    <div class="brush-row">
-      <button
-        type="button"
-        class="brush"
-        style:--count={game.colors}
-        aria-label="Shading with {COLOR_NAMES[brush - 1]}; tap for {COLOR_NAMES[brush % game.colors]}"
-        onclick={() => (brush = (brush % game.colors) + 1)}
-      >
-        {#each { length: game.colors } as _, k (k)}
-          <span class="dot" style:--at={(k + 1 - brush + game.colors) % game.colors} style:background={PALETTE[k]}></span>
-        {/each}
-      </button>
-    </div>
-  {/if}
+  <!-- What a tap places, in front: a color, or X; the others stacked behind it in the order a
+       tap brings them forward. -->
+  <div class="brush-row">
+    <button
+      type="button"
+      class="brush"
+      style:--count={brushes.length}
+      style:--size="{BRUSH_SIZE}px"
+      style:width="{BRUSH_SIZE + stack[stack.length - 1].edge}px"
+      aria-label="Placing {brushName(brush)}; tap for {brushName(nextBrush)}"
+      onclick={() => (brush = nextBrush)}
+    >
+      {#each brushes as b, k (b)}
+        {@const at = (k - brushes.indexOf(brush) + brushes.length) % brushes.length}
+        <span
+          class={['dot', { cross: b === CROSS }]}
+          style:--at={at}
+          style:transform="translateX({-stack[at].shift}px) scale({stack[at].scale})"
+          style:background={b === CROSS ? undefined : colorOf(b)}
+        >
+          {#if b === CROSS}
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+          {/if}
+        </span>
+      {/each}
+    </button>
+  </div>
 </GameScreen>
