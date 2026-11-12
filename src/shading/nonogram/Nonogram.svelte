@@ -1,11 +1,18 @@
 <script lang="ts">
-  import GameScreen from '../shared/GameScreen.svelte';
-  import RulesPicker from '../shared/RulesPicker.svelte';
-  import { attachPan } from '../shared/pan';
-  import { PALETTE } from '../shared/palette';
-  import { loadJSON, saveJSON } from '../shared/storage';
+  import { untrack } from 'svelte';
+  import BrushPicker from '../../shared/BrushPicker.svelte';
+  import GameScreen from '../../shared/GameScreen.svelte';
+  import VariantPicker, { parsePick } from '../../shared/VariantPicker.svelte';
+  import { attachPan } from '../../shared/pan';
+  import { PALETTE } from '../../shared/palette';
+  import { loadJSON, saveJSON } from '../../shared/storage';
   import { CROSS, EMPTY, isGame, newGame, reducer, shading, STORAGE_KEY, type Action } from './game';
-  import { colOf, DIFFICULTIES, fits, isDifficulty, NO_RULES, rowOf, RULES, solveLine, type Difficulty, type Rule, type Rules, type Run } from './logic';
+  import type { Switcher } from '../variants';
+  import { colOf, DIFFICULTIES, fits, isDifficulty, rowOf, RULES, solveLine, type Rule, type Rules, type Run } from './logic';
+
+  // On the Shading page: `variants` for the other games' tabs, `first` to start a new game at that
+  // difficulty, and `rules`, the rules picked under this game's tab (kept by the page).
+  let { variants, first, rules = $bindable() }: { variants: Switcher; first?: string; rules: Rules } = $props();
 
   /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
   const MIN_CELL = 30;
@@ -15,13 +22,15 @@
   const CLUE_W_WIDE = 0.9; // two digits
   const CLUE_H = 0.62;
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
+  let game = $state.raw(
+    untrack(() => (first !== undefined && isDifficulty(first) ? newGame(first, { ...rules }) : (loadJSON(STORAGE_KEY, isGame) ?? newGame('easy')))),
+  );
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    ['Nonogram', DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
   );
 
   // What a tap places: a color (always 1 without the colors rule), or CROSS. The picker at the
@@ -31,31 +40,28 @@
     if (brush !== CROSS && brush > game.colors) brush = 1;
   });
   const brushes = $derived([...Array.from({ length: game.colors }, (_, k) => k + 1), CROSS]);
-  const brushName = (b: number) => (b === CROSS ? 'X' : game.colors > 1 ? COLOR_NAMES[b - 1] : 'Shade');
-  const nextBrush = $derived(brushes[(brushes.indexOf(brush) + 1) % brushes.length]);
+  const brushStops = $derived(
+    brushes.map((b) => ({
+      value: b,
+      name: b === CROSS ? 'X' : game.colors > 1 ? COLOR_NAMES[b - 1] : 'Shade',
+      color: b === CROSS ? undefined : colorOf(b),
+    })),
+  );
 
-  // The picker's circles, front to back: each one smaller, and showing the same share of its own
-  // width past the one in front, so nearer ones show more than farther ones. In pixels.
-  const BRUSH_SIZE = 52;
-  const BRUSH_SHRINK = 0.18; // each circle back is this much smaller
-  const BRUSH_SHOWS = 0.4; // the share of its width each one behind shows
-  const stack = $derived.by(() => {
-    let edge = 0; // how far the stack reaches left of the front circle's left edge
-    return brushes.map((_, at) => {
-      const scale = 1 - at * BRUSH_SHRINK;
-      if (at > 0) edge += BRUSH_SHOWS * BRUSH_SIZE * scale;
-      // Its shift left, center to center, that puts its left edge `edge` past the front one's.
-      return { scale, shift: edge + (BRUSH_SIZE / 2) * (1 - scale), edge };
-    });
-  });
-
-  const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.size}×${d.size}` }]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
-
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  // The New Game dialog's pick ("<game>:<difficulty>"), reset each time it opens; the rules are
+  // the page's, under this game's tab.
+  let pick = $state('');
+  let pickerOpens = $state(0);
+  function opennew() {
+    pick = `nonogram:${game.difficulty}`;
+    rules = { ...game.rules };
+    pickerOpens++;
+  }
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) deal(newGame(choice.difficulty, { ...choice.rules }));
+    const chosen = value === 'start' ? parsePick(variants.games, pick) : null;
+    if (!chosen) return;
+    if (chosen.game !== 'nonogram') variants.onswitch(pick);
+    else if (isDifficulty(chosen.setting)) deal(newGame(chosen.setting, { ...rules }));
   }
 
   function deal(next: typeof game) {
@@ -238,18 +244,18 @@
 </script>
 
 <GameScreen
-  title="Nonogram"
+  title="Shading"
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
+  onopennew={opennew}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.difficulty, game.rules))}
   wide
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    {#key pickerOpens}<VariantPicker games={variants.games} extras={variants.extras} bind:value={pick} />{/key}
   {/snippet}
 
   <div class="board-area nonogram-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>
@@ -301,7 +307,7 @@
                    over, so no seam shows where two meet. -->
               <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
             {:else}
-              <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" rx="0.03" />
+              <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" />
               {#if v === CROSS && !game.done}
                 <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
               {/if}
@@ -336,31 +342,11 @@
     </svg>
   </div>
 
-  <!-- What a tap places, in front: a color, or X; the others stacked behind it in the order a
-       tap brings them forward. -->
-  <div class="brush-row">
-    <button
-      type="button"
-      class="brush"
-      style:--count={brushes.length}
-      style:--size="{BRUSH_SIZE}px"
-      style:width="{BRUSH_SIZE + stack[stack.length - 1].edge}px"
-      aria-label="Placing {brushName(brush)}; tap for {brushName(nextBrush)}"
-      onclick={() => (brush = nextBrush)}
-    >
-      {#each brushes as b, k (b)}
-        {@const at = (k - brushes.indexOf(brush) + brushes.length) % brushes.length}
-        <span
-          class={['dot', { cross: b === CROSS }]}
-          style:--at={at}
-          style:transform="translateX({-stack[at].shift}px) scale({stack[at].scale})"
-          style:background={b === CROSS ? undefined : colorOf(b)}
-        >
-          {#if b === CROSS}
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-          {/if}
-        </span>
-      {/each}
-    </button>
-  </div>
+  <BrushPicker stops={brushStops} bind:value={brush}>
+    {#snippet icon(b)}
+      {#if b === CROSS}
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      {/if}
+    {/snippet}
+  </BrushPicker>
 </GameScreen>

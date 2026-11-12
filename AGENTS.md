@@ -33,6 +33,7 @@ src/
     GridPlay.svelte     the whole screen for a digit-grid game; a game supplies a `layout`
     grid.css            board / cell / number-pad styles for GridPlay
     cards.ts, cards.css, CardFace.svelte   playing cards for Solitaire (Klondike and FreeCell)
+    BrushPicker.svelte, brush.css   what a tap places (Shading's games): a circle, the other picks behind it
   <game>/               one folder per game, picked up automatically as a build entry
     index.html          page shell: head + <body class="game"><div id="root">
     main.ts             imports ../shared/app, the game's CSS, mounts the component with mountGame
@@ -49,7 +50,9 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 
 Games: `sudoku` (Classic, Killer and Jigsaw, one page: `src/sudoku/classic/`, `src/sudoku/killer/`
 and `src/sudoku/jigsaw/`, all on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`, `loop`, `sort` (Color Sort), `flow`, `nonogram`, `solitaire` (Klondike and FreeCell, one page:
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `shading` (Nonogram, Star Battle, Nurikabe, Hitori
+and Light Up, one page: `src/shading/<game>/`, switched by `App.svelte`; all but Nonogram on `ShadePlay`;
+`src/nonogram/` only forwards old links), `solitaire` (Klondike and FreeCell, one page:
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
 
@@ -76,7 +79,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 ### Puzzle quality rules
 
 - **Every puzzle must be solvable, and where the genre expects it, uniquely.** Sudoku, Killer,
-  Bridges, Flow: unique solution, checked by a solver. Nonogram: the line solver finishes it. Mines: no guessing needed, checked by a
+  Bridges, Flow: unique solution, checked by a solver. Nonogram: the line solver finishes it. Shading's four: unique answer, checked by a solver. Mines: no guessing needed, checked by a
   deduction-only solver. Mahjong: dealt by playing backwards, so it can always be cleared.
   Untangle: built from a planar arrangement. Klondike, FreeCell: deals a solver can win. Tests must
   prove this, not assume it.

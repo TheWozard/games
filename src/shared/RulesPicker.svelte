@@ -1,13 +1,14 @@
 <!--
   New-game picks for games with a size and optional rules (Bridges, Loop): a row of sizes, then
-  one line per rule: a check box toggle, and an i that opens a line explaining the rule. The game keeps the picks (bound here); GameScreen's Play then calls its
-  `onstart('start')`.
+  one line per rule: a check box toggle, and an i that opens a line explaining the rule. The game
+  keeps the picks (bound here); GameScreen's Play then calls its `onstart('start')`. Without
+  `sizes`, only the rules (Shading's Nonogram tab, under the tab's own difficulties).
 -->
 <script lang="ts" generics="S extends string, R extends string">
   interface Props {
-    sizes: Record<S, { label: string; detail: string }>;
+    sizes?: Record<S, { label: string; detail: string }>;
     rules: Record<R, { label: string; info: string }>;
-    size: S;
+    size?: S;
     on: Record<R, boolean>;
   }
 
@@ -17,16 +18,18 @@
   let explained = $state<string | null>(null);
 </script>
 
-<h3 class="pick-title">Difficulty</h3>
-<div class="pick">
-  {#each Object.entries(sizes) as [key, s] (key)}
-    {@const { label, detail } = s as { label: string; detail: string }}
-    <button type="button" class="btn" aria-pressed={size === key} onclick={() => (size = key as S)}>
-      <strong>{label}</strong>
-      <span>{detail}</span>
-    </button>
-  {/each}
-</div>
+{#if sizes}
+  <h3 class="pick-title">Difficulty</h3>
+  <div class="pick">
+    {#each Object.entries(sizes) as [key, s] (key)}
+      {@const { label, detail } = s as { label: string; detail: string }}
+      <button type="button" class="btn" aria-pressed={size === key} onclick={() => (size = key as S)}>
+        <strong>{label}</strong>
+        <span>{detail}</span>
+      </button>
+    {/each}
+  </div>
+{/if}
 
 <h3 class="pick-title">Rules</h3>
 <div class="rules">

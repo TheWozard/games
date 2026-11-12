@@ -86,26 +86,26 @@
       </div>
     </li>
     <li>
-      <a class="game" href="nonogram/">
+      <a class="game" href="shading/">
         <svg viewBox="0 0 48 48" aria-hidden="true">
-          <g font-size="8.5" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle" opacity="0.6">
-            <text x="23.4" y="14.5">2</text><text x="32.6" y="6.5">1</text><text x="32.6" y="14.5">1</text><text x="41.8" y="14.5">3</text>
-            <text x="12" y="27.4">3</text><text x="4.5" y="36.6">1</text><text x="12" y="36.6">1</text><text x="12" y="45.8">2</text>
-          </g>
-          <rect x="18.5" y="18.5" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-          <g fill="currentColor"><rect x="20.5" y="20.5" width="7.6" height="7.6" rx="1.6"/><rect x="28.7" y="20.5" width="7.6" height="7.6" rx="1.6"/><rect x="36.9" y="20.5" width="7.6" height="7.6" rx="1.6"/><rect x="20.5" y="28.7" width="7.6" height="7.6" rx="1.6"/><rect x="36.9" y="28.7" width="7.6" height="7.6" rx="1.6"/><rect x="28.7" y="36.9" width="7.6" height="7.6" rx="1.6"/><rect x="36.9" y="36.9" width="7.6" height="7.6" rx="1.6"/></g>
+          <rect x="3" y="3" width="42" height="42" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+          <path d="M13.5 4v40M24 4v40M34.5 4v40M4 13.5h40M4 24h40M4 34.5h40" stroke="currentColor" stroke-width="1" opacity="0.35"/>
+          <g fill="currentColor"><rect x="4" y="4" width="8.5" height="8.5" rx="1.5"/><rect x="25" y="14.5" width="8.5" height="8.5" rx="1.5"/><rect x="14.5" y="35.5" width="8.5" height="8.5" rx="1.5"/></g>
+          <path d="M39.75 25.15L40.87 28.01L43.93 28.19L41.56 30.14L42.34 33.11L39.75 31.45L37.16 33.11L37.94 30.14L35.57 28.19L38.63 28.01Z" fill="currentColor"/>
         </svg>
-        <div><strong>Nonogram</strong><span>Shade the cells so each row and column has the runs its numbers give.</span></div>
+        <div><strong>Shading</strong><span>Nonogram, Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
       </a>
-      <button class="info" type="button" popovertarget="how-nonogram" aria-label="How to play Nonogram">i</button>
-      <div class="how" id="how-nonogram" popover>
-        <h2>Nonogram</h2>
-        <p>The numbers beside each row and above each column are the lengths of its runs of shaded cells, in order. Runs are separated by at least one empty cell.</p>
-        <p>Tap a cell to shade it, and again to clear it. To mark a cell ✕, empty, turn the circle at the bottom right to ✕ and tap (or right-click with a mouse). Drag along a row or column to do the same to every cell you pass. A clue dims when its line matches, and is marked red when the line can’t. On a narrow screen a big grid slides sideways: drag on the numbers along the top.</p>
-        <p><strong>Colors</strong>: cells come in colors, and each number is in its run’s color. Tap the circle at the bottom right to switch colors. Runs of the same color need a gap between them; runs of different colors may touch.</p>
-        <p><strong>Mystery</strong>: some numbers are hidden as ?. The run is there, but its length isn’t given.</p>
-        <p>Every puzzle has one solution, and can be worked out a line at a time without guessing.</p>
-        <button class="btn" type="button" popovertarget="how-nonogram" popovertargetaction="hide">Close</button>
+      <button class="info" type="button" popovertarget="how-shading" aria-label="How to play Shading">i</button>
+      <div class="how" id="how-shading" popover>
+        <h2>Shading</h2>
+        <p>Five puzzles, picked under +. Each has one solution.</p>
+        <p><strong>Nonogram</strong>: the numbers beside each row and above each column are the lengths of its runs of shaded cells, in order, with at least one empty cell between runs. A clue dims when its line matches. Two optional rules: <strong>Colors</strong>, where each number is in its run’s color, and runs of different colors may touch; and <strong>Mystery</strong>, where some numbers are hidden as ?. On a narrow screen a big grid slides sideways: drag on the numbers along the top.</p>
+        <p><strong>Star Battle</strong>: place stars so every row, column and outlined region holds the same number (one, or two on Hard). Stars never touch, not even at a corner.</p>
+        <p><strong>Nurikabe</strong>: shade cells to make one connected sea. Each number is an island of exactly that many unshaded cells, with only that number in it. Islands don’t touch side by side, and the sea has no 2×2 block.</p>
+        <p><strong>Hitori</strong>: shade cells so no number repeats in a row or column. Shaded cells never touch side by side, and the unshaded ones stay connected.</p>
+        <p><strong>Light Up</strong>: place lamps. Each lights its row and column up to a wall. Every white cell must be lit, no lamp may light another, and a number on a wall is how many lamps sit beside it.</p>
+        <p>Tap a cell to place what the circle at the bottom right shows (a shade or color, a star or lamp, or a note: an X, a dot or a circle), and again to clear it. Tap the circle to switch. Drag along a row or column to do the same to every cell you pass. Marks that break a rule turn red.</p>
+        <button class="btn" type="button" popovertarget="how-shading" popovertargetaction="hide">Close</button>
       </div>
     </li>
     <li>
