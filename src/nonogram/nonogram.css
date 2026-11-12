@@ -36,7 +36,7 @@
 /* The row and column under a stroke. */
 .nonogram .focus { fill: var(--accent-soft); pointer-events: none; }
 
-/* Finished: the grid fades away and the picture is left. */
+/* Finished: the grid fades away and the shaded pattern is left. */
 .nonogram.done .grid { fill: var(--bg); }
 .nonogram.done :is(.blocks, .edge) { opacity: 0; transition: opacity 0.4s ease; }
 .nonogram.done .clue { opacity: 0.35; }

@@ -4,9 +4,9 @@
 //   the same color need a gap between them, while runs of different colors may touch;
 // - mystery: some clue numbers are hidden ("?"): the run is there, its length isn't given.
 //
-// Puzzles start from a random picture: noise smoothed into blobs, sometimes mirrored so it looks
-// drawn. A line solver (each line on its own, exactly, again and again) must work the whole
-// picture out; where it gets stuck, a cell it couldn't decide is flipped and it tries again. A
+// Puzzles start from a random pattern: noise smoothed into blobs, sometimes mirrored left to
+// right. A line solver (each line on its own, exactly, again and again) must work the whole
+// pattern out; where it gets stuck, a cell it couldn't decide is flipped and it tries again. A
 // puzzle the line solver finishes has one solution and never needs a guess. Difficulty is the
 // size and how much a first look at each line gives away (firstLook). With mystery on,
 // numbers are then hidden in random order for as long as the line solver still finishes.
@@ -247,11 +247,11 @@ function smooth(cells: number[], size: number, values: number, self: number): nu
 }
 
 /**
- * A random picture: a shape from noise, smoothed once into blobs, and, with colors, painted from a
+ * A random pattern: a shape from noise, smoothed once into blobs, and, with colors, painted from a
  * second field smoothed into broader patches, so each color gets areas of its own. Half are
- * mirrored left to right, which makes them look drawn.
+ * mirrored left to right.
  */
-export function picture(size: number, colors: number, random: Random = Math.random): number[] {
+export function pattern(size: number, colors: number, random: Random = Math.random): number[] {
   const noise = (values: number) => Array.from({ length: size * size }, () => Math.floor(random() * values));
   let shape = smooth(noise(2), size, 2, 2);
   let paint = colors > 1 ? smooth(smooth(noise(colors), size, colors, 1), size, colors, 1) : null;
@@ -263,7 +263,7 @@ export function picture(size: number, colors: number, random: Random = Math.rand
   return shape.map((on, x) => (on ? 1 + (paint ? paint[x] : 0) : 0));
 }
 
-/** Whether a picture makes a fair puzzle: neither sparse nor crowded, and no blank line. */
+/** Whether a pattern makes a fair puzzle: neither sparse nor crowded, and no blank line. */
 function fair(cells: number[], size: number): boolean {
   const filled = cells.filter((v) => v !== 0).length / cells.length;
   if (filled < 0.35 || filled > 0.65) return false;
@@ -296,7 +296,7 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
   const { size, colors: many, look } = DIFFICULTIES[difficulty];
   const colors = rules.colors ? many : 1;
   for (;;) {
-    let cells = picture(size, colors, random);
+    let cells = pattern(size, colors, random);
     // Flip cells the solver can't decide, a few at a time, until it can.
     for (let tries = 0; tries < 30; tries++) {
       if (!fair(cells, size)) break;

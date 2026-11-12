@@ -25,7 +25,7 @@ describe('reducer', () => {
     expect(reducer(g, { type: 'paint', indices: [1], value: 2 })).toBe(g); // no second color
   });
 
-  it('is done when the picture is shaded, crosses or not, and then stays', () => {
+  it('is done when the solution is shaded, crosses or not, and then stays', () => {
     for (const rules of [NO_RULES, { colors: true, mystery: true }]) {
       const p = generate('medium', rules);
       let g: Game = gameOf('medium', rules, p);

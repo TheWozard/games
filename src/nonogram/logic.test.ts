@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cluesOf, DIFFICULTIES, firstLook, fits, generate, isSolved, NO_RULES, picture, runsOf, solve, solveLine,
+  cluesOf, DIFFICULTIES, firstLook, fits, generate, isSolved, NO_RULES, pattern, runsOf, solve, solveLine,
   type Difficulty, type Rules, type Run,
 } from './logic';
 
@@ -71,7 +71,7 @@ describe('solveLine', () => {
 });
 
 describe('solve', () => {
-  it('solves a plain picture, and gives up on an ambiguous one', () => {
+  it('solves a plain pattern, and gives up on an ambiguous one', () => {
     const cells = [1, 1, 0, 0, 1, 0, 1, 1, 1];
     const p = { size: 3, colors: 1, ...cluesOf(cells, 3) };
     expect(solve(p)).toEqual(cells);
@@ -123,8 +123,8 @@ describe('generate', () => {
     expect([...used].sort()).toEqual([0, 1, 2, 3]);
   });
 
-  it('draws pictures in range', () => {
-    const cells = picture(10, 3, () => 0.3);
+  it('makes patterns in range', () => {
+    const cells = pattern(10, 3, () => 0.3);
     expect(cells).toHaveLength(100);
     expect(cells.every((v) => v >= 0 && v <= 3)).toBe(true);
   });
