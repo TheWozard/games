@@ -1,5 +1,6 @@
 # Builds the site and publishes dist/ to the gh-pages branch, which GitHub Pages serves.
-# Pull requests get the same checks without deploying.
+# Pull requests get the same checks without deploying. Only the publish job can write to the
+# repository, and it never runs for a pull request.
 name: Build and deploy
 
 on:
@@ -12,11 +13,12 @@ concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # push to gh-pages
     steps:
       - uses: actions/checkout@v5
 
@@ -29,8 +31,27 @@ jobs:
       - run: npm test
       - run: npm run build # typechecks first
 
-      - name: Publish to gh-pages
+      - uses: actions/upload-artifact@v4
         if: github.event_name != 'pull_request'
+        with:
+          name: site
+          path: dist/
+          include-hidden-files: true # keep .nojekyll
+          retention-days: 1
+
+  publish:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push to gh-pages
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: dist
+
+      - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

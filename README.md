@@ -46,13 +46,14 @@ The service worker only exists in the production build, so test offline behavior
 - `src/index.html`: the launcher page.
 - `src/<game>/`: one folder per game, each with its own `index.html` entry.
 - `src/shared/`: what every page loads: [base.css](src/shared/base.css), the service worker
-  registration ([app.ts](src/shared/app.ts)), a safe `localStorage` wrapper ([storage.ts](src/shared/storage.ts))
+  registration ([app.ts](src/shared/app.ts)), a safe `localStorage` wrapper ([storage.ts](src/shared/storage.ts)),
+  [mount.ts](src/shared/mount.ts), which starts each game page (and a new game if its save can't be opened),
   a modal [Dialog.svelte](src/shared/Dialog.svelte), and [GameScreen.svelte](src/shared/GameScreen.svelte),
   the frame every game screen shares (header, Next button, New dialog, Ctrl/Cmd+Z undo).
-- Digit-grid games (Classic and Killer Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
+- Digit-grid games (Classic, Killer and Jigsaw Sudoku) share their moves ([grid.ts](src/shared/grid.ts): select, place,
   pencil marks, undo, win) and their whole screen ([GridPlay.svelte](src/shared/GridPlay.svelte)).
   Each one only supplies a puzzle generator and a `layout` (size, which cells can't repeat a
-  digit, thick lines, dashed outlines, corner labels).
+  digit, thick lines, zone colors, corner labels).
 - `public/`: copied into the build unchanged (icons, manifest, `.nojekyll`).
 
 ### Deploying
@@ -60,7 +61,7 @@ The service worker only exists in the production build, so test offline behavior
 Pushing to `main` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml): it installs, tests,
 typechecks and builds, then publishes `dist/` to the `gh-pages` branch, which Pages serves
 (Settings → Pages → *Deploy from a branch* → `gh-pages` / root). Pull requests run the same checks
-without deploying. Don't edit `gh-pages` by hand; each deploy replaces it.
+without deploying, and with read-only access: only the publish job can write to the repository. Don't edit `gh-pages` by hand; each deploy replaces it.
 
 The service worker is generated at build time by [vite-plugin-pwa](https://vite-pwa-org.netlify.app)
 (Workbox) and precaches every built file, so there's no asset list to maintain. When a deploy lands,

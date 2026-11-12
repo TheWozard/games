@@ -35,7 +35,7 @@ src/
     cards.ts, cards.css, CardFace.svelte   playing cards for Solitaire (Klondike and FreeCell)
   <game>/               one folder per game, picked up automatically as a build entry
     index.html          page shell: head + <body class="game"><div id="root">
-    main.ts             imports ../shared/app, the game's CSS, mounts the component
+    main.ts             imports ../shared/app, the game's CSS, mounts the component with mountGame
     logic.ts            pure rules: generator, solver, checks (no DOM, no Svelte)
     game.ts             state shape, isGame() validator, pure reducer
     <Game>.svelte       the screen
@@ -64,7 +64,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   title, current setting, undo, New options (or a `picker` snippet for several settings) and
   Next; the board and controls are its children, header extras a `status` snippet.
 - **Saved games:** key `games.<name>.v1`. `isGame()` must reject anything that doesn't fit the
-  current shape, so a stale save falls back to a new game instead of crashing. If you change the
+  current shape, so a stale save falls back to a new game instead of crashing. As a backstop,
+  `mountGame` (`src/shared/mount.ts`) catches a save that passes the check but breaks the first
+  render: it drops the saves the page loaded and reloads once into a new game, with a toast. If you change the
   saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
 - **Digit-grid games** (Sudoku-like) don't need their own component: use `GridPlay` with a
   `layout(game)` that gives size, peers (cells that can't share a digit), thick walls, zone colors
@@ -227,5 +229,6 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
 ## Deploying
 
 Pushing to `main` runs the workflow: `npm ci`, tests, build, then publishes `dist/` to `gh-pages`
-(force-orphaned, one commit). Pages serves that branch. Don't edit `gh-pages` by hand. Commit
+(force-orphaned, one commit). Pages serves that branch. Building runs with read-only access; only
+the separate `publish` job, which pull requests skip, can write. Don't edit `gh-pages` by hand. Commit
 messages follow Conventional Commits (`feat:`, `fix:`, `refactor:`...).
