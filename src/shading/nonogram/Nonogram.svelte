@@ -83,8 +83,9 @@
   // u is pixels per cell: the board fits its space, but cells never get smaller than MIN_CELL
   // (unless the height can't take it). A board that's then wider than its space shows what fits
   // and pans sideways: the grid and its column clues slide under the row clues, which stay put.
-  // A drag that starts on a cell paints, so a pan starts anywhere else: the column clues, the
-  // margins. A sideways wheel pans too.
+  // A drag that starts on a cell paints, so a pan starts anywhere else under the header: the
+  // column clues, the margins, the room above and below the board, down to the bottom of the page.
+  // A sideways wheel pans too.
   let areaW = $state(360);
   let areaH = $state(560);
   const u = $derived(Math.min(areaH / viewH, Math.max(areaW / viewW, MIN_CELL)));
@@ -128,6 +129,7 @@
 
   let stroke = $state.raw<Stroke | null>(null);
   let svg = $state<SVGSVGElement>();
+  let area = $state<HTMLDivElement>();
 
   const crossValue = (from: number) => (from === CROSS ? EMPTY : CROSS);
   const tapValue = (from: number) => (brush === CROSS ? crossValue(from) : from === brush || from === CROSS ? EMPTY : brush);
@@ -232,8 +234,8 @@
   const focus = $derived(stroke ? { r: Math.floor(stroke.end / n), c: stroke.end % n } : null);
 
   $effect(() => {
-    if (!svg) return;
-    return attachPan(svg, {
+    if (!area) return;
+    return attachPan(area.closest('main') ?? area, {
       max: () => maxScroll,
       get: () => sx * u,
       set: (x) => (scrollX = x),
@@ -258,7 +260,7 @@
     {#key pickerOpens}<VariantPicker games={variants.games} extras={variants.extras} bind:value={pick} />{/key}
   {/snippet}
 
-  <div class="board-area nonogram-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>
+  <div class="board-area nonogram-area" bind:this={area} bind:clientWidth={areaW} bind:clientHeight={areaH}>
     <svg
       bind:this={svg}
       class={['nonogram', { done: game.done, pannable: maxScroll > 0, panning }]}
