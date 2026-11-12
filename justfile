@@ -19,6 +19,6 @@ icons:
     inkscape public/icons/icon.svg --export-type=png -w 192 -h 192 -o public/icons/icon-192.png
     inkscape public/icons/icon.svg --export-type=png -w 180 -h 180 -o public/icons/apple-touch-icon.png
 
-# Make the Sliding Blocks puzzles (src/blocks/puzzles.ts); about a quarter of an hour
+# Make the Sliding Blocks puzzles (src/blocks/puzzles.ts); about a quarter of an hour. `just blocks --keep` only trims the list to KEEP
 blocks *variants:
     node --experimental-strip-types scripts/blocks.ts {{variants}}

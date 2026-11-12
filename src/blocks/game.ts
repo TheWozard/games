@@ -1,7 +1,7 @@
-// Sliding Blocks game state and moves, as a pure reducer. Puzzles come from the pre-made list in
-// puzzles.ts, per variant and difficulty, played in order: each remembers which one is next and
-// wraps round to the first after the last. Any puzzle can also be picked by number, and play
-// carries on in order from there.
+// Sliding Blocks game state and moves, as a pure reducer. Each variant's puzzles are one list of
+// levels, numbered from 1: its Easy puzzles from puzzles.ts, then Medium, then Hard. They're
+// played in order: each variant remembers which level is next, and wraps round to the first after
+// the last. Any level can also be picked, and play carries on in order from there.
 import {
   decode, isDifficulty, isLayout, isSolved, isVariant, LEVELS, range, shape, slide, VARIANTS,
   type Block, type Difficulty, type Variant,
@@ -11,13 +11,33 @@ import { PUZZLES } from './puzzles';
 export const STORAGE_KEY = 'games.blocks.v1';
 const HISTORY_LIMIT = 500;
 
-/** Per variant and difficulty, the puzzle to play next. */
-export type Progress = Record<Variant, Record<Difficulty, number>>;
+const VARIANT_KEYS = Object.keys(VARIANTS) as Variant[];
+const LEVEL_KEYS = Object.keys(LEVELS) as Difficulty[];
+
+export interface Level {
+  difficulty: Difficulty;
+  fewest: number; // the fewest moves that finish it
+  code: string; // its blocks (encode in logic.ts)
+}
+
+/** Per variant, every level in order: Easy, then Medium, then Hard. */
+export const LEVEL_LIST: Record<Variant, Level[]> = Object.fromEntries(VARIANT_KEYS.map((v) => [
+  v,
+  LEVEL_KEYS.flatMap((difficulty) => PUZZLES[v][difficulty].map(([fewest, code]) => ({ difficulty, fewest, code }))),
+])) as Record<Variant, Level[]>;
+
+/** Per variant and difficulty, the index of its first level. */
+const FIRST_OF = Object.fromEntries(VARIANT_KEYS.map((v) => [
+  v,
+  Object.fromEntries(LEVEL_KEYS.map((d) => [d, LEVEL_LIST[v].findIndex((l) => l.difficulty === d)])),
+])) as Record<Variant, Record<Difficulty, number>>;
+
+/** Per variant, the level to play next (an index into LEVEL_LIST). */
+export type Progress = Record<Variant, number>;
 
 export interface Game {
   variant: Variant;
-  difficulty: Difficulty;
-  number: number; // which puzzle of the list (from 0)
+  level: number; // which of LEVEL_LIST (from 0)
   blocks: Block[];
   fewest: number; // the fewest moves that finish it
   history: Block[][]; // layouts before each move, for undo
@@ -30,55 +50,75 @@ export type Action =
   | { type: 'slide'; index: number; to: number }
   | { type: 'undo' };
 
-const VARIANT_KEYS = Object.keys(VARIANTS) as Variant[];
-const LEVEL_KEYS = Object.keys(LEVELS) as Difficulty[];
+export const FIRST: Progress = Object.fromEntries(VARIANT_KEYS.map((v) => [v, 0])) as Progress;
 
-export const FIRST: Progress = Object.fromEntries(
-  VARIANT_KEYS.map((v) => [v, Object.fromEntries(LEVEL_KEYS.map((d) => [d, 0]))]),
-) as Progress;
+export const difficultyOf = (g: Pick<Game, 'variant' | 'level'>): Difficulty => LEVEL_LIST[g.variant][g.level].difficulty;
 
-/**
- * A puzzle of a variant and difficulty: the next one, or the one numbered `pick`. That list moves
- * on to the puzzle after it.
- */
-export function newGame(variant: Variant, difficulty: Difficulty, upNext: Progress = FIRST, pick = upNext[variant][difficulty]): Game {
-  const list = PUZZLES[variant][difficulty];
-  const number = ((pick % list.length) + list.length) % list.length;
-  const [fewest, code] = list[number];
+/** A level of a variant: the next one, or the one numbered `pick`. That variant moves on to the level after it. */
+export function newGame(variant: Variant, upNext: Progress = FIRST, pick = upNext[variant]): Game {
+  const list = LEVEL_LIST[variant];
+  const level = ((pick % list.length) + list.length) % list.length;
+  const { fewest, code } = list[level];
   return {
     variant,
-    difficulty,
-    number,
+    level,
     blocks: decode(code),
     fewest,
     history: [],
     moves: 0,
     done: false,
-    upNext: { ...upNext, [variant]: { ...upNext[variant], [difficulty]: (number + 1) % list.length } },
+    upNext: { ...upNext, [variant]: (level + 1) % list.length },
   };
 }
 
 const isProgress = (value: unknown): value is Progress =>
   typeof value === 'object' && value !== null &&
-  VARIANT_KEYS.every((v) => {
-    const p = (value as Record<string, unknown>)[v] as Record<string, unknown> | undefined;
-    return typeof p === 'object' && p !== null && LEVEL_KEYS.every((d) => Number.isInteger(p[d]));
-  });
+  VARIANT_KEYS.every((v) => Number.isInteger((value as Record<string, unknown>)[v]));
+
+/** What's next per difficulty, as saves had it before each variant was one list. */
+type OldProgress = Record<Difficulty, number>;
+const isOldProgress = (value: unknown): value is OldProgress =>
+  typeof value === 'object' && value !== null && LEVEL_KEYS.every((d) => Number.isInteger((value as Record<string, unknown>)[d]));
 
 /**
- * Validates a save. Saves from before the variants were Classic games, with one count of what's
- * next per difficulty: they carry on as Classic, keeping those counts.
+ * The level after the furthest one played in any difficulty. Lists were longer then, so a count
+ * past a difficulty's end now means the start of the next.
+ */
+function fromOld(variant: Variant, old: OldProgress): number {
+  let next = 0;
+  for (const d of LEVEL_KEYS) {
+    const count = PUZZLES[variant][d].length;
+    if (old[d] > 0) next = Math.max(next, FIRST_OF[variant][d] + Math.min(old[d], count));
+  }
+  return next % LEVEL_LIST[variant].length;
+}
+
+/**
+ * Validates a save, carrying older ones on:
+ * - from before the variants: a Classic game, with one count of what's next per difficulty;
+ * - from before each variant was one list (a difficulty and a number in it, and what's next per
+ *   difficulty): the same puzzle, as the level it is now, and the level after the furthest played.
  */
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as (Partial<Game> & { difficulty?: unknown; number?: unknown; upNext?: unknown }) | null;
   if (typeof g !== 'object' || g === null) return false;
-  if (g.variant === undefined && typeof g.upNext === 'object' && g.upNext !== null && LEVEL_KEYS.every((d) => Number.isInteger((g.upNext as Record<string, unknown>)[d]))) {
+  if (g.variant === undefined && isOldProgress(g.upNext)) {
     g.variant = 'classic';
-    g.upNext = { ...FIRST, classic: g.upNext as unknown as Record<Difficulty, number> };
+    const classic = g.upNext;
+    (g as { upNext: unknown }).upNext = Object.fromEntries(VARIANT_KEYS.map((v) => [v, v === 'classic' ? classic : { easy: 0, medium: 0, hard: 0 }]));
+  }
+  if (g.level === undefined && isVariant(g.variant) && isDifficulty(g.difficulty) && Number.isInteger(g.number)) {
+    const up = g.upNext as Record<string, unknown> | undefined;
+    if (!up || !VARIANT_KEYS.every((v) => isOldProgress(up[v]))) return false;
+    g.upNext = Object.fromEntries(VARIANT_KEYS.map((v) => [v, fromOld(v, up[v] as OldProgress)])) as Progress;
+    g.level = FIRST_OF[g.variant][g.difficulty] + ((g.number as number) % PUZZLES[g.variant][g.difficulty].length);
+    delete g.difficulty;
+    delete g.number;
   }
   return (
-    isVariant(g.variant) && isDifficulty(g.difficulty) &&
-    Number.isInteger(g.number) && typeof g.fewest === 'number' && typeof g.moves === 'number' &&
+    isVariant(g.variant) &&
+    Number.isInteger(g.level) && g.level! >= 0 && g.level! < LEVEL_LIST[g.variant].length &&
+    typeof g.fewest === 'number' && typeof g.moves === 'number' &&
     Array.isArray(g.blocks) && isLayout(g.blocks, shape(g.variant)) &&
     Array.isArray(g.history) && g.history.every((b) => Array.isArray(b) && b.length === g.blocks!.length) &&
     isProgress(g.upNext)

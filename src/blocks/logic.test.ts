@@ -104,7 +104,7 @@ describe('shipped puzzles', () => {
         const s = shape(variant);
         const list = PUZZLES[variant][difficulty];
         const [lo, hi] = DIFFICULTIES[variant][difficulty].moves;
-        expect(list.length).toBeGreaterThanOrEqual(50);
+        expect(list.length).toBe({ easy: 10, medium: 30, hard: 60 }[difficulty]);
         expect(new Set(list.map(([, code]) => code)).size).toBe(list.length);
         for (const [moves, code] of list) {
           const blocks = decode(code);

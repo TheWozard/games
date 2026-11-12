@@ -13,7 +13,7 @@ just test          # Vitest unit tests (npm test)
 just build         # svelte-check (fails on warnings) + production build into dist/
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
-just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour)
+just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour; --keep only trims it)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -83,8 +83,10 @@ only forwards old links), `blocks` (Sliding Blocks).
   generator keeps only puzzles that need the difficulty's own tier.
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
   by `scripts/blocks.ts` (`just blocks`, one thread per variant, about a quarter of an hour) into
-  `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs and keeps the most
-  interesting (`interest` in `src/blocks/logic.ts`), and the tests re-check every stored puzzle.
+  `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs (`KEEP`: 10 Easy,
+  30 Medium, 60 Hard) and keeps the most interesting (`interest` in `src/blocks/logic.ts`), and the
+  tests re-check every stored puzzle. `just blocks --keep` re-scores the list and cuts it to
+  `KEEP` without making new ones (about a minute).
   A list also works as a fallback: Klondike tries 8 random deals, then takes one of
   `src/solitaire/klondike/deals.ts` (winnable at both draws, suits renamed one of eight
   color-keeping ways), since a deal the solver can't win costs its whole budget.

@@ -2,11 +2,10 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import { PALETTE } from '../shared/palette';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { isDifficulty, isOut, isVariant, LEVELS, range, shape, VARIANTS, type Difficulty, type Variant } from './logic';
-  import { PUZZLES } from './puzzles';
+  import { difficultyOf, isGame, LEVEL_LIST, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { isOut, isVariant, LEVELS, range, shape, VARIANTS, type Difficulty, type Variant } from './logic';
 
-  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('classic', 'easy'));
+  let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('classic'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
@@ -14,12 +13,12 @@
   const s = $derived(shape(game.variant));
   const size = $derived(s.size);
 
-  // The New Game picks: a variant (tabs), a difficulty, and which of its puzzles (the next one
-  // unless another is picked). Play starts them.
-  let choice = $state<{ variant: Variant; difficulty: Difficulty; number: number }>({ variant: 'classic', difficulty: 'easy', number: 0 });
+  // The New Game picks: a variant (tabs), and which of its levels (the next one unless another is
+  // picked). Play starts them.
+  let choice = $state<{ variant: Variant; level: number }>({ variant: 'classic', level: 0 });
 
-  function pick(variant: Variant, difficulty: Difficulty) {
-    choice = { variant, difficulty, number: game.upNext[variant][difficulty] % PUZZLES[variant][difficulty].length };
+  function pick(variant: Variant) {
+    choice = { variant, level: game.upNext[variant] % LEVEL_LIST[variant].length };
   }
 
   // Counts puzzles started here: the board's blocks are drawn afresh for each one (see the {#key}
@@ -33,9 +32,7 @@
   }
 
   function start(value: string) {
-    if (value === 'start' && isVariant(choice.variant) && isDifficulty(choice.difficulty)) {
-      begin(newGame(choice.variant, choice.difficulty, game.upNext, choice.number));
-    }
+    if (value === 'start' && isVariant(choice.variant)) begin(newGame(choice.variant, game.upNext, choice.level));
   }
 
   // ---- Dragging ----
@@ -87,49 +84,45 @@
   /** Each other block's tint of blue (0–4): steps of 3 through five, so blocks listed together differ. */
   const tint = (i: number) => (i * 3) % 5;
 
-  /** The New Game difficulties for a variant, with the range of moves its puzzles take. */
-  const options = (variant: Variant) => (Object.keys(LEVELS) as Difficulty[]).map((value) => {
-    const fewest = PUZZLES[variant][value].map(([n]) => n);
-    return { value, label: LEVELS[value].label, detail: `${Math.min(...fewest)}–${Math.max(...fewest)} moves` };
+  /** A variant's levels in sections, one per difficulty, each with the range of moves its levels take. */
+  const sections = (variant: Variant) => (Object.keys(LEVELS) as Difficulty[]).map((difficulty) => {
+    const levels = LEVEL_LIST[variant].flatMap((l, level) => (l.difficulty === difficulty ? [level] : []));
+    const fewest = levels.map((level) => LEVEL_LIST[variant][level].fewest);
+    const [lo, hi] = [Math.min(...fewest), Math.max(...fewest)];
+    return { difficulty, label: LEVELS[difficulty].label, moves: lo === hi ? `${lo} moves` : `${lo}–${hi} moves`, levels };
   });
 </script>
 
 <GameScreen
   title="Sliding Blocks"
-  subtitle="{VARIANTS[game.variant].label} · {LEVELS[game.difficulty].label} · No. {game.number + 1}"
+  subtitle="{VARIANTS[game.variant].label} · {LEVELS[difficultyOf(game)].label} · No. {game.level + 1}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => pick(game.variant, game.difficulty)}
+  onopennew={() => pick(game.variant)}
   onstart={start}
   finished={game.done}
-  onnext={() => begin(newGame(game.variant, game.difficulty, game.upNext))}
+  onnext={() => begin(newGame(game.variant, game.upNext))}
 >
   {#snippet picker()}
     <div class="pick-tabs" role="tablist" aria-label="Variant">
       {#each Object.entries(VARIANTS) as [key, v] (key)}
-        <button type="button" role="tab" aria-selected={choice.variant === key} onclick={() => pick(key as Variant, choice.difficulty)}>{v.label}</button>
+        <button type="button" role="tab" aria-selected={choice.variant === key} onclick={() => pick(key as Variant)}>{v.label}</button>
       {/each}
     </div>
-    <h3 class="pick-title">Difficulty</h3>
-    <div class="pick">
-      {#each options(choice.variant) as { value, label, detail } (value)}
-        <button type="button" class="btn" aria-pressed={choice.difficulty === value} onclick={() => pick(choice.variant, value)}>
-          <strong>{label}</strong><span>{detail}</span>
-        </button>
-      {/each}
-    </div>
-    <h3 class="pick-title">Puzzle</h3>
-    <div class="blocks-levels">
-      {#each PUZZLES[choice.variant][choice.difficulty] as _, n (n)}
-        <button
-          type="button"
-          class="btn"
-          aria-pressed={choice.number === n}
-          aria-label="No. {n + 1}"
-          onclick={() => (choice = { ...choice, number: n })}
-        >{n + 1}</button>
-      {/each}
-    </div>
+    {#each sections(choice.variant) as { difficulty, label, moves, levels } (difficulty)}
+      <h3 class="pick-title blocks-section">{label} <span>{moves}</span></h3>
+      <div class="blocks-levels">
+        {#each levels as level (level)}
+          <button
+            type="button"
+            class="btn"
+            aria-pressed={choice.level === level}
+            aria-label="No. {level + 1}, {label}"
+            onclick={() => (choice = { ...choice, level })}
+          >{level + 1}</button>
+        {/each}
+      </div>
+    {/each}
   {/snippet}
   {#snippet status()}
     <!-- Just the fewest moves it can be done in (a flag: the mark to aim for), no count of the player's own. -->

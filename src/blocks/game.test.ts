@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FIRST, isGame, newGame, reducer, type Game } from './game';
+import { difficultyOf, FIRST, isGame, LEVEL_LIST, newGame, reducer, type Game } from './game';
 import { explore, isOut, positionKey, range, shape } from './logic';
 import { PUZZLES } from './puzzles';
 
@@ -18,35 +18,49 @@ function solve(g: Game): Game {
   return g;
 }
 
-describe('puzzle order', () => {
-  it('plays each variant and difficulty’s puzzles in order, wrapping round, each remembered separately', () => {
-    let g = newGame('classic', 'medium');
-    expect(g.number).toBe(0);
-    expect(g.upNext.classic.medium).toBe(1);
-    g = newGame('classic', 'medium', g.upNext);
-    expect(g.number).toBe(1);
-    g = newGame('big', 'medium', g.upNext);
-    expect(g.number).toBe(0);
-    g = newGame('classic', 'medium', g.upNext);
-    expect(g.number).toBe(2);
-    const last = PUZZLES.pillars.easy.length - 1;
-    g = newGame('pillars', 'easy', { ...FIRST, pillars: { ...FIRST.pillars, easy: last } });
-    expect(g.number).toBe(last);
-    expect(g.upNext.pillars.easy).toBe(0);
+describe('levels', () => {
+  it('list each variant’s Easy, then Medium, then Hard puzzles', () => {
+    for (const variant of ['classic', 'pillars', 'big', 'twoKeys'] as const) {
+      const list = LEVEL_LIST[variant];
+      expect(list.map((l) => l.code)).toEqual((['easy', 'medium', 'hard'] as const).flatMap((d) => PUZZLES[variant][d].map(([, code]) => code)));
+      expect(list.length).toBe(100);
+    }
   });
 
-  it('starts a picked puzzle and carries on in order after it', () => {
-    let g = newGame('twoKeys', 'hard', undefined, 41);
-    expect(g.number).toBe(41);
-    expect(g.upNext.twoKeys.hard).toBe(42);
-    g = newGame('twoKeys', 'hard', g.upNext);
-    expect(g.number).toBe(42);
+  it('play in order through the difficulties, wrapping round, each variant remembered separately', () => {
+    let g = newGame('classic');
+    expect(g.level).toBe(0);
+    expect(g.upNext.classic).toBe(1);
+    g = newGame('classic', g.upNext);
+    expect(g.level).toBe(1);
+    g = newGame('big', g.upNext);
+    expect(g.level).toBe(0);
+    g = newGame('classic', g.upNext);
+    expect(g.level).toBe(2);
+    const lastEasy = PUZZLES.classic.easy.length - 1;
+    g = newGame('classic', FIRST, lastEasy);
+    expect(difficultyOf(g)).toBe('easy');
+    g = newGame('classic', g.upNext);
+    expect(g.level).toBe(lastEasy + 1);
+    expect(difficultyOf(g)).toBe('medium');
+    g = newGame('pillars', FIRST, LEVEL_LIST.pillars.length - 1);
+    expect(difficultyOf(g)).toBe('hard');
+    expect(g.upNext.pillars).toBe(0);
+  });
+
+  it('start a picked level and carry on in order after it', () => {
+    let g = newGame('twoKeys', undefined, 41);
+    expect(g.level).toBe(41);
+    expect(g.upNext.twoKeys).toBe(42);
+    g = newGame('twoKeys', g.upNext);
+    expect(g.level).toBe(42);
+    expect(g.blocks).toEqual(newGame('twoKeys', FIRST, 42).blocks);
   });
 });
 
 describe('reducer', () => {
   it('slides, refuses blocked or empty slides, and undoes', () => {
-    let g = newGame('classic', 'easy');
+    let g = newGame('classic');
     const s = shape('classic');
     const i = g.blocks.findIndex((_, k) => range(g.blocks, k, s)[0] !== range(g.blocks, k, s)[1]);
     const [lo, hi] = range(g.blocks, i, s);
@@ -65,7 +79,7 @@ describe('reducer', () => {
   });
 
   it('never moves a pillar', () => {
-    const g = newGame('pillars', 'easy');
+    const g = newGame('pillars');
     const p = g.blocks.findIndex((b) => b.fixed);
     expect(p).toBeGreaterThan(0);
     expect(reducer(g, { type: 'slide', index: p, to: (g.blocks[p].c + 1) % 6 })).toBe(g);
@@ -73,11 +87,12 @@ describe('reducer', () => {
 
   for (const variant of ['classic', 'pillars', 'big', 'twoKeys'] as const) {
     it(`finishes ${variant} in the fewest moves when each move gets closer, and round-trips through JSON`, () => {
-      const g = solve(newGame(variant, 'hard'));
+      const g = solve(newGame(variant, FIRST, LEVEL_LIST[variant].length - 1));
       expect(g.moves).toBe(g.fewest);
       expect(reducer(g, { type: 'undo' })).toBe(g);
       expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
-      expect(isGame({ ...g, upNext: { ...g.upNext, big: { easy: 0 } } })).toBe(false);
+      expect(isGame({ ...g, upNext: { ...g.upNext, big: 'x' } })).toBe(false);
+      expect(isGame({ ...g, level: 100 })).toBe(false);
       expect(isGame({ ...g, blocks: [] })).toBe(false);
       expect(isGame({ ...g, variant: 'huge' })).toBe(false);
     }, 60000);
@@ -85,7 +100,7 @@ describe('reducer', () => {
 
   it('needs both key blocks out in Two Keys', () => {
     // Play the fewest moves, and check the game isn't done when only one key block is out.
-    let g = newGame('twoKeys', 'easy');
+    let g = newGame('twoKeys');
     const s = shape('twoKeys');
     const found = explore(g.blocks, s, Infinity)!;
     const moves = new Map(found.keys.map((k, id) => [k, found.moves[id]]));
@@ -103,13 +118,38 @@ describe('reducer', () => {
 });
 
 describe('saves', () => {
+  /** A save as it was before each variant was one list: a difficulty and a number in it. */
+  const oldSave = (variant: 'classic' | 'big', difficulty: 'easy' | 'medium' | 'hard', number: number) => {
+    const { level: _, upNext: __, ...rest } = newGame(variant, FIRST, LEVEL_LIST[variant].findIndex((l) => l.difficulty === difficulty) + number);
+    return { ...rest, difficulty, number };
+  };
+
+  it('carries a save from before the lists on: the same puzzle, and the level after the furthest played', () => {
+    const empty = { easy: 0, medium: 0, hard: 0 };
+    const save = JSON.parse(JSON.stringify({
+      ...oldSave('big', 'medium', 5),
+      upNext: { classic: { easy: 3, medium: 0, hard: 0 }, pillars: empty, big: { easy: 4, medium: 6, hard: 0 }, twoKeys: { easy: 95, medium: 0, hard: 0 } },
+    }));
+    const blocks = save.blocks;
+    expect(isGame(save)).toBe(true);
+    expect(save.level).toBe(PUZZLES.big.easy.length + 5);
+    expect(LEVEL_LIST.big[save.level].code).toBe(PUZZLES.big.medium[5][1]);
+    expect(save.blocks).toEqual(blocks);
+    expect(save.difficulty).toBeUndefined();
+    expect(save.upNext).toEqual({
+      classic: 3,
+      pillars: 0,
+      big: PUZZLES.big.easy.length + 6,
+      twoKeys: PUZZLES.twoKeys.easy.length, // past the end of a longer Easy list: on to Medium
+    });
+  });
+
   it('carries a save from before the variants on as Classic, keeping what’s next', () => {
-    const { variant: _, upNext, ...rest } = newGame('classic', 'medium', undefined, 5);
-    const old = JSON.parse(JSON.stringify({ ...rest, upNext: { easy: 3, medium: 6, hard: 9 } }));
+    const old = JSON.parse(JSON.stringify({ ...oldSave('classic', 'easy', 2), variant: undefined, upNext: { easy: 3, medium: 6, hard: 0 } }));
+    delete old.variant;
     expect(isGame(old)).toBe(true);
     expect(old.variant).toBe('classic');
-    expect(old.upNext.classic).toEqual({ easy: 3, medium: 6, hard: 9 });
-    expect(old.upNext.big).toEqual(FIRST.big);
-    void upNext;
+    expect(old.level).toBe(2);
+    expect(old.upNext).toEqual({ ...FIRST, classic: PUZZLES.classic.easy.length + 6 });
   });
 });
