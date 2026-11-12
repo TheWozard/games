@@ -1,6 +1,6 @@
 // Loop game state and moves, as a pure reducer. Each edge is empty, a line, or a cross (the
 // player's note that the loop doesn't go there). Tapping a side cycles it: empty, line, cross, empty.
-import { DARK, DIFFICULTIES, edgeCount, generate, isDifficulty, isRules, isSolved, LIGHT, NO_RULES, type Difficulty, type Grid, type Rules, type Square } from './logic';
+import { DARK, DIFFICULTIES, edgeCount, generate, isDifficulty, isRules, isSolved, LIGHT, NO_RULES, type Difficulty, type Grid, type Puzzle, type Rules, type Square } from './logic';
 
 export const STORAGE_KEY = 'games.loop.v1';
 const HISTORY_LIMIT = 300;
@@ -28,9 +28,12 @@ export type Action =
   | { type: 'cycle'; edge: number }
   | { type: 'undo' };
 
-export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
+export const newGame = (difficulty: Difficulty, rules: Rules = NO_RULES): Game =>
+  gameOf(difficulty, rules, generate(difficulty, rules));
+
+/** A new game of a puzzle already made (e.g. in the background, background.ts). */
+export function gameOf(difficulty: Difficulty, rules: Rules, { clues, squares, rings }: Puzzle): Game {
   const { rows, cols } = DIFFICULTIES[difficulty];
-  const { clues, squares, rings } = generate(difficulty, rules);
   return { difficulty, rules: { ...rules }, rows, cols, clues, squares, rings, marks: new Array<Mark>(edgeCount({ rows, cols })).fill(EMPTY), history: [], done: false };
 }
 

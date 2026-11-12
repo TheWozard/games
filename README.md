@@ -7,7 +7,7 @@ TypeScript, built with [Vite](https://vite.dev) into small static files.
 Games:
 - [Sudoku](src/sudoku/): Classic, Killer (colored cages that add up to their sums, almost no givens) or Jigsaw (irregular regions in place of the boxes), picked when you start a game; generated puzzles with a unique solution, rated by the techniques a Classic puzzle needs (Easy: singles; Medium: pointing and pairs; Hard: triples, X-Wing, XY-Wing, Swordfish), pencil marks, undo, and progress saved on the device.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
-- [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop.
+- [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop (Hard, the slowest to make, is made in the background).
 - [Bridges](src/bridges/): connect numbered islands with up to two bridges each way, no crossings, all one network, with optional colored islands, blocks and diagonal bridges; every puzzle has a unique solution.
 - [Flow](src/flow/): join matching dots with paths that fill the board, with optional walls, holes, wrapping edges and bridges; every puzzle has exactly one solution, checked by a solver (the slowest setting, Hard with only wrapping, is made in the background).
 - [Untangle](src/untangle/): drag dots until no lines cross (a dot on a line counts); 10–36 dots in three styles, each built from an untangled layout so every puzzle is solvable.

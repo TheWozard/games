@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeBetween, edgeCount, edgeEnds, generate, insideCells, isSolved, LIGHT, NO_RULES, solve, type Difficulty, type Rules } from './logic';
+import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeBetween, edgeCount, edgeEnds, generate, insideCells, isSolved, LIGHT, NO_RULES, solve, wait, type Difficulty, type Rules } from './logic';
+
+describe('wait', () => {
+  it('marks Hard as slow to make, the rest quick', () => {
+    expect(wait('hard')).toBe('slow');
+    expect(wait('medium')).toBe('quick');
+    expect(wait('easy')).toBe('quick');
+  });
+});
 
 const RULE_SETS: Rules[] = [NO_RULES, { squares: true, rings: false }, { squares: false, rings: true }, { squares: true, rings: true }];
 const named = (rules: Rules) => Object.entries(rules).filter(([, on]) => on).map(([k]) => k).join(' + ') || 'no rules';

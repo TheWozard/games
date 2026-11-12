@@ -2,8 +2,12 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { CROSS, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty, NO_RULES, RULES, type Difficulty, type Rule, type Rules } from './logic';
+  import { generateInBackground } from './background';
+  import { CROSS, gameOf, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import {
+    cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty, isSlow, NO_RULES, RULES, wait,
+    type Difficulty, type Rule, type Rules,
+  } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
@@ -36,8 +40,20 @@
     choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
 
+  /** A new game; for a slow setting it's made in the background, and the promise says when it's ready. */
+  function make(difficulty: Difficulty, rules: Rules): void | Promise<void> {
+    if (!isSlow(difficulty)) {
+      game = newGame(difficulty, rules);
+      return;
+    }
+    const picked = { ...rules };
+    return generateInBackground(difficulty, picked).then((puzzle) => {
+      game = gameOf(difficulty, picked, puzzle);
+    });
+  }
+
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty)) return make(choice.difficulty, choice.rules);
   }
 </script>
 
@@ -49,7 +65,9 @@
   onopennew={askNew}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty, game.rules))}
+  onnext={() => make(game.difficulty, game.rules)}
+  wait={wait(choice.difficulty)}
+  nextWait={wait(game.difficulty)}
 >
   {#snippet picker()}
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />

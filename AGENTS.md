@@ -85,13 +85,17 @@ only forwards old links), `blocks` (Sliding Blocks).
   by `scripts/blocks.ts` (`just blocks`, one thread per variant, about a quarter of an hour) into
   `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs and keeps the most
   interesting (`interest` in `src/blocks/logic.ts`), and the tests re-check every stored puzzle.
+  A list also works as a fallback: Klondike tries 8 random deals, then takes one of
+  `src/solitaire/klondike/deals.ts` (winnable at both draws, suits renamed one of eight
+  color-keeping ways), since a deal the solver can't win costs its whole budget.
 - **Generation must stay fast on a phone.** Solvers take a step `budget`. When a check runs out,
   change the puzzle (split a cage, add a given, redraw) rather than looping forever. Benchmark
   with a throwaway test and aim for tens of milliseconds on a laptop.
 - **A setting that can't be fast is marked slow** (Flow: Hard with Wrapping and no other rule,
-  up to a few seconds). Its Play and Next turn orange, or red when it's likely over a second on a
+  up to a few seconds; Loop: Hard, most of a second). Its Play and Next turn orange, or red when it's likely over a second on a
   phone (`GameScreen`'s `wait` / `nextWait`: `'quick' | 'slow' | 'slower'`, `src/shared/wait.ts`;
-  colors `--warn` and `--danger`), and the game makes it in a Web Worker (`src/flow/worker.ts`, `background.ts`):
+  colors `--warn` and `--danger`), and the game makes it in a Web Worker (its own `worker.ts` and `background.ts`, on
+  `inBackground` from `src/shared/background.ts`; see `src/loop/`):
   `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the
   New Game dialog held open meanwhile.
 

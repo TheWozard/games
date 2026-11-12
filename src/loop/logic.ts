@@ -10,6 +10,8 @@
 // other cell gets its count, then counts are taken away in random order for as long as a solver
 // still finds exactly one loop.
 
+import type { Wait } from '../shared/wait';
+
 export const DIFFICULTIES = {
   easy: { label: 'Easy', rows: 5, cols: 5, keep: 0.7, squares: 0.12, rings: 0.12 },
   medium: { label: 'Medium', rows: 7, cols: 6, keep: 0.5, squares: 0.12, rings: 0.12 },
@@ -243,6 +245,17 @@ function blob(g: Grid, random: Random): boolean[] {
 }
 
 const SOLVE_BUDGET = 1000;
+
+/**
+ * How long a setting takes to make (see shared/wait.ts). Hard, with no clue kept but those the
+ * solver needs, checks for a single loop after every count it takes away: about 100–190 ms
+ * (median) on a laptop and up to about half a second, so likely most of a second on a phone. It's
+ * slow, made in the background behind an orange Play or Next. Easy and Medium take a few
+ * milliseconds.
+ */
+export const wait = (difficulty: Difficulty): Wait => (difficulty === 'hard' ? 'slow' : 'quick');
+
+export const isSlow = (difficulty: Difficulty): boolean => wait(difficulty) !== 'quick';
 
 export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
   const { rows, cols, squares: squareShare, rings: ringShare } = DIFFICULTIES[difficulty];

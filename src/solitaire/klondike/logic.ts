@@ -3,9 +3,11 @@
 // go into an empty column. The stock deals one or three cards at a time onto the waste and can be
 // turned over again when it runs out.
 //
-// Deals are random, and kept only if a solver finds a way to win, so every game can be won.
+// Deals are random, and kept only if a solver finds a way to win, so every game can be won. When
+// a few random deals in a row can't be won, one of a stored list is used instead (deals.ts).
 
 import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../../shared/cards';
+import { DEALS } from './deals';
 
 export { isRed, rankOf, suitOf, type Card };
 
@@ -25,8 +27,10 @@ export type Draw = 1 | 3;
 
 type Random = () => number;
 
-export function deal(random: Random = Math.random): Table {
-  const deck = shuffledDeck(random);
+export const deal = (random: Random = Math.random): Table => dealDeck(shuffledDeck(random));
+
+/** Lays out a deck, first card first: columns of 1 to 7 with their top card up, the rest the stock. */
+export function dealDeck(deck: readonly Card[]): Table {
   const tableau: Column[] = [];
   let k = 0;
   for (let col = 0; col < 7; col++) {
@@ -239,10 +243,55 @@ export function reachable(t: Table, n: Draw): Table[] {
   return out;
 }
 
-/** A random deal the solver can win. */
-export function winnableDeal(drawCount: Draw, random: Random = Math.random): Table {
-  for (;;) {
+/**
+ * Random deals tried before falling back on a stored one. A deal the solver wins takes it a few
+ * milliseconds, but one it can't win uses up its whole budget first (25–35 ms on a laptop).
+ * About one deal in four is won, so most games come from the first few tries, but now and then
+ * it would take 20 or 30. Stopping at 8 keeps a new game under about a third of a second on a laptop.
+ */
+const RANDOM_TRIES = 8;
+
+/** A deal the solver can win: a random one, or after `tries` misses, one from DEALS. */
+export function winnableDeal(drawCount: Draw, random: Random = Math.random, tries = RANDOM_TRIES): Table {
+  for (let k = 0; k < tries; k++) {
     const t = deal(random);
     if (solvable(t, drawCount)) return t;
   }
+  return storedDeal(random);
 }
+
+/** One of DEALS, with its suits renamed one of the eight ways, so repeats are rarely noticed. */
+export function storedDeal(random: Random = Math.random): Table {
+  const deck = decodeDeck(DEALS[Math.floor(random() * DEALS.length)]);
+  return dealDeck(renameSuits(deck, SUIT_RENAMES[Math.floor(random() * SUIT_RENAMES.length)]));
+}
+
+/** A deck order as 52 letters, A–Z then a–z for cards 0–51 (how DEALS stores them). */
+export const encodeDeck = (deck: readonly Card[]): string =>
+  String.fromCharCode(...deck.map((c) => (c < 26 ? 65 + c : 71 + c)));
+
+export const decodeDeck = (code: string): Card[] =>
+  [...code].map((ch) => {
+    const x = ch.charCodeAt(0);
+    return x < 97 ? x - 65 : x - 71;
+  });
+
+/**
+ * The eight ways to rename the suits that keep each color's two suits together (♠ ♣ black,
+ * ♥ ♦ red): swap the two blacks or not, the two reds or not, and black for red or not. The rules
+ * only care about suits and colors, so a renamed deal plays exactly like the original. Each
+ * entry gives the new suit for ♠ ♥ ♦ ♣.
+ */
+export const SUIT_RENAMES: readonly (readonly number[])[] = [false, true].flatMap((colors) =>
+  [false, true].flatMap((blacks) =>
+    [false, true].map((reds) => {
+      const black = blacks ? [3, 0] : [0, 3];
+      const red = reds ? [2, 1] : [1, 2];
+      const [toBlack, toRed] = colors ? [red, black] : [black, red];
+      return [toBlack[0], toRed[0], toRed[1], toBlack[1]];
+    }),
+  ),
+);
+
+export const renameSuits = (deck: readonly Card[], rename: readonly number[]): Card[] =>
+  deck.map((c) => rename[suitOf(c)] * 13 + rankOf(c) - 1);
