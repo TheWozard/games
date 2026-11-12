@@ -65,7 +65,7 @@
 
   function deal(next: typeof game) {
     game = next;
-    scrollX = 0; // a new puzzle opens with its first columns beside the row clues
+    scrollX = 0; // a new puzzle opens at its left edge, row clues showing
   }
 
   // ---- Layout, in cell units: row clues on the left, column clues on top. ----
@@ -81,7 +81,7 @@
   // ---- Size and panning ----
   // u is pixels per cell: the board fits its space, but cells never get smaller than MIN_CELL
   // (unless the height can't take it). A board that's then wider than its space shows what fits
-  // and pans sideways: the grid and its column clues slide under the row clues, which stay put.
+  // and pans sideways, row clues and all: on a narrow screen they slide off the left.
   // A drag that starts on a cell paints, so a pan starts anywhere else under the header: the
   // column clues, the margins, the room above and below the board, down to the bottom of the page.
   // A sideways wheel pans too.
@@ -155,7 +155,6 @@
     if (!svg) return null;
     const box = svg.getBoundingClientRect();
     const x = (e.clientX - box.left) / u - 0.05;
-    if (x < left) return null; // the row clues, over whatever's panned under them
     const c = Math.floor(x + sx - left);
     const r = Math.floor((e.clientY - box.top) / u - 0.05 - top);
     return r >= 0 && r < n && c >= 0 && c < n ? r * n + c : null;
@@ -277,71 +276,60 @@
       onlostpointercapture={cancel}
       oncontextmenu={(e) => e.preventDefault()}
     >
-      <defs>
-        <clipPath id="nonogram-pan">
-          <rect x={left} y="-0.05" width={shownW - left} height={viewH} />
-        </clipPath>
-      </defs>
+      <!-- The whole board pans sideways, row clues and all, so they slide off the left on a narrow screen. -->
+      <g transform="translate({-sx} 0)">
+        {#if focus}
+          <rect class="focus" x={left + focus.c} y="0" width="1" height={top - 0.04} rx="0.12" />
+        {/if}
 
-      <!-- The column clues and the grid, which pan sideways under the row clues. -->
-      <g clip-path="url(#nonogram-pan)">
-        <g transform="translate({-sx} 0)">
-          {#if focus}
-            <rect class="focus" x={left + focus.c} y="0" width="1" height={top - 0.04} rx="0.12" />
-          {/if}
-
-          {#each game.cols as clue, c (c)}
-            <g class={['clue', colFit[c]]}>
-              {#if colFit[c] === 'bad'}
-                <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
-              {/if}
-              {#each clue as run, k (k)}
-                <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
-              {/each}
-            </g>
-          {/each}
-
-          <rect class="grid" x={left} y={top} width={n} height={n} />
-          {#each shown as v, i (i)}
-            {@const x = left + (i % n)}
-            {@const y = top + Math.floor(i / n)}
-            {#if v > 0}
-              <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
-                   over, so no seam shows where two meet. -->
-              <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
-            {:else}
-              <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" />
-              {#if v === CROSS && !game.done}
-                <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
-              {/if}
+        {#each game.cols as clue, c (c)}
+          <g class={['clue', colFit[c]]}>
+            {#if colFit[c] === 'bad'}
+              <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
             {/if}
-          {/each}
-          <g class="blocks">
-            {#each blockEdges as { x1, y1, x2, y2 }, k (k)}
-              <line x1={left + x1} y1={top + y1} x2={left + x2} y2={top + y2} />
+            {#each clue as run, k (k)}
+              <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
             {/each}
-            <rect x={left} y={top} width={n} height={n} />
           </g>
-        </g>
-      </g>
+        {/each}
 
-      <!-- The grid's left edge, kept beside the row clues while the grid pans under them. -->
-      <line class="edge" x1={left} y1={top} x2={left} y2={top + n} />
-
-      {#if focus}
-        <rect class="focus" x="0" y={top + focus.r} width={left - 0.04} height="1" rx="0.12" />
-      {/if}
-      {#each rowLayout as items, r (r)}
-        <g class={['clue', rowFit[r]]}>
-          {#if rowFit[r] === 'bad'}
-            {@const from = items.length ? items[0].x - items[0].w / 2 : left - 1}
-            <rect class="over" x={from - 0.04} y={top + r + 0.08} width={left - 0.08 - from} height="0.84" rx="0.14" />
+        <rect class="grid" x={left} y={top} width={n} height={n} />
+        {#each shown as v, i (i)}
+          {@const x = left + (i % n)}
+          {@const y = top + Math.floor(i / n)}
+          {#if v > 0}
+            <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
+                 over, so no seam shows where two meet. -->
+            <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
+          {:else}
+            <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" />
+            {#if v === CROSS && !game.done}
+              <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
+            {/if}
           {/if}
-          {#each items as { run, x }, k (k)}
-            <text {x} y={top + r + 0.5} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+        {/each}
+        <g class="blocks">
+          {#each blockEdges as { x1, y1, x2, y2 }, k (k)}
+            <line x1={left + x1} y1={top + y1} x2={left + x2} y2={top + y2} />
           {/each}
+          <rect x={left} y={top} width={n} height={n} />
         </g>
-      {/each}
+
+        {#if focus}
+          <rect class="focus" x="0" y={top + focus.r} width={left - 0.04} height="1" rx="0.12" />
+        {/if}
+        {#each rowLayout as items, r (r)}
+          <g class={['clue', rowFit[r]]}>
+            {#if rowFit[r] === 'bad'}
+              {@const from = items.length ? items[0].x - items[0].w / 2 : left - 1}
+              <rect class="over" x={from - 0.04} y={top + r + 0.08} width={left - 0.08 - from} height="0.84" rx="0.14" />
+            {/if}
+            {#each items as { run, x }, k (k)}
+              <text {x} y={top + r + 0.5} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+            {/each}
+          </g>
+        {/each}
+      </g>
     </svg>
   </div>
 
