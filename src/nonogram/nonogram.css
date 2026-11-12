@@ -9,7 +9,7 @@
 
 /* Thin lines are the grid showing between cells; thick ones mark blocks of 4 or 5. */
 .nonogram .grid { fill: var(--grid-line); }
-.nonogram .cell.empty { fill: var(--surface); }
+.nonogram .cell.empty { fill: var(--bg); }
 .nonogram .cross { stroke: var(--muted); stroke-width: 0.07; stroke-linecap: round; pointer-events: none; }
 .nonogram .blocks line,
 .nonogram .blocks rect { fill: none; stroke: var(--line-strong); stroke-width: 0.06; pointer-events: none; }
@@ -35,7 +35,7 @@
 .nonogram .focus { fill: var(--accent-soft); pointer-events: none; }
 
 /* Finished: the grid fades away and the picture is left. */
-.nonogram.done .grid { fill: var(--surface); }
+.nonogram.done .grid { fill: var(--bg); }
 .nonogram.done .blocks { opacity: 0; transition: opacity 0.4s ease; }
 .nonogram.done .clue { opacity: 0.35; }
 

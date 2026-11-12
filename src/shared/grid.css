@@ -25,7 +25,7 @@
   min-width: 0;
   padding: 0;
   border: 0;
-  background: var(--surface);
+  background: var(--bg);
   color: var(--accent);
   font-size: calc(58cqi / var(--n));
   font-variant-numeric: tabular-nums;
@@ -69,7 +69,7 @@
   transform: translateY(-50%);
   padding: 0 2px;
   border-radius: 3px;
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text);
   font-size: calc(22cqi / var(--n));
   font-weight: 600;
