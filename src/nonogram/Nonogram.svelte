@@ -60,6 +60,8 @@
   );
 
   const colorOf = (color: number) => (game.colors > 1 ? PALETTE[color - 1] : 'var(--accent)');
+  // Clue numbers are in their run's color; plain ones in the text color (hidden ones muted, by CSS).
+  const clueColor = (run: Run) => (game.colors > 1 ? PALETTE[run.color - 1] : undefined);
 
   // ---- Strokes ----
   // A press starts a stroke on a cell. Its value: a tap shades the cell in the brush color (or
@@ -215,21 +217,23 @@
 
       {#each rowLayout as items, r (r)}
         <g class={['clue', rowFit[r]]}>
-          {#each items as { run, x, w }, k (k)}
-            {@const y = top + r + 0.5}
-            {#if game.colors > 1}<rect class="chip" x={x - w / 2 + 0.04} y={y - 0.4} width={w - 0.08} height="0.8" rx="0.12" fill={colorOf(run.color)} />{/if}
-            <text {x} {y} class={{ chipped: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+          {#if rowFit[r] === 'bad'}
+            {@const from = items.length ? items[0].x - items[0].w / 2 : left - 1}
+            <rect class="over" x={from - 0.04} y={top + r + 0.08} width={left - 0.08 - from} height="0.84" rx="0.14" />
+          {/if}
+          {#each items as { run, x }, k (k)}
+            <text {x} y={top + r + 0.5} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
           {/each}
         </g>
       {/each}
 
       {#each game.cols as clue, c (c)}
         <g class={['clue', colFit[c]]}>
+          {#if colFit[c] === 'bad'}
+            <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
+          {/if}
           {#each clue as run, k (k)}
-            {@const x = left + c + 0.5}
-            {@const y = top - 0.1 - (clue.length - k - 0.5) * CLUE_H}
-            {#if game.colors > 1}<rect class="chip" x={x - 0.42} y={y - CLUE_H / 2 + 0.03} width="0.84" height={CLUE_H - 0.06} rx="0.12" fill={colorOf(run.color)} />{/if}
-            <text {x} {y} class={{ chipped: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+            <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
           {/each}
         </g>
       {/each}
@@ -259,17 +263,20 @@
   </div>
 
   {#if game.colors > 1}
-    <div class="swatches" role="group" aria-label="Color to shade">
-      {#each { length: game.colors } as _, k (k)}
-        <button
-          type="button"
-          class="btn swatch"
-          aria-pressed={brush === k + 1}
-          aria-label={COLOR_NAMES[k]}
-          style:--swatch={PALETTE[k]}
-          onclick={() => (brush = k + 1)}
-        ></button>
-      {/each}
+    <!-- The color a tap shades in, in front; the others stacked behind it in the order a tap
+         brings them forward. -->
+    <div class="brush-row">
+      <button
+        type="button"
+        class="brush"
+        style:--count={game.colors}
+        aria-label="Shading with {COLOR_NAMES[brush - 1]}; tap for {COLOR_NAMES[brush % game.colors]}"
+        onclick={() => (brush = (brush % game.colors) + 1)}
+      >
+        {#each { length: game.colors } as _, k (k)}
+          <span class="dot" style:--at={(k + 1 - brush + game.colors) % game.colors} style:background={PALETTE[k]}></span>
+        {/each}
+      </button>
     </div>
   {/if}
 </GameScreen>
