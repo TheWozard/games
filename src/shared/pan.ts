@@ -1,4 +1,4 @@
-// Sideways panning for card tables whose columns are wider than the screen (Solitaire, FreeCell).
+// Sideways panning for boards wider than the screen (Solitaire, FreeCell, Mahjong, Nonogram).
 // A press that moves more than a few pixels sideways pans; anything less is still a tap, and the
 // click that ends a pan is swallowed so it doesn't also play a card. A horizontal wheel (or
 // Shift + wheel) pans too. Call from an $effect and return what it returns, to clean up.
@@ -16,7 +16,9 @@ export interface PanOptions {
   startsPan?: (e: PointerEvent) => boolean;
 }
 
-export function attachPan(el: HTMLElement, { max, get, set, onPanning, startsPan }: PanOptions): () => void {
+export function attachPan(board: HTMLElement | SVGElement, { max, get, set, onPanning, startsPan }: PanOptions): () => void {
+  // An SVG board (Nonogram) gets the same pointer and wheel events; typed as one for the listeners.
+  const el = board as HTMLElement;
   const clamp = (x: number) => Math.min(Math.max(0, x), max());
   let pan: { id: number; x0: number; start: number; moved: boolean } | null = null;
   let justPanned = false;

@@ -1,12 +1,15 @@
 <script lang="ts">
   import GameScreen from '../shared/GameScreen.svelte';
   import RulesPicker from '../shared/RulesPicker.svelte';
+  import { attachPan } from '../shared/pan';
   import { PALETTE } from '../shared/palette';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { CROSS, EMPTY, isGame, newGame, reducer, shading, STORAGE_KEY, type Action } from './game';
   import { colOf, DIFFICULTIES, fits, isDifficulty, NO_RULES, rowOf, RULES, solveLine, type Difficulty, type Rule, type Rules, type Run } from './logic';
 
   const LONG_PRESS_MS = 350;
+  /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
+  const MIN_CELL = 30;
   const COLOR_NAMES = ['Red', 'Blue', 'Yellow', 'Green', 'Purple'];
   // Clue sizes, in cells: one number's width in a row clue, its height in a column clue.
   const CLUE_W = 0.62;
@@ -34,7 +37,12 @@
 
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, { ...choice.rules });
+    if (value === 'start' && isDifficulty(choice.difficulty)) deal(newGame(choice.difficulty, { ...choice.rules }));
+  }
+
+  function deal(next: typeof game) {
+    game = next;
+    scrollX = 0; // a new puzzle opens with its first columns beside the row clues
   }
 
   // ---- Layout, in cell units: row clues on the left, column clues on top. ----
@@ -46,6 +54,21 @@
   const block = $derived(DIFFICULTIES[game.difficulty].block);
   const viewW = $derived(left + n + 0.1);
   const viewH = $derived(top + n + 0.1);
+
+  // ---- Size and panning ----
+  // u is pixels per cell: the board fits its space, but cells never get smaller than MIN_CELL
+  // (unless the height can't take it). A board that's then wider than its space shows what fits
+  // and pans sideways: the grid and its column clues slide under the row clues, which stay put.
+  // A drag that starts on a cell paints, so a pan starts anywhere else: the column clues, the
+  // margins. A sideways wheel pans too.
+  let areaW = $state(360);
+  let areaH = $state(560);
+  const u = $derived(Math.min(areaH / viewH, Math.max(areaW / viewW, MIN_CELL)));
+  const shownW = $derived(Math.min(viewW, areaW / u)); // in cells
+  const maxScroll = $derived(Math.max(0, (viewW - shownW) * u)); // in pixels
+  let scrollX = $state(0);
+  const sx = $derived(Math.min(Math.max(0, scrollX), maxScroll) / u); // in cells
+  let panning = $state(false);
 
   /** Where each number of a row clue sits: its center x, and its width. */
   const rowLayout = $derived(
@@ -104,9 +127,10 @@
   function cellAt(e: PointerEvent): number | null {
     if (!svg) return null;
     const box = svg.getBoundingClientRect();
-    const unit = box.width / viewW;
-    const c = Math.floor((e.clientX - box.left) / unit - 0.05 - left);
-    const r = Math.floor((e.clientY - box.top) / unit - 0.05 - top);
+    const x = (e.clientX - box.left) / u - 0.05;
+    if (x < left) return null; // the row clues, over whatever's panned under them
+    const c = Math.floor(x + sx - left);
+    const r = Math.floor((e.clientY - box.top) / u - 0.05 - top);
     return r >= 0 && r < n && c >= 0 && c < n ? r * n + c : null;
   }
 
@@ -178,6 +202,17 @@
 
   // The row and column under a stroke get their clues lit, to find them on a big board.
   const focus = $derived(stroke ? { r: Math.floor(stroke.end / n), c: stroke.end % n } : null);
+
+  $effect(() => {
+    if (!svg) return;
+    return attachPan(svg, {
+      max: () => maxScroll,
+      get: () => sx * u,
+      set: (x) => (scrollX = x),
+      onPanning: (on) => (panning = on),
+      startsPan: (e) => !stroke && cellAt(e) === null,
+    });
+  });
 </script>
 
 <GameScreen
@@ -188,19 +223,20 @@
   onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
   onstart={start}
   finished={game.done}
-  onnext={() => (game = newGame(game.difficulty, game.rules))}
+  onnext={() => deal(newGame(game.difficulty, game.rules))}
+  wide
 >
   {#snippet picker()}
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
-  <div class="board-area">
+  <div class="board-area nonogram-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>
     <svg
       bind:this={svg}
-      class={['nonogram', { done: game.done }]}
-      viewBox="-0.05 -0.05 {viewW} {viewH}"
-      style:--w={viewW}
-      style:--h={viewH}
+      class={['nonogram', { done: game.done, pannable: maxScroll > 0, panning }]}
+      width={shownW * u}
+      height={viewH * u}
+      viewBox="-0.05 -0.05 {shownW} {viewH}"
       role="group"
       aria-label="Nonogram board"
       onpointerdown={down}
@@ -210,11 +246,57 @@
       onlostpointercapture={cancel}
       oncontextmenu={(e) => e.preventDefault()}
     >
+      <defs>
+        <clipPath id="nonogram-pan">
+          <rect x={left - 0.05} y="-0.05" width={shownW - left + 0.05} height={viewH} />
+        </clipPath>
+      </defs>
+
+      <!-- The column clues and the grid, which pan sideways under the row clues. -->
+      <g clip-path="url(#nonogram-pan)">
+        <g transform="translate({-sx} 0)">
+          {#if focus}
+            <rect class="focus" x={left + focus.c} y="0" width="1" height={top - 0.04} rx="0.12" />
+          {/if}
+
+          {#each game.cols as clue, c (c)}
+            <g class={['clue', colFit[c]]}>
+              {#if colFit[c] === 'bad'}
+                <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
+              {/if}
+              {#each clue as run, k (k)}
+                <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+              {/each}
+            </g>
+          {/each}
+
+          <rect class="grid" x={left} y={top} width={n} height={n} />
+          {#each shown as v, i (i)}
+            {@const x = left + (i % n)}
+            {@const y = top + Math.floor(i / n)}
+            {#if v > 0}
+              <rect class="cell" x={x + (game.done ? 0 : 0.03)} y={y + (game.done ? 0 : 0.03)} width={game.done ? 1 : 0.94} height={game.done ? 1 : 0.94} rx={game.done ? 0 : 0.08} fill={colorOf(v)} />
+            {:else}
+              <rect class="cell empty" x={x + 0.03} y={y + 0.03} width="0.94" height="0.94" rx="0.08" />
+              {#if v === CROSS && !game.done}
+                <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
+              {/if}
+            {/if}
+          {/each}
+          <g class="blocks">
+            {#each { length: Math.floor((n - 1) / block) } as _, k (k)}
+              {@const at = (k + 1) * block}
+              <line x1={left + at} y1={top} x2={left + at} y2={top + n} />
+              <line x1={left} y1={top + at} x2={left + n} y2={top + at} />
+            {/each}
+            <rect x={left} y={top} width={n} height={n} />
+          </g>
+        </g>
+      </g>
+
       {#if focus}
         <rect class="focus" x="0" y={top + focus.r} width={left - 0.04} height="1" rx="0.12" />
-        <rect class="focus" x={left + focus.c} y="0" width="1" height={top - 0.04} rx="0.12" />
       {/if}
-
       {#each rowLayout as items, r (r)}
         <g class={['clue', rowFit[r]]}>
           {#if rowFit[r] === 'bad'}
@@ -226,39 +308,6 @@
           {/each}
         </g>
       {/each}
-
-      {#each game.cols as clue, c (c)}
-        <g class={['clue', colFit[c]]}>
-          {#if colFit[c] === 'bad'}
-            <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
-          {/if}
-          {#each clue as run, k (k)}
-            <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
-          {/each}
-        </g>
-      {/each}
-
-      <rect class="grid" x={left} y={top} width={n} height={n} />
-      {#each shown as v, i (i)}
-        {@const x = left + (i % n)}
-        {@const y = top + Math.floor(i / n)}
-        {#if v > 0}
-          <rect class="cell" x={x + (game.done ? 0 : 0.03)} y={y + (game.done ? 0 : 0.03)} width={game.done ? 1 : 0.94} height={game.done ? 1 : 0.94} rx={game.done ? 0 : 0.08} fill={colorOf(v)} />
-        {:else}
-          <rect class="cell empty" x={x + 0.03} y={y + 0.03} width="0.94" height="0.94" rx="0.08" />
-          {#if v === CROSS && !game.done}
-            <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
-          {/if}
-        {/if}
-      {/each}
-      <g class="blocks">
-        {#each { length: Math.floor((n - 1) / block) } as _, k (k)}
-          {@const at = (k + 1) * block}
-          <line x1={left + at} y1={top} x2={left + at} y2={top + n} />
-          <line x1={left} y1={top + at} x2={left + n} y2={top + at} />
-        {/each}
-        <rect x={left} y={top} width={n} height={n} />
-      </g>
     </svg>
   </div>
 

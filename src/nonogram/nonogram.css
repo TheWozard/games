@@ -1,6 +1,8 @@
+/* Sized in pixels by the component; a board wider than its space pans (see Nonogram.svelte). */
+.nonogram-area { grid-template-columns: minmax(0, 1fr); }
 .nonogram {
-  width: min(100cqw, 100cqh * var(--w) / var(--h));
-  aspect-ratio: var(--w) / var(--h);
+  display: block;
+  justify-self: center;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;

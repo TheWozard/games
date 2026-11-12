@@ -137,8 +137,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   `<div class="board-area">`, which fills the space left between header and controls, and size
   it with container units: `width: min(100cqw, 100cqh * cols / rows); aspect-ratio: cols / rows`. For grids, set both `grid-template-columns` and
   `grid-template-rows` to `repeat(n, 1fr)`; without rows, rows with less content collapse.
-  One exception: on thin screens Klondike's and FreeCell's columns, and Mahjong's wide layouts,
-  are wider than the screen so cards and tiles stay large, and pan sideways under a finger
+  One exception: on thin screens Klondike's and FreeCell's columns, Mahjong's wide layouts and
+  Nonogram's bigger grids (row clues pinned, a pan starts off the cells, since a drag on them
+  paints) are wider than the screen so cards, tiles and cells stay large, and pan sideways under a finger
   (`src/shared/pan.ts`; not page scrolling: the page itself never moves). These games use
   `GameScreen`'s `wide`, so a tablet or desktop shows everything and only pans if it must.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
