@@ -1,4 +1,4 @@
-// The mechanics shared by "fill a square grid with digits" games (Sudoku, Cages): selecting cells,
+// The mechanics shared by "fill a square grid with digits" games (Classic, Killer and Jigsaw Sudoku): selecting cells,
 // placing digits and pencil marks, undo, and winning. Each game supplies its grid size and which
 // cells constrain each other (peers); the state is plain data so it can be saved as JSON.
 
@@ -93,7 +93,7 @@ function apply<G extends GridState>(g: G, changes: Change[]): G {
 export function gridReducer<G extends GridState>(g: G, action: GridAction, { size, peers }: GridShape): G {
   switch (action.type) {
     case 'select':
-      return { ...g, selected: action.index };
+      return g.selected === action.index ? g : { ...g, selected: action.index };
 
     case 'move': {
       const i = g.selected ?? Math.floor((size * size) / 2);

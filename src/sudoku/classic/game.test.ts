@@ -26,6 +26,12 @@ describe('reducer', () => {
     expect(reducer(selected, { type: 'enter', digit: 1 })).toBe(selected);
   });
 
+  it('changes nothing (and so saves nothing) when the selected cell is tapped again', () => {
+    const g = reducer(newGame('easy'), { type: 'select', index: 40 });
+    expect(reducer(g, { type: 'select', index: 40 })).toBe(g);
+    expect(reducer(g, { type: 'select', index: 41 }).selected).toBe(41);
+  });
+
   it('finishes when the last cell is filled correctly', () => {
     let g = newGame('easy');
     for (let i = 0; i < 81; i++) {
