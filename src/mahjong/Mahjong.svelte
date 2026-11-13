@@ -6,7 +6,7 @@
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, STORAGE_KEY, type Action } from './game';
-  import { DIFFICULTIES, drawOrder, LAYOUTS, type Difficulty, type LayoutName } from './logic';
+  import { DIFFICULTIES, drawOrder, LAYOUTS, SLIM, type Difficulty, type LayoutName } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
@@ -123,6 +123,8 @@
     <div class="mj-layouts-head">
       <h3 class="pick-title">Layouts</h3>
       <button type="button" class="btn" onclick={() => (chosen = Object.keys(LAYOUTS) as LayoutName[])}>All</button>
+      <!-- Just the ones that fit a phone upright, with no panning. -->
+      <button type="button" class="btn" onclick={() => (chosen = [...SLIM])}>Slim</button>
       <button type="button" class="btn" onclick={() => (chosen = [])}>None</button>
     </div>
     <div class="mj-layouts">

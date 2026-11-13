@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deal, DIFFICULTIES, drawOrder, facesFor, FLOWERS, freePairs, grader, group, isFree, LAYOUTS, matches, neighbors, reshuffle, SEASONS, TIERS, type LayoutName } from './logic';
+import { deal, DIFFICULTIES, SLIM, drawOrder, facesFor, FLOWERS, freePairs, grader, group, isFree, LAYOUTS, matches, neighbors, reshuffle, SEASONS, TIERS, type LayoutName } from './logic';
 
 /** Replays an order of pairs: each must be free, matching, and together they clear the board. */
 function replays(kinds: number[], near: ReturnType<typeof neighbors>, gone: boolean[], order: [number, number][]): boolean {
@@ -29,6 +29,7 @@ describe('layouts', () => {
       expect(slots.length).toBeLessThanOrEqual(144);
       // Fits a phone: at most 10 tiles down, and 8 across unless it's one of the wide ones (14).
       const wide = ['lanterns', 'rampart', 'turtle', 'gate', 'fish'].includes(name);
+      expect(SLIM.includes(name as LayoutName)).toBe(!wide);
       expect(Math.max(...slots.map((s) => s.x)) + 2).toBeLessThanOrEqual(wide ? 28 : 16);
       expect(Math.max(...slots.map((s) => s.y)) + 2).toBeLessThanOrEqual(20);
       for (const s of slots) for (const t of slots) {

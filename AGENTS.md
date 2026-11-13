@@ -164,7 +164,7 @@ only forwards old links), `blocks` (Sliding Blocks).
     Play then calls `onstart('start')`. Solitaire puts tabs (`.pick-tabs`) above its groups to pick
     the game.
   - A group where any number can be on (Mahjong's Layouts, a pool each deal draws from) shows a
-    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons
+    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons (Mahjong adds **Slim**: the layouts that fit a phone upright)
     beside its heading; pass `canPlay={false}` while nothing is picked, which disables Play.
   - The header's subtitle lists the picks in the same order, joined by " · ".
 - **Capitalization:** Title Case for names the player sees as labels: game titles, dialog titles,

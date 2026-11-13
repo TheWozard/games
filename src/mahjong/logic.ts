@@ -241,6 +241,9 @@ export function drawOrder(slots: readonly Slot[]): number[] {
     .map((s) => s.i);
 }
 
+/** Layouts at most 8 tiles across: they fit a phone held upright, with no panning (Mahjong.svelte). */
+export const SLIM = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => Math.max(...LAYOUTS[k].slots.map((s) => s.x)) + 2 <= 16);
+
 export const isLayout = (value: unknown): value is LayoutName =>
   typeof value === 'string' && Object.hasOwn(LAYOUTS, value);
 
