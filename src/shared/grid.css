@@ -81,7 +81,9 @@
   position: absolute;
   inset: 2px;
   display: grid;
+  /* Rows too, so each digit keeps its place: without them, rows of empty spans collapse. */
   grid-template-columns: repeat(var(--note-cols), 1fr);
+  grid-template-rows: repeat(var(--note-rows), 1fr);
   color: var(--muted);
   font-size: calc(21.6cqi / var(--n));
   font-weight: 400;

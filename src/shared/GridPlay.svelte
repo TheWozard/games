@@ -134,7 +134,7 @@
   onnext={() => (game = create(game.difficulty))}
 >
   <div class="board-area">
-    <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} aria-label="{title} board">
+    <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} aria-label="{title} board">
       {#each game.values as v, i (i)}
         {@const r = Math.floor(i / shape.size)}
         {@const c = i % shape.size}
