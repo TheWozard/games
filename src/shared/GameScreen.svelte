@@ -39,6 +39,8 @@
     optionsTitle?: string;
     /** ...or the dialog's own content, for games with several settings to pick. */
     picker?: Snippet;
+    /** Whether the picks make a game: Play is disabled while not (Mahjong with no layout picked). */
+    canPlay?: boolean;
     /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
     onopennew?: () => void;
     /** Starts the picked game; a returned promise means it's still being made. */
@@ -57,7 +59,7 @@
 
   let {
     title, subtitle, status, onundo, canUndo = false, options = [], current,
-    optionsTitle = 'Difficulty', picker, onopennew, onstart, finished, onnext, wait = 'quick', nextWait = 'quick',
+    optionsTitle = 'Difficulty', picker, canPlay = true, onopennew, onstart, finished, onnext, wait = 'quick', nextWait = 'quick',
     wide = false, children,
   }: Props = $props();
 
@@ -66,7 +68,7 @@
 
   function play(e: MouseEvent) {
     e.preventDefault(); // the dialog stays open until the game is ready
-    if (busy) return;
+    if (busy || !canPlay) return;
     const made = onstart(picker ? 'start' : picked);
     if (!(made instanceof Promise)) {
       askingNew = false;
@@ -137,7 +139,7 @@
     </div>
   {/if}
   <!-- The form's first submit button, so Enter plays; it starts the game itself (see play). -->
-  <button class={['btn primary new-start', wait]} aria-busy={busy === 'play'} onclick={play}>
+  <button class={['btn primary new-start', wait]} aria-busy={busy === 'play'} disabled={!canPlay} onclick={play}>
     Play
     {#if busy === 'play'}
       <span class="spinner" aria-hidden="true"></span>

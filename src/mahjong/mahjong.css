@@ -41,10 +41,15 @@
 .mj-tile.shake { --shake: 2px; animation: shake 0.3s ease; }
 
 /* Layout picker in the New dialog. */
+/* The Layouts heading, with small All and None buttons at its right. */
+.mj-layouts-head { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.mj-layouts-head .pick-title { flex: 1; margin: 0; }
+.mj-layouts-head .btn { padding: 3px 10px; font-size: 0.75rem; border-radius: 8px; }
+/* Layouts: check box toggles (any number can be on), a name over its tile count. */
 .mj-layouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mj-layouts .btn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 6px; }
-.mj-layouts .btn span { color: var(--muted); font-size: 0.8rem; }
-.mj-layouts .btn[aria-pressed="true"] span { color: inherit; }
+.mj-layouts .btn.toggle { gap: 8px; padding: 7px 10px; }
+.mj-layout-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mj-layout-name span { color: var(--muted); font-size: 0.75rem; }
 
 /* A board wider than its space overflows it evenly on both sides (one column the area's width),
    and is then panned into place. */

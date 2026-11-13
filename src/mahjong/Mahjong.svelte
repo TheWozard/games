@@ -5,8 +5,8 @@
   import { createShake } from '../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
-  import { free, fromSaved, newGame, pairsLeft, reducer, STORAGE_KEY, type Action } from './game';
-  import { DIFFICULTIES, drawOrder, isLayout, LAYOUTS, type Difficulty } from './logic';
+  import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, STORAGE_KEY, type Action } from './game';
+  import { DIFFICULTIES, drawOrder, LAYOUTS, type Difficulty, type LayoutName } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
@@ -64,11 +64,16 @@
     hard: { label: 'Hard', detail: 'plan ahead' },
   };
 
-  // The New dialog's picks, starting on the current game's; Play deals them.
-  let choice = $state('');
+  // The New dialog's picks, starting on the current game's: a difficulty, and any number of
+  // layouts, a pool each deal takes one from at random (Play needs at least one). Play deals them.
+  let chosen = $state<LayoutName[]>([]);
   let level = $state<Difficulty>('medium');
+  function toggle(key: LayoutName) {
+    if (!chosen.includes(key)) chosen = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => k === key || chosen.includes(k));
+    else chosen = chosen.filter((k) => k !== key);
+  }
   function start(value: string) {
-    if (value === 'start' && isLayout(choice)) deal(newGame(choice, level));
+    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout));
   }
 
   function deal(next: typeof game) {
@@ -92,10 +97,11 @@
   subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => ((choice = game.layout), (level = game.difficulty))}
+  onopennew={() => ((chosen = poolOf(game)), (level = game.difficulty))}
   onstart={start}
+  canPlay={chosen.length > 0}
   finished={game.done}
-  onnext={() => deal(newGame(game.layout, game.difficulty))}
+  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout))}
 >
   {#snippet status()}
     {#if !game.done}
@@ -114,11 +120,19 @@
         </button>
       {/each}
     </div>
-    <h3 class="pick-title">Layout</h3>
+    <div class="mj-layouts-head">
+      <h3 class="pick-title">Layouts</h3>
+      <button type="button" class="btn" onclick={() => (chosen = Object.keys(LAYOUTS) as LayoutName[])}>All</button>
+      <button type="button" class="btn" onclick={() => (chosen = [])}>None</button>
+    </div>
     <div class="mj-layouts">
       {#each Object.entries(LAYOUTS) as [key, l] (key)}
-        <button type="button" class="btn" aria-pressed={choice === key} onclick={() => (choice = key)}>
-          <strong>{l.name}</strong><span>{l.slots.length} tiles</span>
+        <!-- Any number can be on, so each shows a check box (like the rules in other games). -->
+        <button type="button" class="btn toggle" aria-pressed={chosen.includes(key as LayoutName)} onclick={() => toggle(key as LayoutName)}>
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </span>
+          <span class="mj-layout-name"><strong>{l.name}</strong><span>{l.slots.length} tiles</span></span>
         </button>
       {/each}
     </div>

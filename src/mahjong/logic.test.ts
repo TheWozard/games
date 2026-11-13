@@ -16,8 +16,8 @@ describe('layouts', () => {
   it('have the expected tile counts and no two tiles in one place', () => {
     const sizes = Object.fromEntries(Object.entries(LAYOUTS).map(([k, l]) => [k, l.slots.length]));
     expect(sizes).toEqual({
-      diamond: 80, pyramid: 82, hourglass: 92, rings: 98, butterfly: 104,
-      twinPeaks: 106, cross: 108, bridge: 112, steps: 122, fortress: 136,
+      arrow: 78, diamond: 80, pyramid: 82, hourglass: 92, crown: 96, rings: 98, heart: 100, butterfly: 104,
+      twinPeaks: 106, cross: 108, bridge: 112, pine: 116, steps: 122, fortress: 136, fish: 136,
       lanterns: 134, rampart: 124, turtle: 124, gate: 118, dragon: 144,
     });
     // Listed (and so offered in the New dialog) smallest first.
@@ -28,7 +28,7 @@ describe('layouts', () => {
       expect(slots.length % 2).toBe(0);
       expect(slots.length).toBeLessThanOrEqual(144);
       // Fits a phone: at most 10 tiles down, and 8 across unless it's one of the wide ones (14).
-      const wide = ['lanterns', 'rampart', 'turtle', 'gate'].includes(name);
+      const wide = ['lanterns', 'rampart', 'turtle', 'gate', 'fish'].includes(name);
       expect(Math.max(...slots.map((s) => s.x)) + 2).toBeLessThanOrEqual(wide ? 28 : 16);
       expect(Math.max(...slots.map((s) => s.y)) + 2).toBeLessThanOrEqual(20);
       for (const s of slots) for (const t of slots) {

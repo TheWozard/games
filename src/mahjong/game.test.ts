@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { free, fromSaved, isGame, newGame, pairsLeft, reducer, type Game } from './game';
+import { dealFrom, free, fromSaved, isGame, newGame, pairsLeft, pickLayout, poolOf, reducer, type Game } from './game';
 
 /** A game played with random free pairs until no match is left (common in Mahjong). */
 function stuck(): Game {
@@ -83,6 +83,30 @@ describe('reducer', () => {
     expect(fromSaved(JSON.parse(JSON.stringify(old)))).toEqual({ ...g, difficulty: 'medium' });
     expect(fromSaved({ ...g, difficulty: 'expert' })).toBeNull();
     expect(fromSaved(null)).toBeNull();
+  });
+
+  it('deals from a pool of layouts, not the last one again while there are others', () => {
+    for (let run = 0; run < 30; run++) {
+      expect(['heart', 'pine']).toContain(pickLayout(['heart', 'pine', 'arrow'], 'arrow'));
+      expect(pickLayout(['heart', 'pine'], 'heart')).toBe('pine');
+      expect(pickLayout(['heart'], 'heart')).toBe('heart');
+    }
+    const seen = new Set<string>();
+    for (let run = 0; run < 30; run++) seen.add(pickLayout(['heart', 'pine', 'arrow']));
+    expect(seen.size).toBe(3);
+    const g = dealFrom(['arrow', 'diamond'], 'easy', 'arrow');
+    expect(g.layout).toBe('diamond');
+    expect(poolOf(g)).toEqual(['arrow', 'diamond']);
+    expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
+  });
+
+  it('reads saves from before pools as a pool of their own layout, and rejects a bad pool', () => {
+    const { pool: _, ...old } = newGame('pyramid');
+    expect(isGame(old)).toBe(true);
+    expect(poolOf(old)).toEqual(['pyramid']);
+    expect(isGame({ ...old, pool: [] })).toBe(false);
+    expect(isGame({ ...old, pool: ['pyramid', 'pyramid'] })).toBe(false);
+    expect(isGame({ ...old, pool: ['moon'] })).toBe(false);
   });
 
   it('loads games saved with the old Hint button', () => {

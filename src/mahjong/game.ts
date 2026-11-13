@@ -8,6 +8,8 @@ type Move = { pair: [number, number] } | { shuffled: number[] }; // what to rest
 
 export interface Game {
   layout: LayoutName;
+  /** The layouts picked in the New dialog: each deal takes one at random (missing in older saves: just `layout`). */
+  pool?: LayoutName[];
   difficulty: Difficulty;
   kinds: number[]; // face per slot of LAYOUTS[layout]
   gone: boolean[];
@@ -24,16 +26,32 @@ export type Action =
 const NEAR = new Map<LayoutName, Neighbors>();
 export const near = (d: LayoutName) => NEAR.get(d) ?? NEAR.set(d, neighbors(LAYOUTS[d].slots)).get(d)!;
 
-export function newGame(layout: LayoutName, difficulty: Difficulty = 'medium'): Game {
+export function newGame(layout: LayoutName, difficulty: Difficulty = 'medium', pool: readonly LayoutName[] = [layout]): Game {
   const { kinds } = deal(layout, difficulty);
-  return { layout, difficulty, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
+  return { layout, pool: [...pool], difficulty, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
 }
+
+/** The layouts a game's deals are drawn from. */
+export const poolOf = (g: Game): LayoutName[] => g.pool ?? [g.layout];
+
+/** One of the pool's layouts at random: not the one just played, when there's another to pick. */
+export function pickLayout(pool: readonly LayoutName[], last?: LayoutName, random: () => number = Math.random): LayoutName {
+  const others = pool.length > 1 ? pool.filter((l) => l !== last) : pool;
+  return others[Math.floor(random() * others.length)];
+}
+
+/** A new game from a pool of layouts (at least one), at a difficulty. */
+export const dealFrom = (pool: readonly LayoutName[], difficulty: Difficulty, last?: LayoutName): Game =>
+  newGame(pickLayout(pool, last), difficulty, pool);
+
+const isPool = (pool: unknown) =>
+  pool === undefined || (Array.isArray(pool) && pool.length > 0 && pool.every(isLayout) && new Set(pool).size === pool.length);
 
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   if (!isLayout(g?.layout) || !isDifficulty(g.difficulty)) return false;
   const n = LAYOUTS[g.layout].slots.length;
-  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history);
+  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history) && isPool(g.pool);
 }
 
 /**
