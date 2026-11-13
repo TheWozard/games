@@ -4,8 +4,11 @@
 import './base.css';
 import { Workbox } from 'workbox-window';
 import { trackViewportHeight } from './viewport';
+import { keepScreenOn } from './wakelock';
 
 trackViewportHeight();
+// Game pages keep the screen from dimming while they're played (not the launcher).
+if (document.body?.classList.contains('game')) keepScreenOn();
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   // This module is built into assets/, so the site root (where sw.js lives) is one level up.

@@ -25,6 +25,7 @@ src/
   index.html            launcher: one card per game
   shared/               loaded by every page
     app.ts              shared CSS + service worker registration (import first in every main.ts)
+    wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
