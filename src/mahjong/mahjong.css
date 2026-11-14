@@ -12,7 +12,9 @@
 
 .mj-tile {
   position: absolute;
-  padding: calc(var(--u) * 0.5) calc(var(--u) * 0.7); /* from the tile, not the board: boards vary in width */
+  /* A 5% margin all around (a tile is 3u × 4u): the face is 3:4 too, so these fill it evenly.
+     From the tile, not the board: boards vary in width. */
+  padding: calc(var(--u) * 0.2) calc(var(--u) * 0.15);
   border: 0;
   border-radius: calc(var(--u) * 0.45);
   background: linear-gradient(160deg, #fbf7ec, #ece3cc);
