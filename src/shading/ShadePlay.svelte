@@ -120,10 +120,11 @@
 
   function cellAt(e: PointerEvent): number | null {
     if (!svg) return null;
+    // The cells fill the box inside the border (shading.css).
     const box = svg.getBoundingClientRect();
-    const unit = box.width / (n + 0.1);
-    const c = Math.floor((e.clientX - box.left) / unit - 0.05);
-    const r = Math.floor((e.clientY - box.top) / unit - 0.05);
+    const unit = svg.clientWidth / n;
+    const c = Math.floor((e.clientX - box.left - svg.clientLeft) / unit);
+    const r = Math.floor((e.clientY - box.top - svg.clientTop) / unit);
     return r >= 0 && r < n && c >= 0 && c < n ? r * n + c : null;
   }
 
@@ -189,7 +190,7 @@
 </script>
 
 {#snippet variantPicker()}
-  {#key pickerOpens}<VariantPicker games={variants.games} extras={variants.extras} bind:value={pick} />{/key}
+  {#key pickerOpens}<VariantPicker games={variants.games} bind:value={pick} />{/key}
 {/snippet}
 
 <GameScreen
@@ -207,7 +208,7 @@
     <svg
       bind:this={svg}
       class={['shade-board', { done: game.done }]}
-      viewBox="-0.05 -0.05 {n + 0.1} {n + 0.1}"
+      viewBox="0 0 {n} {n}"
       role="group"
       aria-label="{variants.games[variants.current].label} board"
       onpointerdown={down}
@@ -217,12 +218,11 @@
       onlostpointercapture={cancel}
       oncontextmenu={(e) => e.preventDefault()}
     >
-      <rect class="grid" x="0" y="0" width={n} height={n} />
-      {#each { length: n * n } as _, i (i)}
-        <rect class="cell" x={(i % n) + 0.015} y={Math.floor(i / n) + 0.015} width="0.97" height="0.97" />
-      {/each}
+      <!-- The cells, then the thin lines between them (a fixed 1px whatever the board's size, like
+           Sudoku's), then the game's own marks over both. The outer border is the svg's (shading.css). -->
+      <rect class="cell" x="0" y="0" width={n} height={n} />
+      <path class="lines" d={Array.from({ length: n - 1 }, (_, k) => `M${k + 1} 0V${n}M0 ${k + 1}H${n}`).join('')} />
       {@render cells({ puzzle: game.puzzle, marks: shown, bad, done: game.done })}
-      <rect class="frame" x="0" y="0" width={n} height={n} />
     </svg>
   </div>
 

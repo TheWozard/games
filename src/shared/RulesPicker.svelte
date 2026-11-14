@@ -1,8 +1,8 @@
 <!--
-  New-game picks for games with a size and optional rules (Bridges, Loop): a row of sizes, then
+  New-game picks for games with a size and optional rules (Bridges, Loop, Nonogram): a row of sizes, then
   one line per rule: a check box toggle, and an i that opens a line explaining the rule. The game
   keeps the picks (bound here); GameScreen's Play then calls its `onstart('start')`. Without
-  `sizes`, only the rules (Shading's Nonogram tab, under the tab's own difficulties).
+  `sizes`, only the rules.
 -->
 <script lang="ts" generics="S extends string, R extends string">
   import Check from '@lucide/svelte/icons/check';

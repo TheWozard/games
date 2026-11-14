@@ -6,7 +6,6 @@
   game's tab selects its first choice. The tabs scroll sideways if there are ever more than fit,
   and the picked one is brought into the middle of the row: at once as the dialog opens, then
   smoothly as another is tapped.
-  A game with more to pick (Shading's Nonogram: its rules) passes them in `extras`, by game.
 -->
 <script lang="ts" module>
   /** Each game's tab name, and its choices under a heading. Choice values are "<game>:<setting>". */
@@ -21,9 +20,9 @@
 </script>
 
 <script lang="ts">
-  import { untrack, type Snippet } from 'svelte';
+  import { untrack } from 'svelte';
 
-  let { games, value = $bindable(), extras }: { games: Games; value: string; extras?: Record<string, Snippet> } = $props();
+  let { games, value = $bindable() }: { games: Games; value: string } = $props();
   const opening = untrack(() => value);
   let shown = $state(untrack(() => parsePick(games, value)?.game ?? Object.keys(games)[0]));
 
@@ -65,4 +64,3 @@
     </button>
   {/each}
 </div>
-{@render extras?.[shown]?.()}

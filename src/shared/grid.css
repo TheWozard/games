@@ -7,12 +7,13 @@
   grid-template-rows: repeat(var(--n), 1fr);
   width: min(100cqw, 100cqh);
   aspect-ratio: 1;
-  /* Thin grid lines are the 1px gaps between cells, so every cell is exactly the same size. */
-  gap: 1px;
+  /* Thin grid lines are the gaps between cells, so every cell is exactly the same size. The line
+     sizes are shared with Shading's boards (base.css). */
+  gap: var(--grid-thin);
   background: var(--grid-line);
-  border: 3px solid var(--line-strong);
+  border: var(--grid-thick) solid var(--line-strong);
   /* 4px inside the border, matching the corner cells' rounding. */
-  border-radius: 7px;
+  border-radius: var(--grid-radius);
   /* Not clipped, so a cage sum on the top row can sit across the board's edge; the corner cells
      are rounded to match the border instead. */
   user-select: none;
@@ -35,8 +36,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Thick box / cage lines, 3px: an overlay centered on the 1px gap, covering 1px of the cell on each
-   side, and reaching past the cell at both ends so lines meeting at a corner join without notches. */
+/* Thick box / cage lines (--grid-thick, 3px): an overlay centered on the 1px gap, covering 1px of the
+   cell on each side, and reaching past the cell at both ends so lines meeting at a corner join
+   without notches. The inset assumes those sizes. */
 .grid-board .cell.wall-r::after,
 .grid-board .cell.wall-b::after {
   content: '';
@@ -46,8 +48,8 @@
   border: 0 solid var(--line-strong);
   pointer-events: none;
 }
-.grid-board .cell.wall-r::after { border-right-width: 3px; }
-.grid-board .cell.wall-b::after { border-bottom-width: 3px; }
+.grid-board .cell.wall-r::after { border-right-width: var(--grid-thick); }
+.grid-board .cell.wall-b::after { border-bottom-width: var(--grid-thick); }
 
 .grid-board .cell:focus-visible { outline: none; }
 /* The player's digits are gray and givens white; every one that matches the picked digit turns blue

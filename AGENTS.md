@@ -51,9 +51,9 @@ vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox c
 
 Games: `sudoku` (Classic, Killer and Jigsaw, one page: `src/sudoku/classic/`, `src/sudoku/killer/`
 and `src/sudoku/jigsaw/`, all on `GridPlay`, switched by `App.svelte`; `src/killer/` only forwards old links), `mines`, `bridges`, `gradient`, `untangle`,
-`mahjong`, `loop`, `sort` (Color Sort), `flow`, `shading` (Nonogram, Star Battle, Nurikabe, Hitori
-and Light Up, one page: `src/shading/<game>/`, switched by `App.svelte`; all but Nonogram on `ShadePlay`;
-`src/nonogram/` only forwards old links), `solitaire` (Klondike and FreeCell, one page:
+`mahjong`, `loop`, `sort` (Color Sort), `flow`, `nonogram`, `shading` (Star Battle, Nurikabe, Hitori
+and Light Up, one page: `src/shading/<game>/`, all on `ShadePlay`, switched by `App.svelte`),
+`solitaire` (Klondike and FreeCell, one page:
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
 
@@ -185,8 +185,13 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **SVG `<use>`:** CSS from the page doesn't reliably reach the copies that `<use>` draws. Put
   `text-anchor`, `font-family` and similar on the symbol's elements as attributes (see
   `src/mahjong/TileFaces.svelte`).
-- **Grid lines:** draw thin lines as `gap` over a line-colored background, and thick lines as
-  overlays (`::after`, inset −1px) centered on the gap. Borders on one side make cells look uneven.
+- **Grid lines:** every grid board uses the same line sizes, in screen pixels whatever the board's
+  size: `--grid-thin`, `--grid-thick` and `--grid-radius` in `base.css`. In HTML (Sudoku), draw
+  thin lines as `gap` over a line-colored background, thick lines as overlays (`::after`) centered
+  on the gap, and the border as the board's own; borders on one side make cells look uneven. In SVG
+  (Shading), draw lines with `vector-effect: non-scaling-stroke` so a stroke width in pixels stays
+  that wide, and use the border of the `<svg>` itself where nothing else shares it (Nonogram draws
+  its frame, since the clues share its svg).
 - **Service worker caching:** a browser that has visited the built site serves the *previous*
   build until the new worker activates. Use a fresh browser profile when screenshotting, and
   expect one reload on devices after a deploy.

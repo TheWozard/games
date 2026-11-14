@@ -1,15 +1,20 @@
-/* The shading games' board (ShadePlay.svelte): square, sized to fit, thin lines as gaps. */
+/* The shading games' board (ShadePlay.svelte): square, sized to fit, with the same lines as Sudoku's
+   board (base.css): a rounded thick border, which also rounds off the cells inside it, and thin
+   lines between cells and thick walls drawn in screen pixels, not board units, so they stay the
+   same width on every size of board. */
 .shade-board {
   width: min(100cqw, 100cqh);
   aspect-ratio: 1;
+  border: var(--grid-thick) solid var(--line-strong);
+  border-radius: var(--grid-radius);
+  overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none; /* a press may become a drag at any moment */
 }
-.shade-board .grid { fill: var(--grid-line); }
 .shade-board .cell { fill: var(--bg); }
-.shade-board .frame { fill: none; stroke: var(--line-strong); stroke-width: 0.035; pointer-events: none; }
+.shade-board .lines { fill: none; stroke: var(--grid-line); stroke-width: var(--grid-thin); vector-effect: non-scaling-stroke; }
 .shade-board :is(text, path, circle, rect, line) { pointer-events: none; }
 .shade-board text {
   font-size: 0.55px;
@@ -29,9 +34,8 @@
 .shade-board .shade { fill: var(--accent); }
 .shade-board .shade.bad { fill: var(--danger); }
 
-/* Star Battle: regions walled. */
-.shade-board .wall { stroke: var(--line-strong); stroke-width: 0.07; stroke-linecap: square; }
-.shade-board .wall.edge { fill: none; }
+/* Star Battle: regions walled, as thick as the border (which walls the board's edge). */
+.shade-board .wall { stroke: var(--line-strong); stroke-width: var(--grid-thick); stroke-linecap: square; vector-effect: non-scaling-stroke; }
 .shade-board .star { fill: var(--accent); }
 .shade-board .star.bad { fill: var(--danger); }
 

@@ -1,35 +1,33 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import BrushPicker from '../../shared/BrushPicker.svelte';
-  import GameScreen from '../../shared/GameScreen.svelte';
-  import VariantPicker, { parsePick } from '../../shared/VariantPicker.svelte';
-  import { attachPan } from '../../shared/pan';
-  import { PALETTE, PALETTE_NAMES } from '../../shared/palette';
-  import { loadJSON, saveJSON } from '../../shared/storage';
+  import BrushPicker from '../shared/BrushPicker.svelte';
+  import GameScreen from '../shared/GameScreen.svelte';
+  import RulesPicker from '../shared/RulesPicker.svelte';
+  import { attachPan } from '../shared/pan';
+  import { PALETTE, PALETTE_NAMES } from '../shared/palette';
+  import { loadJSON, saveJSON } from '../shared/storage';
   import { CROSS, EMPTY, isGame, newGame, paletteOf, reducer, shading, STORAGE_KEY, type Action } from './game';
-  import type { Switcher } from '../variants';
-  import { colOf, DIFFICULTIES, fits, isDifficulty, rowOf, RULES, solveLine, type Rule, type Rules, type Run } from './logic';
-
-  // On the Shading page: `variants` for the other games' tabs, `first` to start a new game at that
-  // difficulty, and `rules`, the rules picked under this game's tab (kept by the page).
-  let { variants, first, rules = $bindable() }: { variants: Switcher; first?: string; rules: Rules } = $props();
+  import { colOf, DIFFICULTIES, fits, isDifficulty, NO_RULES, rowOf, RULES, solveLine, type Difficulty, type Rule, type Rules, type Run } from './logic';
 
   /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
   const MIN_CELL = 30;
+  // The grid's lines in screen pixels, as on every grid board (--grid-thick and --grid-radius in
+  // base.css, which the thin lines and block lines use directly): the border sits outside the cells,
+  // and its rounding also rounds the corner cells, RADIUS - THICK inside it.
+  const THICK = 3;
+  const RADIUS = 7;
   // Clue sizes, in cells: one number's width in a row clue, its height in a column clue.
   const CLUE_W = 0.62;
   const CLUE_W_WIDE = 0.9; // two digits
   const CLUE_H = 0.62;
 
-  let game = $state.raw(
-    untrack(() => (first !== undefined && isDifficulty(first) ? newGame(first, { ...rules }) : (loadJSON(STORAGE_KEY, isGame) ?? newGame('easy')))),
-  );
+  let game = $state.raw(untrack(() => loadJSON(STORAGE_KEY, isGame) ?? newGame('easy')));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const label = $derived(
-    ['Nonogram', DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
   );
 
   // What a tap places: a color (always 1 without the colors rule), or CROSS. The picker at the
@@ -47,20 +45,17 @@
     })),
   );
 
-  // The New Game dialog's pick ("<game>:<difficulty>"), reset each time it opens; the rules are
-  // the page's, under this game's tab.
-  let pick = $state('');
-  let pickerOpens = $state(0);
+  // The New Game dialog's picks, a difficulty (with its grid size) and the optional rules, starting
+  // from the current game's each time it opens.
+  const sizes = Object.fromEntries(
+    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.size}×${d.size}` }]),
+  ) as Record<Difficulty, { label: string; detail: string }>;
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
   function opennew() {
-    pick = `nonogram:${game.difficulty}`;
-    rules = { ...game.rules };
-    pickerOpens++;
+    choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
   function start(value: string) {
-    const chosen = value === 'start' ? parsePick(variants.games, pick) : null;
-    if (!chosen) return;
-    if (chosen.game !== 'nonogram') variants.onswitch(pick);
-    else if (isDifficulty(chosen.setting)) deal(newGame(chosen.setting, { ...rules }));
+    if (value === 'start' && isDifficulty(choice.difficulty)) deal(newGame(choice.difficulty, { ...choice.rules }));
   }
 
   function deal(next: typeof game) {
@@ -75,8 +70,9 @@
   const top = $derived(Math.max(1, ...game.cols.map((clue) => clue.length)) * CLUE_H + 0.2);
   const n = $derived(game.size);
   const block = $derived(DIFFICULTIES[game.difficulty].block);
-  const viewW = $derived(left + n + 0.1);
-  const viewH = $derived(top + n + 0.1);
+  // Room past the grid's right and bottom edges for its border (a few pixels: see THICK).
+  const viewW = $derived(left + n + 0.2);
+  const viewH = $derived(top + n + 0.2);
 
   // ---- Size and panning ----
   // u is pixels per cell: the board fits its space, but cells never get smaller than MIN_CELL
@@ -246,7 +242,7 @@
 </script>
 
 <GameScreen
-  title="Shading"
+  title="Nonogram"
   subtitle={label}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
@@ -257,7 +253,7 @@
   wide
 >
   {#snippet picker()}
-    {#key pickerOpens}<VariantPicker games={variants.games} extras={variants.extras} bind:value={pick} />{/key}
+    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
   <div class="board-area nonogram-area" bind:this={area} bind:clientWidth={areaW} bind:clientHeight={areaH}>
@@ -293,26 +289,39 @@
           </g>
         {/each}
 
-        <rect class="grid" x={left} y={top} width={n} height={n} />
-        {#each shown as v, i (i)}
-          {@const x = left + (i % n)}
-          {@const y = top + Math.floor(i / n)}
-          {#if v > 0}
-            <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
-                 over, so no seam shows where two meet. -->
-            <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
-          {:else}
-            <rect class="cell empty" x={x + 0.015} y={y + 0.015} width="0.97" height="0.97" />
-            {#if v === CROSS && !game.done}
+        <!-- The cells, rounded at the corners to fit inside the border: empty ground, the thin lines
+             (a fixed 1px, like every grid board's), then the shaded cells over them. -->
+        <clipPath id="nonogram-cells">
+          <rect x={left} y={top} width={n} height={n} rx={(RADIUS - THICK) / u} />
+        </clipPath>
+        <g clip-path="url(#nonogram-cells)">
+          <rect class="cell empty" x={left} y={top} width={n} height={n} />
+          <path class="lines" d={Array.from({ length: n - 1 }, (_, k) => `M${left + k + 1} ${top}v${n}M${left} ${top + k + 1}h${n}`).join('')} />
+          {#each shown as v, i (i)}
+            {@const x = left + (i % n)}
+            {@const y = top + Math.floor(i / n)}
+            {#if v > 0}
+              <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
+                   over, so no seam shows where two meet. -->
+              <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
+            {:else if v === CROSS && !game.done}
               <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
             {/if}
-          {/if}
-        {/each}
+          {/each}
+        </g>
         <g class="blocks">
           {#each blockEdges as { x1, y1, x2, y2 }, k (k)}
             <line x1={left + x1} y1={top + y1} x2={left + x2} y2={top + y2} />
           {/each}
-          <rect x={left} y={top} width={n} height={n} />
+          <!-- The border, outside the cells: its stroke is centered on this outline. -->
+          <rect
+            class="frame"
+            x={left - THICK / 2 / u}
+            y={top - THICK / 2 / u}
+            width={n + THICK / u}
+            height={n + THICK / u}
+            rx={(RADIUS - THICK / 2) / u}
+          />
         </g>
 
         {#if focus}

@@ -1,7 +1,7 @@
 // Nonogram game state and moves, as a pure reducer. Each cell is empty, shaded in a color (1 when
 // there are no colors), or crossed: the player's note that it stays empty. A stroke (a tap, or a
 // drag along a row or column) paints its cells one value, as one undo step.
-import { PALETTE } from '../../shared/palette';
+import { PALETTE } from '../shared/palette';
 import { DIFFICULTIES, generate, isDifficulty, isRules, isSolved, NO_RULES, type Difficulty, type Puzzle, type Rules, type Run } from './logic';
 
 // ---- Palettes ----

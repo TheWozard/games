@@ -116,7 +116,6 @@
     <li>
       <a class="game" href="sudoku/">
         <svg viewBox="0 0 48 48" aria-hidden="true">
-          <rect x="2" y="2" width="44" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="3"/>
           <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="1"/>
           <text x="9.5" y="14" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">5</text>
           <text x="24" y="28" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">3</text>
@@ -192,47 +191,24 @@
     <li>
       <a class="game" href="shading/">
         <svg viewBox="0 0 48 48" aria-hidden="true">
-          <rect x="3" y="3" width="42" height="42" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-          <path d="M13.5 4v40M24 4v40M34.5 4v40M4 13.5h40M4 24h40M4 34.5h40" stroke="currentColor" stroke-width="1" opacity="0.35"/>
-          <g fill="currentColor"><rect x="4" y="4" width="8.5" height="8.5" rx="1.5"/><rect x="25" y="14.5" width="8.5" height="8.5" rx="1.5"/><rect x="14.5" y="35.5" width="8.5" height="8.5" rx="1.5"/></g>
-          <path d="M39.75 25.15L40.87 28.01L43.93 28.19L41.56 30.14L42.34 33.11L39.75 31.45L37.16 33.11L37.94 30.14L35.57 28.19L38.63 28.01Z" fill="currentColor"/>
+          <!-- Shaded cells fill their cell, a hair inside the lines, all one size and centered like Sudoku's numbers. -->
+          <g fill="currentColor"><rect x="4" y="4" width="11" height="11" rx="1.5"/><rect x="18.5" y="18.5" width="11" height="11" rx="1.5"/><rect x="18.5" y="33" width="11" height="11" rx="1.5"/></g>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="1"/>
+          <path d="M38.50 18.70L39.91 22.56L44.02 22.71L40.78 25.24L41.91 29.19L38.50 26.90L35.09 29.19L36.22 25.24L32.98 22.71L37.09 22.56Z" fill="currentColor"/>
         </svg>
-        <div><strong>Shading <small class="variants" title="5 variants">5<span class="sr-only"> variants</span></small></strong><span>Nonogram, Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
+        <div><strong>Shading <small class="variants" title="4 variants">4<span class="sr-only"> variants</span></small></strong><span>Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-shading" aria-label="How to play Shading">i</button>
       <div class="how" id="how-shading" popover>
         <div class="how-box">
           <h2>Shading</h2>
           <div class="pick-tabs how-tabs" role="tablist" aria-label="Shading games">
-            <button type="button" role="tab" id="how-shading-nonogram-tab" aria-controls="how-shading-nonogram" aria-selected="true">Nonogram</button>
-            <button type="button" role="tab" id="how-shading-star-battle-tab" aria-controls="how-shading-star-battle" aria-selected="false">Star Battle</button>
+            <button type="button" role="tab" id="how-shading-star-battle-tab" aria-controls="how-shading-star-battle" aria-selected="true">Star Battle</button>
             <button type="button" role="tab" id="how-shading-nurikabe-tab" aria-controls="how-shading-nurikabe" aria-selected="false">Nurikabe</button>
             <button type="button" role="tab" id="how-shading-hitori-tab" aria-controls="how-shading-hitori" aria-selected="false">Hitori</button>
             <button type="button" role="tab" id="how-shading-light-up-tab" aria-controls="how-shading-light-up" aria-selected="false">Light Up</button>
           </div>
-          <section class="how-panel" id="how-shading-nonogram" role="tabpanel" aria-labelledby="how-shading-nonogram-tab">
-            <p class="how-goal">Shade the cells to match the numbers around the grid.</p>
-            <h3 class="pick-title">Rules</h3>
-            <ul>
-              <li>The numbers beside each row and above each column are the lengths of its runs of shaded cells, in order.</li>
-              <li>Runs are split by at least one empty cell.</li>
-              <li>A line’s numbers dim when the line matches them.</li>
-            </ul>
-            <h3 class="pick-title">How to Play</h3>
-            <ul>
-              <li>The circle at the bottom right shows what a tap places: a shade (or a color), or an X for a cell you know is empty. Tap the circle to switch.</li>
-              <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places an X.</li>
-              <li>Drag along a row or column to do the same to each cell you pass.</li>
-              <li>On a narrow screen a big grid slides sideways: drag anywhere off the cells.</li>
-            </ul>
-            <h3 class="pick-title">Optional Rules</h3>
-            <ul>
-              <li><strong>Colors</strong>: Cells come in colors, shown on the numbers. Runs of the same color need a gap; different colors may touch.</li>
-              <li><strong>Mystery</strong>: Some numbers are hidden as ?: the run is there, but its length isn’t given.</li>
-            </ul>
-            <p class="how-promise">Every puzzle has exactly one solution.</p>
-          </section>
-          <section class="how-panel" id="how-shading-star-battle" role="tabpanel" aria-labelledby="how-shading-star-battle-tab" hidden>
+          <section class="how-panel" id="how-shading-star-battle" role="tabpanel" aria-labelledby="how-shading-star-battle-tab">
             <p class="how-goal">Place stars so every row, column and outlined region holds the same number of them.</p>
             <h3 class="pick-title">Rules</h3>
             <ul>
@@ -299,6 +275,54 @@
             <p class="how-promise">Every puzzle has exactly one solution.</p>
           </section>
           <button class="dialog-close" type="button" popovertarget="how-shading" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="nonogram/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <!-- A 3×3 picture with its clues: rows 2, 2, 1 1 (right of the numbers, beside each row);
+               columns 1 1, 2, 2 (stacked, above each column). -->
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="end">
+            <text x="14.5" y="24.6">2</text><text x="14.5" y="34.1">2</text><text x="14.5" y="43.6">1 1</text>
+          </g>
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="21.75" y="7.5">1</text><text x="21.75" y="14.5">1</text><text x="31.25" y="14.5">2</text><text x="40.75" y="14.5">2</text>
+          </g>
+          <!-- The shaded cells alone, no frame or lines: a small picture. -->
+          <g fill="currentColor">
+            <rect x="17.5" y="17.5" width="8.5" height="8.5" rx="1.5"/><rect x="27" y="17.5" width="8.5" height="8.5" rx="1.5"/>
+            <rect x="27" y="27" width="8.5" height="8.5" rx="1.5"/><rect x="36.5" y="27" width="8.5" height="8.5" rx="1.5"/>
+            <rect x="17.5" y="36.5" width="8.5" height="8.5" rx="1.5"/><rect x="36.5" y="36.5" width="8.5" height="8.5" rx="1.5"/>
+          </g>
+        </svg>
+        <div><strong>Nonogram</strong><span>Shade the grid so every row and column matches its runs. Solvable a line at a time.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-nonogram" aria-label="How to play Nonogram">i</button>
+      <div class="how" id="how-nonogram" popover>
+        <div class="how-box">
+          <h2>Nonogram</h2>
+          <p class="how-goal">Shade the cells to match the numbers around the grid.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>The numbers beside each row and above each column are the lengths of its runs of shaded cells, in order.</li>
+            <li>Runs are split by at least one empty cell.</li>
+            <li>A line’s numbers dim when the line matches them.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>The circle at the bottom right shows what a tap places: a shade (or a color), or an X for a cell you know is empty. Tap the circle to switch.</li>
+            <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places an X.</li>
+            <li>Drag along a row or column to do the same to each cell you pass.</li>
+            <li>On a narrow screen a big grid slides sideways: drag anywhere off the cells.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Colors</strong>: Cells come in colors, shown on the numbers. Runs of the same color need a gap; different colors may touch.</li>
+            <li><strong>Mystery</strong>: Some numbers are hidden as ?: the run is there, but its length isn’t given.</li>
+          </ul>
+          <p class="how-promise">Every puzzle has exactly one solution.</p>
+          <button class="dialog-close" type="button" popovertarget="how-nonogram" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         </div>
       </div>
     </li>

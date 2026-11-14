@@ -40,8 +40,6 @@
 
   {#snippet cells({ puzzle, marks, bad })}
     {@const n = puzzle.size}
-    <!-- The board's edge is every edge region's wall too, so it's as thick as the walls inside. -->
-    <rect class="wall edge" x="0" y="0" width={n} height={n} />
     {#each puzzle.regions as g, i (i)}
       {@const x = i % n}
       {@const y = Math.floor(i / n)}

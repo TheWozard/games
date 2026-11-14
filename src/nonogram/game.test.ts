@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PALETTE } from '../../shared/palette';
+import { PALETTE } from '../shared/palette';
 import { CROSS, EMPTY, gameOf, isGame, newGame, paletteOf, PALETTES, reducer, type Game } from './game';
 import { generate, NO_RULES } from './logic';
 
