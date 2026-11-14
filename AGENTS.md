@@ -209,6 +209,10 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
   `icon-192.png` and `apple-touch-icon.png` from it with Inkscape. Commit the PNGs. Keep the
   artwork inside the central 80% so it survives Android's maskable crop. The manifest lists the
   512 PNG as both `any` and `maskable`.
+- **Icons inside a game** (buttons, tools) come from Lucide (`@lucide/svelte`, ISC). Import each
+  icon by its own path, `import Eraser from '@lucide/svelte/icons/eraser'`, so only the icons used
+  are built in, and mark them `aria-hidden`. A button that shows only an icon gets its name as
+  `aria-label` (and `title`). See Sudoku's Erase / Notes / Set (`src/shared/GridPlay.svelte`).
 - **Game card icons** are hand-written inline SVGs in `src/index.html`, `viewBox="0 0 48 48"`, drawn
   with `currentColor` (the accent) and `var(--surface)` for knock-outs. Keep them simple: an outer
   rounded square or a few shapes, legible at 48px. Gradient's card is the one exception that uses

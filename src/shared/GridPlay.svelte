@@ -26,6 +26,9 @@
   import { gridKey, gridReducer, hasConflict, type GridAction, type GridState, type Mode } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import VariantPicker, { parsePick, type Games } from './VariantPicker.svelte';
+  import Eraser from '@lucide/svelte/icons/eraser';
+  import Pencil from '@lucide/svelte/icons/pencil';
+  import NotebookPen from '@lucide/svelte/icons/notebook-pen';
   import './grid.css';
 
   interface Props {
@@ -254,8 +257,10 @@
         <button
           type="button"
           class={['cell', {
-            'wall-r': shape.wallRight?.(i),
-            'wall-b': shape.wallBottom?.(i),
+            // Not along the board's own edge: its border draws that, and a wall's square end would
+            // poke out past the rounded corner.
+            'wall-r': c < shape.size - 1 && shape.wallRight?.(i),
+            'wall-b': r < shape.size - 1 && shape.wallBottom?.(i),
             [`zone-${shape.zone?.(i)}`]: shape.zone !== undefined,
             given,
             'corner-tl': i === 0,
@@ -280,9 +285,11 @@
     </div>
   </div>
 
-  <div class="tools">
-    {#each [['erase', 'Erase'], ['notes', 'Notes'], ['set', 'Set']] as const as [m, name] (m)}
-      <button type="button" class="btn" aria-pressed={mode === m} onclick={() => setMode(m)}>{name}</button>
+  <div class="tools grid-tools">
+    {#each [['erase', 'Erase', Eraser], ['notes', 'Notes', NotebookPen], ['set', 'Set', Pencil]] as const as [m, name, Icon] (m)}
+      <button type="button" class="btn" aria-pressed={mode === m} aria-label={name} title={name} onclick={() => setMode(m)}>
+        <Icon size={22} aria-hidden="true" />
+      </button>
     {/each}
   </div>
 

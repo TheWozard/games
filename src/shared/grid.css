@@ -10,8 +10,9 @@
   /* Thin grid lines are the 1px gaps between cells, so every cell is exactly the same size. */
   gap: 1px;
   background: var(--grid-line);
-  border: 2px solid var(--line-strong);
-  border-radius: 6px;
+  border: 3px solid var(--line-strong);
+  /* 4px inside the border, matching the corner cells' rounding. */
+  border-radius: 7px;
   /* Not clipped, so a cage sum on the top row can sit across the board's edge; the corner cells
      are rounded to match the border instead. */
   user-select: none;
@@ -35,19 +36,19 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Thick box / cage lines: an overlay that covers the gap plus 1px of the cell, and reaches 1px past
-   the cell at both ends so lines meeting at a corner join without notches. */
+/* Thick box / cage lines, 3px: an overlay centered on the 1px gap, covering 1px of the cell on each
+   side, and reaching past the cell at both ends so lines meeting at a corner join without notches. */
 .grid-board .cell.wall-r::after,
 .grid-board .cell.wall-b::after {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -1px -2px -2px -1px;
   z-index: 1;
   border: 0 solid var(--line-strong);
   pointer-events: none;
 }
-.grid-board .cell.wall-r::after { border-right-width: 2px; }
-.grid-board .cell.wall-b::after { border-bottom-width: 2px; }
+.grid-board .cell.wall-r::after { border-right-width: 3px; }
+.grid-board .cell.wall-b::after { border-bottom-width: 3px; }
 
 .grid-board .cell:focus-visible { outline: none; }
 .grid-board .cell.given { color: var(--text); font-weight: 600; }
@@ -135,6 +136,14 @@
   .grid-board .cell::before { animation: none; }
 }
 
+/* Erase / Notes / Set and the pad go without outlines: the fill alone shows each button. Each mode
+   is just its Lucide icon (the name is its aria-label): an eraser, a notebook for notes, a pencil to set. */
+.grid-tools .btn {
+  display: grid;
+  place-items: center;
+  border-color: transparent;
+}
+
 .pad { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
 
 .digit {
@@ -142,7 +151,7 @@
   flex-direction: column;
   align-items: center;
   padding: 8px 0 6px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 10px;
   background: var(--surface);
   color: var(--accent);
@@ -150,7 +159,7 @@
 
 .digit-n { font-size: 1.6rem; line-height: 1.1; }
 .digit-left { min-height: 1em; color: var(--muted); font-size: 0.7rem; }
-.digit[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.digit[aria-pressed="true"] { background: var(--accent-soft); }
 .digit.complete { opacity: 0.35; }
 .digit.complete[aria-pressed="true"] { opacity: 0.6; }
 .pad.notes-mode .digit-n { font-size: 1.1rem; line-height: 1.6; color: var(--muted); }
