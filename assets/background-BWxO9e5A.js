@@ -1,0 +1,1 @@
+function e(e,t,n){return typeof Worker>`u`?Promise.resolve().then(n):new Promise(r=>{let i;try{i=e()}catch{r(n());return}i.onmessage=e=>{i.terminate(),r(e.data)},i.onerror=()=>{i.terminate(),r(n())},i.postMessage(t)})}export{e as t};

@@ -1,0 +1,1 @@
+import{L as e,X as t,Y as n}from"./GameScreen-BSAnQs3r.js";var r=300;function i(){let i=t(null),a;return{get current(){return e(i)},start(e){clearTimeout(a),n(i,e,!0),a=setTimeout(()=>n(i,null),r)}}}export{i as t};

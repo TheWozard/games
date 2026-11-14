@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Games</title>
+  <meta name="description" content="Simple puzzle games that work offline.">
+  <meta name="theme-color" content="#16181d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Games">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <style>.version{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.75rem}.games{gap:12px;max-width:520px;margin:0 auto;padding:0 16px 8px;list-style:none;display:grid}.games:last-of-type{padding-bottom:24px}.group{max-width:520px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:8px auto;padding:0 16px;font-size:.8rem;font-weight:600}.game{background:var(--surface);border:1px solid var(--line);color:inherit;border-radius:14px;align-items:center;gap:16px;padding:16px;text-decoration:none;display:flex}.game:active{background:var(--peer)}.game svg{width:48px;height:48px;color:var(--accent);flex:none}.game strong{font-size:1.1rem;display:block}.game span{color:var(--muted);font-size:.95rem}.variants{vertical-align:.15em;border:1px solid var(--line);color:var(--muted);white-space:nowrap;border-radius:999px;margin-left:6px;padding:1px 8px;font-size:.7rem;font-weight:600;line-height:1.5;display:inline-block}.sr-only{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}.games li{position:relative}.game{padding-right:60px}.info{border:1px solid var(--line);background:var(--bg);width:32px;height:32px;color:var(--muted);border-radius:50%;padding:0;font:italic 700 1rem/1 Georgia,Times New Roman,serif;position:absolute;top:50%;right:14px;translate:0 -50%}.info:active{color:var(--accent);border-color:var(--accent)}.how{width:100%;max-width:none;height:100%;max-height:none;padding:max(16px, env(safe-area-inset-top,0px)) 16px var(--safe-bottom);color:var(--text);overscroll-behavior:contain;background:0 0;border:0;margin:0;overflow-y:auto}.how:popover-open{flex-direction:column;display:flex}.how::backdrop{background:#00000073}.how-box{border:1px solid var(--line);background:var(--surface);border-radius:16px;flex:none;width:min(380px,100%);margin:auto;padding:20px;position:relative}.how h2{margin:0 0 10px;padding-right:40px;font-size:1.2rem}.how p,.how ul{color:var(--muted);margin:0;line-height:1.45}.how ul{padding-left:18px}.how li+li{margin-top:4px}.how strong,.how .how-goal{color:var(--text)}.how .pick-title{margin:14px 0 6px}.how .how-promise{border-top:1px solid var(--line);margin-top:14px;padding-top:12px;font-size:.9rem}.how-tabs{margin:0 0 12px}</style>
+  <script type="module" crossorigin src="./assets/index-CheCGq66.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/app-B6HDl80Q.js">
+  <link rel="stylesheet" crossorigin href="./assets/app-DREnGzId.css">
+</head>
+<body>
+  <header class="bar"><h1>Games</h1><small class="version">171d53d</small></header>
+  <h2 class="group">Logic</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="sudoku/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="1"/>
+          <text x="9.5" y="14" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">5</text>
+          <text x="24" y="28" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">3</text>
+          <text x="38.5" y="42" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">8</text>
+        </svg>
+        <div><strong>Sudoku <small class="variants" title="3 variants">3<span class="sr-only"> variants</span></small></strong><span>Classic, Killer or Jigsaw: fill the grid so every row, column and box has 1–9.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-sudoku" aria-label="How to play Sudoku">i</button>
+      <div class="how" id="how-sudoku" popover>
+        <div class="how-box">
+          <h2>Sudoku</h2>
+          <div class="pick-tabs how-tabs" role="tablist" aria-label="Sudoku games">
+            <button type="button" role="tab" id="how-sudoku-classic-tab" aria-controls="how-sudoku-classic" aria-selected="true">Classic</button>
+            <button type="button" role="tab" id="how-sudoku-killer-tab" aria-controls="how-sudoku-killer" aria-selected="false">Killer</button>
+            <button type="button" role="tab" id="how-sudoku-jigsaw-tab" aria-controls="how-sudoku-jigsaw" aria-selected="false">Jigsaw</button>
+          </div>
+          <section class="how-panel" id="how-sudoku-classic" role="tabpanel" aria-labelledby="how-sudoku-classic-tab">
+            <p class="how-goal">Fill the grid so every row, column and 3×3 box holds 1–9 once.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Some numbers are given and can’t be changed.</li>
+              <li>A number repeated in a row, column or box turns red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Pick a tool and a number under the board, then tap cells.</li>
+              <li><strong>Pencil</strong>: writes the number, replacing what’s in the cell. Tap a cell that already holds it to clear it.</li>
+              <li><strong>Notebook</strong>: adds the number as a small note, in empty cells or ones with notes. Drag to note several; start on a cell that has the note to take it away instead.</li>
+              <li><strong>Eraser</strong>: clears a cell. Drag to clear several.</li>
+              <li>Writing a number takes it out of the notes in its row, column and box. Cells with the picked number are shaded.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <section class="how-panel" id="how-sudoku-killer" role="tabpanel" aria-labelledby="how-sudoku-killer-tab" hidden>
+            <p class="how-goal">Fill the grid so every row, column and 3×3 box holds 1–9 once.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Only a few numbers are given. Instead, colored cages group the cells.</li>
+              <li>A cage’s numbers add up to the sum on its top edge, with no number repeated inside it.</li>
+              <li>A repeated number turns red, and so does a full cage with the wrong sum.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Pick a tool and a number under the board, then tap cells.</li>
+              <li><strong>Pencil</strong>: writes the number, replacing what’s in the cell. Tap a cell that already holds it to clear it.</li>
+              <li><strong>Notebook</strong>: adds the number as a small note, in empty cells or ones with notes. Drag to note several; start on a cell that has the note to take it away instead.</li>
+              <li><strong>Eraser</strong>: clears a cell. Drag to clear several.</li>
+              <li>Writing a number takes it out of the notes in its row, column and box. Cells with the picked number are shaded.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <section class="how-panel" id="how-sudoku-jigsaw" role="tabpanel" aria-labelledby="how-sudoku-jigsaw-tab" hidden>
+            <p class="how-goal">Fill the grid so every row, column and outlined shape holds 1–9 once.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Instead of 3×3 boxes, the grid is split into nine outlined shapes of nine cells each.</li>
+              <li>A number repeated in a row, column or shape turns red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Pick a tool and a number under the board, then tap cells.</li>
+              <li><strong>Pencil</strong>: writes the number, replacing what’s in the cell. Tap a cell that already holds it to clear it.</li>
+              <li><strong>Notebook</strong>: adds the number as a small note, in empty cells or ones with notes. Drag to note several; start on a cell that has the note to take it away instead.</li>
+              <li><strong>Eraser</strong>: clears a cell. Drag to clear several.</li>
+              <li>Writing a number takes it out of the notes in its row, column and box. Cells with the picked number are shaded.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <button class="dialog-close" type="button" popovertarget="how-sudoku" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="shading/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <!-- Shaded cells fill their cell, a hair inside the lines, all one size and centered like Sudoku's numbers. -->
+          <g fill="currentColor"><rect x="4" y="4" width="11" height="11" rx="1.5"/><rect x="18.5" y="18.5" width="11" height="11" rx="1.5"/><rect x="18.5" y="33" width="11" height="11" rx="1.5"/></g>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="currentColor" stroke-width="1"/>
+          <path d="M38.50 18.70L39.91 22.56L44.02 22.71L40.78 25.24L41.91 29.19L38.50 26.90L35.09 29.19L36.22 25.24L32.98 22.71L37.09 22.56Z" fill="currentColor"/>
+        </svg>
+        <div><strong>Shading <small class="variants" title="4 variants">4<span class="sr-only"> variants</span></small></strong><span>Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-shading" aria-label="How to play Shading">i</button>
+      <div class="how" id="how-shading" popover>
+        <div class="how-box">
+          <h2>Shading</h2>
+          <div class="pick-tabs how-tabs" role="tablist" aria-label="Shading games">
+            <button type="button" role="tab" id="how-shading-star-battle-tab" aria-controls="how-shading-star-battle" aria-selected="true">Star Battle</button>
+            <button type="button" role="tab" id="how-shading-nurikabe-tab" aria-controls="how-shading-nurikabe" aria-selected="false">Nurikabe</button>
+            <button type="button" role="tab" id="how-shading-hitori-tab" aria-controls="how-shading-hitori" aria-selected="false">Hitori</button>
+            <button type="button" role="tab" id="how-shading-light-up-tab" aria-controls="how-shading-light-up" aria-selected="false">Light Up</button>
+          </div>
+          <section class="how-panel" id="how-shading-star-battle" role="tabpanel" aria-labelledby="how-shading-star-battle-tab">
+            <p class="how-goal">Place stars so every row, column and outlined region holds the same number of them.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>That’s one star each, or two on Hard.</li>
+              <li>Stars never touch, not even at a corner.</li>
+              <li>Stars that break a rule turn red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>The circle at the bottom right shows what a tap places: a star, or an X for a cell that can’t hold one. Tap the circle to switch.</li>
+              <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places the second one.</li>
+              <li>Stars go one tap at a time; drag to place X’s across several cells.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <section class="how-panel" id="how-shading-nurikabe" role="tabpanel" aria-labelledby="how-shading-nurikabe-tab" hidden>
+            <p class="how-goal">Shade cells to make one connected sea around the numbered islands.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Each number is an island of exactly that many unshaded cells, with only that one number in it.</li>
+              <li>Islands don’t touch side by side.</li>
+              <li>The sea is all one piece and has no 2×2 block of shade.</li>
+              <li>Cells that break a rule turn red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>The circle at the bottom right shows what a tap places: a shade, or a dot for a cell you know is island. Tap the circle to switch.</li>
+              <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places the second one.</li>
+              <li>Drag to shade, or dot, several cells at once.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <section class="how-panel" id="how-shading-hitori" role="tabpanel" aria-labelledby="how-shading-hitori-tab" hidden>
+            <p class="how-goal">Shade cells until no number repeats in any row or column.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Shaded cells never touch side by side.</li>
+              <li>The unshaded cells stay connected as one piece.</li>
+              <li>Cells that break a rule turn red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>The circle at the bottom right shows what a tap places: a shade, or a circle for a number you know stays. Tap the circle to switch.</li>
+              <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places the second one.</li>
+              <li>Shades go one tap at a time; drag to circle several cells at once.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <section class="how-panel" id="how-shading-light-up" role="tabpanel" aria-labelledby="how-shading-light-up-tab" hidden>
+            <p class="how-goal">Place lamps until every white cell is lit.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>A lamp lights its own cell and its row and column, up to a wall.</li>
+              <li>No lamp may light another.</li>
+              <li>A number on a wall is how many lamps sit beside it, above, below, left and right.</li>
+              <li>Lamps that break a rule turn red.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>The circle at the bottom right shows what a tap places: a lamp, or an X for a cell that can’t hold one. Tap the circle to switch.</li>
+              <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places the second one.</li>
+              <li>Lamps go one tap at a time; drag to place X’s across several cells.</li>
+            </ul>
+            <p class="how-promise">Every puzzle has exactly one solution.</p>
+          </section>
+          <button class="dialog-close" type="button" popovertarget="how-shading" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="nonogram/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <!-- A 3×3 picture with its clues: rows 2, 2, 1 1 (right of the numbers, beside each row);
+               columns 1 1, 2, 2 (stacked, above each column). -->
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="end">
+            <text x="14.5" y="24.6">2</text><text x="14.5" y="34.1">2</text><text x="14.5" y="43.6">1 1</text>
+          </g>
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="21.75" y="7.5">1</text><text x="21.75" y="14.5">1</text><text x="31.25" y="14.5">2</text><text x="40.75" y="14.5">2</text>
+          </g>
+          <!-- The shaded cells alone, no frame or lines: a small picture. -->
+          <g fill="currentColor">
+            <rect x="17.5" y="17.5" width="8.5" height="8.5" rx="1.5"/><rect x="27" y="17.5" width="8.5" height="8.5" rx="1.5"/>
+            <rect x="27" y="27" width="8.5" height="8.5" rx="1.5"/><rect x="36.5" y="27" width="8.5" height="8.5" rx="1.5"/>
+            <rect x="17.5" y="36.5" width="8.5" height="8.5" rx="1.5"/><rect x="36.5" y="36.5" width="8.5" height="8.5" rx="1.5"/>
+          </g>
+        </svg>
+        <div><strong>Nonogram</strong><span>Shade the grid so every row and column matches its runs. Solvable a line at a time.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-nonogram" aria-label="How to play Nonogram">i</button>
+      <div class="how" id="how-nonogram" popover>
+        <div class="how-box">
+          <h2>Nonogram</h2>
+          <p class="how-goal">Shade the cells to match the numbers around the grid.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>The numbers beside each row and above each column are the lengths of its runs of shaded cells, in order.</li>
+            <li>Runs are split by at least one empty cell.</li>
+            <li>A line’s numbers dim when the line matches them.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>The circle at the bottom right shows what a tap places: a shade (or a color), or an X for a cell you know is empty. Tap the circle to switch.</li>
+            <li>Tap a cell to place it, and again to clear it. With a mouse, right-click places an X.</li>
+            <li>Drag along a row or column to do the same to each cell you pass.</li>
+            <li>On a narrow screen a big grid slides sideways: drag anywhere off the cells.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Colors</strong>: Cells come in colors, shown on the numbers. Runs of the same color need a gap; different colors may touch.</li>
+            <li><strong>Mystery</strong>: Some numbers are hidden as ?: the run is there, but its length isn’t given.</li>
+          </ul>
+          <p class="how-promise">Every puzzle has exactly one solution.</p>
+          <button class="dialog-close" type="button" popovertarget="how-nonogram" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="mines/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g fill="currentColor" opacity="0.6"><rect x="17.5" y="2" width="13" height="13" rx="2.5"/><rect x="33" y="2" width="13" height="13" rx="2.5"/><rect x="33" y="17.5" width="13" height="13" rx="2.5"/><rect x="33" y="33" width="13" height="13" rx="2.5"/></g>
+          <g fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.45"><rect x="2" y="2" width="13" height="13" rx="2.5"/><rect x="2" y="17.5" width="13" height="13" rx="2.5"/><rect x="2" y="33" width="13" height="13" rx="2.5"/><rect x="17.5" y="17.5" width="13" height="13" rx="2.5"/><rect x="17.5" y="33" width="13" height="13" rx="2.5"/></g>
+          <g font-size="10" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle"><text x="8.5" y="12.1" fill="#7aa5f5">1</text><text x="24" y="27.6" fill="#6cc58a">2</text></g>
+          <path d="M37.5 35.8v7.6M38 36.2h4.6l-1.3 2 1.3 2h-4.6z" fill="var(--surface)" stroke="var(--surface)" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+        <div><strong>Mines</strong><span>Clear the field using the counts of hidden mines next to each cell. No guessing needed.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-mines" aria-label="How to play Mines">i</button>
+      <div class="how" id="how-mines" popover>
+        <div class="how-box">
+          <h2>Mines</h2>
+          <p class="how-goal">Reveal every cell that isn’t a mine.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Each number counts the mines in the eight cells around it.</li>
+            <li>Reveal a mine and the game is over.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Tap a cell to reveal it.</li>
+            <li>Long-press (or right-click) to flag a mine.</li>
+            <li>Tap a number whose mines are all flagged to reveal the rest of the cells around it.</li>
+            <li>There’s no Undo: a wrong tap stands.</li>
+          </ul>
+          <p class="how-promise">Your first tap is always safe, and every board can be cleared without guessing.</p>
+          <button class="dialog-close" type="button" popovertarget="how-mines" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <h2 class="group">Paths</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="loop/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g fill="currentColor" opacity="0.5">
+            <circle cx="6" cy="6" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="30" cy="6" r="1.6"/><circle cx="42" cy="6" r="1.6"/>
+            <circle cx="6" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/><circle cx="30" cy="18" r="1.6"/><circle cx="42" cy="18" r="1.6"/>
+            <circle cx="6" cy="30" r="1.6"/><circle cx="18" cy="30" r="1.6"/><circle cx="30" cy="30" r="1.6"/><circle cx="42" cy="30" r="1.6"/>
+            <circle cx="6" cy="42" r="1.6"/><circle cx="18" cy="42" r="1.6"/><circle cx="30" cy="42" r="1.6"/><circle cx="42" cy="42" r="1.6"/>
+          </g>
+          <path d="M6 6H30V18H42V42H18V30H6Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+          <g font-size="9" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="12" y="15.5">3</text><text x="36" y="39.5">2</text>
+          </g>
+        </svg>
+        <div><strong>Loop</strong><span>Draw one closed loop along the dots; each number says how many of its sides the loop uses.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-loop" aria-label="How to play Loop">i</button>
+      <div class="how" id="how-loop" popover>
+        <div class="how-box">
+          <h2>Loop</h2>
+          <p class="how-goal">Draw one closed loop along the lines between the dots.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>The loop can’t branch or cross itself.</li>
+            <li>A number in a cell is how many of its four sides the loop uses. Cells without a number can have any.</li>
+            <li>Numbers dim when they’re met and turn red when there are too many.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Tap a side to draw a line there.</li>
+            <li>Tap again to mark it ✕, a side you know the loop doesn’t use, and once more to clear it.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Squares</strong>: Solid squares end up on one side of the loop, hollow squares on the other.</li>
+            <li><strong>Rings</strong>: The loop passes through every ringed dot.</li>
+          </ul>
+          <p class="how-promise">Every puzzle has exactly one solution.</p>
+          <button class="dialog-close" type="button" popovertarget="how-loop" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="bridges/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M12 12h24M12 36h24M10.5 15v18M13.5 15v18" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="36" cy="12" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="12" cy="36" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="36" cy="36" r="7" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <g font-size="8" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">
+            <text x="12" y="15">3</text><text x="36" y="15">1</text><text x="12" y="39">3</text><text x="36" y="39">1</text>
+          </g>
+        </svg>
+        <div><strong>Bridges</strong><span>Link the islands with bridges so each has its number, without crossings, all connected.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-bridges" aria-label="How to play Bridges">i</button>
+      <div class="how" id="how-bridges" popover>
+        <div class="how-box">
+          <h2>Bridges</h2>
+          <p class="how-goal">Connect every island, with each island’s number of bridges.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Bridges run straight across or down, with at most two between the same two islands.</li>
+            <li>Bridges can’t cross each other.</li>
+            <li>All the islands end up connected as one group.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Drag from one island to another to build a bridge; drag again for a double.</li>
+            <li>Swipe across a bridge to take one away.</li>
+            <li>Or tap the gap between two islands to cycle 0 → 1 → 2 bridges.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Colors</strong>: Bridges join red to red and blue to blue; plain islands join any.</li>
+            <li><strong>Blocks</strong>: No bridge may pass over a block.</li>
+            <li><strong>Diagonals</strong>: Bridges can also run diagonally, even between islands that touch at a corner.</li>
+          </ul>
+          <p class="how-promise">Every puzzle has exactly one solution.</p>
+          <button class="dialog-close" type="button" popovertarget="how-bridges" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="flow/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g stroke="currentColor" stroke-width="0.8" opacity="0.35"><path d="M13 2V46M2 13H46"/><path d="M24 2V46M2 24H46"/><path d="M35 2V46M2 35H46"/></g>
+          <path d="M18.5 7.5 L29.5 7.5 L40.5 7.5" fill="none" stroke="#e8c547" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="4" fill="#e8c547"/><circle cx="40.5" cy="7.5" r="4" fill="#e8c547"/>
+          <path d="M7.5 7.5 L7.5 18.5 L18.5 18.5 L29.5 18.5 L40.5 18.5 L40.5 29.5" fill="none" stroke="#e5534b" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="4" fill="#e5534b"/><circle cx="40.5" cy="29.5" r="4" fill="#e5534b"/>
+          <path d="M7.5 29.5 L18.5 29.5 L29.5 29.5" fill="none" stroke="#3fb67a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="29.5" r="4" fill="#3fb67a"/><circle cx="29.5" cy="29.5" r="4" fill="#3fb67a"/>
+          <path d="M7.5 40.5 L18.5 40.5 L29.5 40.5 L40.5 40.5" fill="none" stroke="#4f8ef7" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="40.5" r="4" fill="#4f8ef7"/><circle cx="40.5" cy="40.5" r="4" fill="#4f8ef7"/>
+        </svg>
+        <div><strong>Flow</strong><span>Join matching dots with paths that never cross and fill every square.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-flow" aria-label="How to play Flow">i</button>
+      <div class="how" id="how-flow" popover>
+        <div class="how-box">
+          <h2>Flow</h2>
+          <p class="how-goal">Join each pair of matching dots, and fill every square.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Paths run through neighboring squares, side to side.</li>
+            <li>Paths can’t cross or share a square.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Drag from a dot to draw its path.</li>
+            <li>Drag back over a path to shorten it, or start on a path to carry on from there.</li>
+            <li>Other colors block the way: move them first.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Walls</strong>: Paths can’t cross the thick walls between some squares.</li>
+            <li><strong>Holes</strong>: Some squares are missing; paths go around them, and they don’t need filling.</li>
+            <li><strong>Wrapping</strong>: The edges join up: a path that leaves one side comes back on the opposite side.</li>
+            <li><strong>Bridges</strong>: Two paths cross on a bridge, one straight across and one straight down; it’s filled once both do.</li>
+          </ul>
+          <p class="how-promise">Every puzzle has exactly one solution.</p>
+          <button class="dialog-close" type="button" popovertarget="how-flow" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="untangle/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M8 10L40 38M8 38L40 10M8 10L8 38M40 10L40 38M24 4L8 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+          <g fill="currentColor"><circle cx="8" cy="10" r="3.5"/><circle cx="40" cy="38" r="3.5"/><circle cx="8" cy="38" r="3.5"/><circle cx="40" cy="10" r="3.5"/><circle cx="24" cy="4" r="3"/></g>
+        </svg>
+        <div><strong>Untangle</strong><span>Drag the dots until none of the lines cross. Every puzzle can be untangled.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-untangle" aria-label="How to play Untangle">i</button>
+      <div class="how" id="how-untangle" popover>
+        <div class="how-box">
+          <h2>Untangle</h2>
+          <p class="how-goal">Move the dots until no two lines cross.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Lines that cross show in red.</li>
+            <li>A dot resting on a line it isn’t part of counts as a crossing too, and gets a red ring.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Drag a dot to move it. The whole screen is yours to spread them out.</li>
+            <li>A dot dropped on another is nudged clear.</li>
+          </ul>
+          <p class="how-promise">Every puzzle can be untangled.</p>
+          <button class="dialog-close" type="button" popovertarget="how-untangle" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <h2 class="group">Arrange</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="blocks/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g fill="currentColor" opacity="0.35"><circle cx="7" cy="7" r="1.1"/><circle cx="17" cy="7" r="1.1"/><circle cx="37" cy="7" r="1.1"/><circle cx="37" cy="17" r="1.1"/><circle cx="7" cy="27" r="1.1"/><circle cx="17" cy="27" r="1.1"/><circle cx="27" cy="27" r="1.1"/><circle cx="27" cy="37" r="1.1"/></g>
+          <rect x="2.9" y="12.9" width="18.2" height="8.2" rx="2.2" fill="#e5534b"/>
+          <g fill="currentColor" opacity="0.6"><rect x="22.9" y="2.9" width="8.2" height="18.2" rx="2.2"/><rect x="2.9" y="32.9" width="18.2" height="8.2" rx="2.2"/><rect x="32.9" y="22.9" width="8.2" height="18.2" rx="2.2"/></g>
+          <path d="M42.8 14l3 3l-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div><strong>Sliding Blocks <small class="variants" title="4 variants">4<span class="sr-only"> variants</span></small></strong><span>Slide the blocks aside to clear a way out for the red one.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-blocks" aria-label="How to play Sliding Blocks">i</button>
+      <div class="how" id="how-blocks" popover>
+        <div class="how-box">
+          <h2>Sliding Blocks</h2>
+          <div class="pick-tabs how-tabs" role="tablist" aria-label="Sliding Blocks games">
+            <button type="button" role="tab" id="how-blocks-classic-tab" aria-controls="how-blocks-classic" aria-selected="true">Classic</button>
+            <button type="button" role="tab" id="how-blocks-pillars-tab" aria-controls="how-blocks-pillars" aria-selected="false">Pillars</button>
+            <button type="button" role="tab" id="how-blocks-big-tab" aria-controls="how-blocks-big" aria-selected="false">Big</button>
+            <button type="button" role="tab" id="how-blocks-two-keys-tab" aria-controls="how-blocks-two-keys" aria-selected="false">Two Keys</button>
+          </div>
+          <section class="how-panel" id="how-blocks-classic" role="tabpanel" aria-labelledby="how-blocks-classic-tab">
+            <p class="how-goal">Clear a way and slide the red block out past the arrow on the right.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Blocks slide only along their length: long side to side, tall up and down.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Drag a block to slide it. Blocks move only along their length and can’t pass through each other.</li>
+              <li>The flag at the top shows the fewest moves it can be done in. Sliding a block any distance is one move.</li>
+              <li>Levels go from Easy through Medium to Hard, a little harder each time, played in order. New Game (+) can start any of them.</li>
+            </ul>
+            <p class="how-promise">Every level can be solved in the number of moves shown.</p>
+          </section>
+          <section class="how-panel" id="how-blocks-pillars" role="tabpanel" aria-labelledby="how-blocks-pillars-tab" hidden>
+            <p class="how-goal">Clear a way and slide the red block out past the arrow on the right.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Blocks slide only along their length: long side to side, tall up and down.</li>
+              <li>A few fixed squares, the pillars, never move.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Drag a block to slide it. Blocks move only along their length and can’t pass through each other.</li>
+              <li>The flag at the top shows the fewest moves it can be done in. Sliding a block any distance is one move.</li>
+              <li>Levels go from Easy through Medium to Hard, a little harder each time, played in order. New Game (+) can start any of them.</li>
+            </ul>
+            <p class="how-promise">Every level can be solved in the number of moves shown.</p>
+          </section>
+          <section class="how-panel" id="how-blocks-big" role="tabpanel" aria-labelledby="how-blocks-big-tab" hidden>
+            <p class="how-goal">Clear a way and slide the red block out past the arrow on the right.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Blocks slide only along their length: long side to side, tall up and down.</li>
+              <li>The board is 8×8, with more blocks in the way.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Drag a block to slide it. Blocks move only along their length and can’t pass through each other.</li>
+              <li>The flag at the top shows the fewest moves it can be done in. Sliding a block any distance is one move.</li>
+              <li>Levels go from Easy through Medium to Hard, a little harder each time, played in order. New Game (+) can start any of them.</li>
+            </ul>
+            <p class="how-promise">Every level can be solved in the number of moves shown.</p>
+          </section>
+          <section class="how-panel" id="how-blocks-two-keys" role="tabpanel" aria-labelledby="how-blocks-two-keys-tab" hidden>
+            <p class="how-goal">Get both key blocks out: red past the arrow on the right, blue past the arrow at the bottom.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Blocks slide only along their length: long side to side, tall up and down.</li>
+              <li>A key block that reaches its exit is gone, and frees its squares.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Drag a block to slide it. Blocks move only along their length and can’t pass through each other.</li>
+              <li>The flag at the top shows the fewest moves it can be done in. Sliding a block any distance is one move.</li>
+              <li>Levels go from Easy through Medium to Hard, a little harder each time, played in order. New Game (+) can start any of them.</li>
+            </ul>
+            <p class="how-promise">Every level can be solved in the number of moves shown.</p>
+          </section>
+          <button class="dialog-close" type="button" popovertarget="how-blocks" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="sort/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="7.8" y="3" width="13.2" height="42" rx="6.6" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><rect x="10.1" y="24.50" width="8.6" height="17.70" rx="4.3" fill="#4f8ef7"/><rect x="10.1" y="15.15" width="8.6" height="8.35" rx="4.3" fill="#e5534b"/>
+          <rect x="27" y="3" width="13.2" height="42" rx="6.6" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><rect x="29.3" y="33.85" width="8.6" height="8.35" rx="4.3" fill="#e5534b"/><rect x="29.3" y="24.50" width="8.6" height="8.35" rx="4.3" fill="#e8c547"/><rect x="29.3" y="15.15" width="8.6" height="8.35" rx="4.3" fill="#4f8ef7"/>
+        </svg>
+        <div><strong>Color Sort</strong><span>Pour colored layers between tubes until every tube holds one color.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-sort" aria-label="How to play Color Sort">i</button>
+      <div class="how" id="how-sort" popover>
+        <div class="how-box">
+          <h2>Color Sort</h2>
+          <p class="how-goal">Sort the colors so each tube ends up full of one color, or empty.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Color pours only into an empty tube or onto the same color.</li>
+            <li>The whole run of matching color on top pours across, as much as fits.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Tap a tube to pick it up, then tap another to pour into it.</li>
+            <li>Some pours lead to a dead end. If you run out of moves, Undo to try another way.</li>
+          </ul>
+          <h3 class="pick-title">Optional Rules</h3>
+          <ul>
+            <li><strong>Mystery</strong>: Only each tube’s top layer shows its color until the layers under it come to the top.</li>
+            <li><strong>Tall Tubes</strong>: Tubes hold more layers.</li>
+          </ul>
+          <p class="how-promise">Every deal can be sorted.</p>
+          <button class="dialog-close" type="button" popovertarget="how-sort" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="gradient/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient id="g-icon" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f2c38a"/><stop offset="0.5" stop-color="#7aa5f5"/><stop offset="1" stop-color="#6b4fa3"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="44" height="44" rx="8" fill="url(#g-icon)"/>
+          <path d="M17 2v44M31 2v44M2 17h44M2 31h44" stroke="var(--surface)" stroke-width="2.5"/>
+          <circle cx="9.5" cy="9.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/><circle cx="38.5" cy="38.5" r="1.8" fill="rgb(0 0 0 / 0.35)"/>
+        </svg>
+        <div><strong>Gradient</strong><span>Swap tiles until the colors flow smoothly from corner to corner.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-gradient" aria-label="How to play Gradient">i</button>
+      <div class="how" id="how-gradient" popover>
+        <div class="how-box">
+          <h2>Gradient</h2>
+          <p class="how-goal">Swap tiles until the colors flow smoothly from corner to corner.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Tiles with a dot are fixed in place.</li>
+            <li>The marks beside each row and under each column light up when that line is in place.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Tap two tiles to swap them, or drag one onto another.</li>
+          </ul>
+          <p class="how-promise">There’s no wrong move: keep swapping until it fits.</p>
+          <button class="dialog-close" type="button" popovertarget="how-gradient" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <h2 class="group">Cards &amp; tiles</h2>
+  <ul class="games">
+    <li>
+      <a class="game" href="solitaire/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="4" y="9" width="22" height="31" rx="3" fill="#2f4a80" stroke="currentColor" stroke-width="1.5" transform="rotate(-10 15 24)"/>
+          <rect x="20" y="6" width="22" height="31" rx="3" fill="var(--surface)" stroke="currentColor" stroke-width="2" transform="rotate(8 31 21)"/>
+          <g transform="rotate(8 31 21)" font-family="system-ui, sans-serif" font-weight="700" fill="#e5534b">
+            <text x="23.5" y="15" font-size="8">A</text><text x="31" y="31" font-size="12" text-anchor="middle">♥</text>
+          </g>
+        </svg>
+        <div><strong>Solitaire <small class="variants" title="2 variants">2<span class="sr-only"> variants</span></small></strong><span>Klondike or FreeCell: build each suit up from Ace to King. Every deal can be won.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-solitaire" aria-label="How to play Solitaire">i</button>
+      <div class="how" id="how-solitaire" popover>
+        <div class="how-box">
+          <h2>Solitaire</h2>
+          <div class="pick-tabs how-tabs" role="tablist" aria-label="Solitaire games">
+            <button type="button" role="tab" id="how-solitaire-klondike-tab" aria-controls="how-solitaire-klondike" aria-selected="true">Klondike</button>
+            <button type="button" role="tab" id="how-solitaire-freecell-tab" aria-controls="how-solitaire-freecell" aria-selected="false">FreeCell</button>
+          </div>
+          <section class="how-panel" id="how-solitaire-klondike" role="tabpanel" aria-labelledby="how-solitaire-klondike-tab">
+            <p class="how-goal">Move every card to the four foundations along the top, each suit built up from Ace to King.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Build the columns down in alternating colors: a red 7 on a black 8.</li>
+              <li>Most cards start face down. Moving a column’s last face-up card turns over the one beneath it.</li>
+              <li>Only a King can go into an empty column.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Tap a card to send it to its best spot. A card with nowhere to go gives a shake.</li>
+              <li>Tap the stock (bottom right) to draw one card or three, as picked in New Game (+). When it runs out, tap again to turn the pile over.</li>
+              <li>Once every card is showing, the rest go home by themselves.</li>
+              <li>On a narrow screen the columns slide sideways under your finger.</li>
+            </ul>
+            <p class="how-promise">Every deal can be won.</p>
+          </section>
+          <section class="how-panel" id="how-solitaire-freecell" role="tabpanel" aria-labelledby="how-solitaire-freecell-tab" hidden>
+            <p class="how-goal">Move every card to the four foundations along the top, each suit built up from Ace to King.</p>
+            <h3 class="pick-title">Rules</h3>
+            <ul>
+              <li>Build the columns down in alternating colors: a red 7 on a black 8.</li>
+              <li>Every card starts face up. Any card can go into an empty column.</li>
+              <li>Each free cell along the bottom holds one card. Fewer free cells make it harder.</li>
+              <li>You can move a run of cards at once if there’s room to move it one card at a time through the free cells and empty columns.</li>
+            </ul>
+            <h3 class="pick-title">How to Play</h3>
+            <ul>
+              <li>Tap a card to send it to its best spot, or drag it to put it exactly where you want.</li>
+              <li>On a narrow screen the columns slide sideways under your finger.</li>
+            </ul>
+            <p class="how-promise">Every deal can be won.</p>
+          </section>
+          <button class="dialog-close" type="button" popovertarget="how-solitaire" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+    <li>
+      <a class="game" href="mahjong/">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="13" y="9" width="24" height="32" rx="4" fill="currentColor" opacity="0.35"/>
+          <rect x="9" y="5" width="24" height="32" rx="4" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="21" cy="21" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/>
+          <circle cx="21" cy="21" r="3" fill="currentColor"/>
+        </svg>
+        <div><strong>Mahjong</strong><span>Clear the stacked tiles by matching free pairs. Every deal can be cleared.</span></div>
+      </a>
+      <button class="info" type="button" popovertarget="how-mahjong" aria-label="How to play Mahjong">i</button>
+      <div class="how" id="how-mahjong" popover>
+        <div class="how-box">
+          <h2>Mahjong</h2>
+          <p class="how-goal">Clear the board by matching pairs of identical tiles.</p>
+          <h3 class="pick-title">Rules</h3>
+          <ul>
+            <li>Any flower matches any other flower, and any season any other season.</li>
+            <li>A tile is free when nothing lies on it and its left or right side is open. Dimmed tiles aren’t free yet.</li>
+            <li>Easy deals forgive a careless match. On harder ones, the wrong pair early can leave its twin stuck, so look ahead.</li>
+          </ul>
+          <h3 class="pick-title">How to Play</h3>
+          <ul>
+            <li>Tap a free tile, then its match.</li>
+            <li>If no matching pairs are free, a Shuffle button appears to mix up the tiles that are left.</li>
+            <li>New Game (+) picks one layout or several; each deal takes one of them at random.</li>
+          </ul>
+          <p class="how-promise">Every deal can be cleared.</p>
+          <button class="dialog-close" type="button" popovertarget="how-mahjong" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+    </li>
+  </ul>
+</body>
+</html>
