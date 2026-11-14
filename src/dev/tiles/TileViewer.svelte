@@ -50,6 +50,7 @@
     { label: 'Normal', cls: '' },
     { label: 'Blocked', cls: 'blocked' },
     { label: 'Selected', cls: 'selected' },
+    { label: 'Inset', cls: 'inset' },
   ];
 </script>
 

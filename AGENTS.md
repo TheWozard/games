@@ -23,12 +23,14 @@ Before calling a change done: `npm test` and `npm run build` must both pass with
 
 ```
 src/
-  index.html            launcher: one card per game
+  index.html            launcher: one card per game, and the gear (Settings) in its header
+  launcher.ts           the launcher's Settings dialog
   shared/               loaded by every page
     app.ts              shared CSS + service worker registration (import first in every main.ts)
     wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
+    settings.ts         how games look, set from the launcher's gear (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
@@ -172,6 +174,11 @@ only forwards old links), `blocks` (Sliding Blocks).
   headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
   Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
   own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
+- **Settings** (the launcher's gear) are for how a game looks, never how it plays (that's the
+  New Game dialog). Add a setting to `CHOICES` in `src/shared/settings.ts` (first choice is the
+  default), a group of `data-setting` / `data-value` tiles under the game's name in the dialog in
+  `src/index.html`, and read it with `loadSettings()` as the game opens. Taps save at once; there's
+  no Play button. Mahjong's Tile Faces (Full / Inset) is the first.
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.

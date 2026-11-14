@@ -4,6 +4,7 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import { attachPan } from '../shared/pan';
   import { createShake } from '../shared/shake.svelte';
+  import { loadSettings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { DEPTH } from './body';
@@ -14,6 +15,9 @@
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
+
+  // Set from the launcher's gear; read once, as the page opens.
+  const inset = loadSettings().mahjongFaces === 'inset';
 
   const layout = $derived(LAYOUTS[game.layout]);
   const moves = $derived(pairsLeft(game).length);
@@ -160,6 +164,7 @@
               blocked: !free(game, s.i),
               selected: game.selected === s.i,
               shake: shake.current === s.i,
+              inset,
             }]}
             style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
             style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"

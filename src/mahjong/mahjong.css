@@ -24,6 +24,9 @@
   touch-action: manipulation;
 }
 
+/* Inset faces (the launcher's Settings): a 10% margin, leaving space between neighbors' faces. */
+.mj-tile.inset { padding: calc(var(--u) * 0.4) calc(var(--u) * 0.3); }
+
 /* The face, its ivory edge and green back (body.ts), from the tile's top left, a side's depth
    (0.42 of a 3 × 4 face) larger than the button. */
 .mj-tile .mj-body {
