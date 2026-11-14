@@ -14,6 +14,7 @@ just build         # svelte-check (fails on warnings) + production build into di
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
 just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour; --keep only trims it)
+just mahjong-tiles # remake Mahjong's tile faces from two public tile sets (needs a network connection)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -44,7 +45,7 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
-scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles)
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's tile faces, credited in README.md and the card's i)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
@@ -183,8 +184,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 ### Gotchas
 
 - **SVG `<use>`:** CSS from the page doesn't reliably reach the copies that `<use>` draws. Put
-  `text-anchor`, `font-family` and similar on the symbol's elements as attributes (see
-  `src/mahjong/TileFaces.svelte`).
+  `text-anchor`, `font-family` and similar on the symbol's elements as attributes.
 - **Grid lines:** every grid board uses the same line sizes, in screen pixels whatever the board's
   size: `--grid-thin`, `--grid-thick` and `--grid-radius` in `base.css`. In HTML (Sudoku), draw
   thin lines as `gap` over a line-colored background, thick lines as overlays (`::after`) centered

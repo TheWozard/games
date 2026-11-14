@@ -1,8 +1,9 @@
 <!--
-  Every Mahjong face from TileFaces.svelte on a real tile (the game's .mj-tile), large for detail and
+  Every Mahjong face from faces.svg (TileFaces.svelte) on a real tile (the game's .mj-tile), large for detail and
   at phone size in each state it takes in play. Names live here, not in the game, which shows none.
 -->
 <script lang="ts">
+  import TileBody from '../../mahjong/TileBody.svelte';
   import TileFaces from '../../mahjong/TileFaces.svelte';
   import { facesFor, KINDS } from '../../mahjong/logic';
 
@@ -31,18 +32,19 @@
   // Names must cover every face the game draws; say so on the page if they drift apart.
   const mismatch = next !== KINDS;
 
-  // The guide tile. Every face is a <symbol viewBox="1.5 1.5 27 37"> (TileFaces.svelte), drawn into
-  // a 30 × 40 box; keep these in step with it. The box is a little wider than the viewBox's shape,
-  // so the face is centered with a sliver more room left and right; past the box, it's cut off.
-  const VIEW = { x: 1.5, y: 1.5, w: 27, h: 37 };
-  const BOX = { w: 30, h: 40 };
+  // The guide tile. Every face is a <symbol viewBox="0 0 300 400"> (faces.svg, made by
+  // scripts/mahjong-tiles.ts), drawn into a 300 × 400 box (TileBody.svelte); keep these in step
+  // with them. Where the box's shape differs from the viewBox's, the face is centered with spare
+  // room at the sides; past the box, it's cut off.
+  const VIEW = { x: 0, y: 0, w: 300, h: 400 };
+  const BOX = { w: 300, h: 400 };
   const fit = Math.min(BOX.w / VIEW.w, BOX.h / VIEW.h);
   const spareX = (BOX.w / fit - VIEW.w) / 2;
   const spareY = (BOX.h / fit - VIEW.h) / 2;
   const SHOWN = { x0: VIEW.x - spareX, x1: VIEW.x + VIEW.w + spareX, y0: VIEW.y - spareY, y1: VIEW.y + VIEW.h + spareY };
   const fmt = (n: number) => String(Math.round(n * 100) / 100);
-  const GRID_X = [0, 5, 10, 15, 20, 25, 30];
-  const GRID_Y = [0, 5, 10, 15, 20, 25, 30, 35, 40];
+  const GRID_X = [0, 50, 100, 150, 200, 250, 300];
+  const GRID_Y = [0, 50, 100, 150, 200, 250, 300, 350, 400];
 
   const STATES = [
     { label: 'Normal', cls: '' },
@@ -58,27 +60,27 @@
      that shows. Labels are a second symbol, laid over the large guide only. -->
 <svg class="defs" aria-hidden="true" width="0" height="0">
   <defs>
-    <pattern id="mj-guide-hatch" width="1.6" height="1.6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <rect width="1.6" height="1.6" fill="#dfe8fb" />
-      <path d="M0 0v1.6" stroke="#9db8ef" stroke-width="0.7" />
+    <pattern id="mj-guide-hatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="16" height="16" fill="#dfe8fb" />
+      <path d="M0 0v16" stroke="#9db8ef" stroke-width="7" />
     </pattern>
     <symbol id="mj-guide" viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}">
-      <rect x="-50" y="-50" width="130" height="140" fill="url(#mj-guide-hatch)" />
+      <rect x="-500" y="-500" width="1300" height="1400" fill="url(#mj-guide-hatch)" />
       {#each GRID_X as x (x)}
-        <path d="M{x} -50V90" stroke="#8b909b" stroke-width="1" vector-effect="non-scaling-stroke" stroke-opacity={x === 15 ? 1 : 0.5} />
+        <path d="M{x} -500V900" stroke="#8b909b" stroke-width="1" vector-effect="non-scaling-stroke" stroke-opacity={x === 150 ? 1 : 0.5} />
       {/each}
       {#each GRID_Y as y (y)}
-        <path d="M-50 {y}H80" stroke="#8b909b" stroke-width="1" vector-effect="non-scaling-stroke" stroke-opacity={y === 20 ? 1 : 0.5} />
+        <path d="M-500 {y}H800" stroke="#8b909b" stroke-width="1" vector-effect="non-scaling-stroke" stroke-opacity={y === 200 ? 1 : 0.5} />
       {/each}
       <rect x={VIEW.x} y={VIEW.y} width={VIEW.w} height={VIEW.h} fill="none" stroke="#c8372d" stroke-width="1.5" stroke-dasharray="5 4" vector-effect="non-scaling-stroke" />
-      <circle cx="15" cy="20" r="0.8" fill="#c8372d" />
+      <circle cx="150" cy="200" r="8" fill="#c8372d" />
     </symbol>
     <symbol id="mj-guide-labels" viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}">
       {#each GRID_X.slice(1, -1) as x (x)}
-        <text x={x - 0.4} y="38" text-anchor="end" font-size="2.3" font-family="system-ui, sans-serif" fill="#4a4f5a">{x}</text>
+        <text x={x - 4} y="385" text-anchor="end" font-size="23" font-family="system-ui, sans-serif" fill="#4a4f5a">{x}</text>
       {/each}
       {#each GRID_Y.slice(1, -1) as y (y)}
-        <text x="1.9" y={y - 0.5} font-size="2.3" font-family="system-ui, sans-serif" fill="#4a4f5a">{y}</text>
+        <text x="6" y={y - 5} font-size="23" font-family="system-ui, sans-serif" fill="#4a4f5a">{y}</text>
       {/each}
     </symbol>
   </defs>
@@ -86,10 +88,7 @@
 
 {#snippet tile(href: string, u: number, cls = '', overlay = '')}
   <div class="mj-tile {cls}" style:--u="{u}px" style:width="{3 * u}px" style:height="{4 * u}px">
-    <svg viewBox="0 0 30 40" aria-hidden="true">
-      <use href="#{href}" />
-      {#if overlay}<use href="#{overlay}" />{/if}
-    </svg>
+    <TileBody {href} {overlay} />
   </div>
 {/snippet}
 
@@ -113,11 +112,11 @@
         <dt><span class="swatch hatch"></span>Shows on the tile</dt>
         <dd>x {fmt(SHOWN.x0)} to {fmt(SHOWN.x1)}, y {fmt(SHOWN.y0)} to {fmt(SHOWN.y1)}. Anything outside is cut off.</dd>
         <dt><span class="swatch dashed"></span>The symbol's viewBox</dt>
-        <dd><code>viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}"</code>: x {VIEW.x} to {VIEW.x + VIEW.w}, y {VIEW.y} to {VIEW.y + VIEW.h}. This is scaled to fill the tile's height, with {fmt(spareX)} spare on the left and right.</dd>
+        <dd><code>viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}"</code>: x {VIEW.x} to {VIEW.x + VIEW.w}, y {VIEW.y} to {VIEW.y + VIEW.h}. This is scaled to fit the tile's padding box{spareX || spareY ? `, with ${fmt(spareX)} spare at the left and right and ${fmt(spareY)} at the top and bottom` : ''}.</dd>
         <dt><span class="swatch dot"></span>Center</dt>
-        <dd>x 15, y 20. The darker lines cross there.</dd>
+        <dd>x 150, y 200. The darker lines cross there.</dd>
         <dt><span class="swatch grid"></span>Grid</dt>
-        <dd>Every 5 units, in the symbol's own coordinates: x across, y down, as in <code>TileFaces.svelte</code>.</dd>
+        <dd>Every 50 units, in the symbol's own coordinates: x across, y down, as in <code>faces.svg</code>.</dd>
         <dt><span class="swatch plain"></span>Plain tile</dt>
         <dd>The cream margin around the hatch is the tile's padding. Nothing drawn in a face reaches it.</dd>
       </dl>

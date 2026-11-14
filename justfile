@@ -22,3 +22,7 @@ icons:
 # Make the Sliding Blocks puzzles (src/blocks/puzzles.ts); about a quarter of an hour. `just blocks --keep` only trims the list to KEEP
 blocks *variants:
     node --experimental-strip-types scripts/blocks.ts {{variants}}
+
+# Remake Mahjong's tile faces (src/mahjong/faces.svg) from the FluffyStuff and xhokir tile sets; needs a network connection
+mahjong-tiles:
+    node --experimental-strip-types scripts/mahjong-tiles.ts
