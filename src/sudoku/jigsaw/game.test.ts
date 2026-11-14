@@ -23,7 +23,7 @@ describe('game', () => {
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
     for (let i = 0; i < 81; i++) {
       if (g.puzzle[i]) continue;
-      g = gridReducer(gridReducer(g, { type: 'select', index: i }, layout(g)), { type: 'enter', digit: g.solution[i] }, layout(g));
+      g = gridReducer(g, { type: 'place', index: i, digit: g.solution[i] }, layout(g));
     }
     expect(g.done).toBe(true);
     expect(isGame({ ...g, regions: g.regions.slice(1) })).toBe(false);

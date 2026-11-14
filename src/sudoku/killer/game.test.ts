@@ -25,13 +25,13 @@ describe('layout', () => {
     let g = newGame('medium');
     const cage = g.cages.find((c) => c.cells.length >= 2 && c.cells.every((i) => !g.puzzle[i]))!;
     const [first, ...rest] = cage.cells;
-    for (const i of rest) g = play(g, { type: 'select', index: i }, { type: 'enter', digit: g.solution[i] });
+    for (const i of rest) g = play(g, { type: 'place', index: i, digit: g.solution[i] });
     expect(cage.cells.some((i) => layout(g).error!(i))).toBe(false);
     const used = new Set(cage.cells.map((i) => g.solution[i]));
     const wrong = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((d) => !used.has(d))!;
-    g = play(g, { type: 'select', index: first }, { type: 'enter', digit: wrong });
+    g = play(g, { type: 'place', index: first, digit: wrong });
     expect(cage.cells.every((i) => layout(g).error!(i))).toBe(true);
-    g = play(g, { type: 'enter', digit: g.solution[first] });
+    g = play(g, { type: 'erase', indices: [first] }, { type: 'place', index: first, digit: g.solution[first] });
     expect(cage.cells.some((i) => layout(g).error!(i))).toBe(false);
   });
 });
@@ -62,7 +62,7 @@ describe('game', () => {
     let g = newGame('easy');
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
     for (let i = 0; i < 81; i++) {
-      if (!g.puzzle[i]) g = play(g, { type: 'select', index: i }, { type: 'enter', digit: g.solution[i] });
+      if (!g.puzzle[i]) g = play(g, { type: 'place', index: i, digit: g.solution[i] });
     }
     expect(g.done).toBe(true);
   });

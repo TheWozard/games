@@ -1,6 +1,7 @@
 <!--
-  The whole screen for a digit-grid game, inside GameScreen: board, Erase/Notes, number pad,
-  keyboard controls and saving. A game supplies how to make and
+  The whole screen for a digit-grid game, inside GameScreen: board, the Erase / Notes / Set modes,
+  number pad, keyboard controls and saving. No cell is ever selected: the player picks a mode and a
+  digit, then taps cells (Set, Erase) or drags across them (Notes, Erase). A game supplies how to make and
   validate its state and how its board looks (`layout`); the moves come from grid.ts.
 -->
 <script lang="ts" module>
@@ -22,7 +23,7 @@
 <script lang="ts" generics="G extends GridState">
   import { untrack } from 'svelte';
   import GameScreen from './GameScreen.svelte';
-  import { gridKeyAction, gridReducer, hasConflict, type GridAction, type GridState } from './grid';
+  import { gridKey, gridReducer, hasConflict, type GridAction, type GridState, type Mode } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import VariantPicker, { parsePick, type Games } from './VariantPicker.svelte';
   import './grid.css';
@@ -57,7 +58,20 @@
   const dispatch = (action: GridAction) => (game = gridReducer(game, action, shape));
 
   const digits = $derived(Array.from({ length: shape.size }, (_, k) => k + 1));
-  const selValue = $derived(game.selected === null ? 0 : game.values[game.selected]);
+
+  // What a tap does, and with which digit. Picking a digit while erasing goes back to the mode that
+  // writes (Set or Notes) used last.
+  let mode = $state<Mode>('set');
+  let writing = $state<Exclude<Mode, 'erase'>>('set');
+  let digit = $state(1);
+  function setMode(m: Mode) {
+    mode = m;
+    if (m !== 'erase') writing = m;
+  }
+  function pickDigit(d: number) {
+    digit = d;
+    if (mode === 'erase') mode = writing;
+  }
   /**
    * Where a cell's zone fill stops short of the cell, so each zone reads as one inset shape: insets on
    * the sides that border another zone (or the board's edge), and notches at inner corners, where
@@ -107,11 +121,92 @@
 
   function onKey(e: KeyboardEvent) {
     if (document.querySelector('dialog[open]')) return;
-    const action = gridKeyAction(e);
-    if (!action) return;
-    if (action.type !== 'toggleNotes') e.preventDefault();
-    dispatch(action);
+    const key = gridKey(e);
+    if (!key) return;
+    e.preventDefault();
+    if ('digit' in key) { if (key.digit <= shape.size) pickDigit(key.digit); }
+    else setMode(key.mode === 'notes' && mode === 'notes' ? 'set' : key.mode);
   }
+
+  // ---- Strokes ----
+  // A press starts a stroke on a cell. Set places the digit in that one cell. Notes and Erase carry
+  // on over every cell the finger passes: Notes adds the digit's note, or takes it away if the first
+  // cell already had it; Erase clears each cell. It's drawn as it goes and applied on release, as one
+  // move for Undo.
+
+  interface Stroke {
+    pointer: number;
+    mode: Mode;
+    digit: number;
+    on: boolean; // Notes: add the note (or take it away)
+    path: number[];
+  }
+
+  let stroke = $state.raw<Stroke | null>(null);
+  let board = $state<HTMLElement>();
+
+  function action({ mode, digit, on, path }: Stroke): GridAction {
+    if (mode === 'set') return { type: 'place', index: path[0], digit };
+    if (mode === 'notes') return { type: 'note', indices: path, digit, on };
+    return { type: 'erase', indices: path };
+  }
+
+  function strokeAt(i: number, pointer: number): Stroke {
+    const on = !(game.values[i] === 0 && game.notes[i] & (1 << digit));
+    return { pointer, mode, digit, on, path: [i] };
+  }
+
+  function cellAt(e: PointerEvent): number | null {
+    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-cell]');
+    return el && board?.contains(el) ? Number(el.dataset.cell) : null;
+  }
+
+  function down(e: PointerEvent) {
+    if (game.done || stroke || e.button !== 0) return;
+    const i = cellAt(e);
+    if (i === null) return;
+    e.preventDefault();
+    board?.setPointerCapture(e.pointerId);
+    stroke = strokeAt(i, e.pointerId);
+  }
+
+  function move(e: PointerEvent) {
+    if (!stroke || e.pointerId !== stroke.pointer || stroke.mode === 'set') return;
+    const i = cellAt(e);
+    const last = stroke.path.at(-1)!;
+    if (i === null || i === last) return;
+    // Every cell on the way from the last one, so a quick swipe doesn't skip any.
+    const n = shape.size;
+    const path = stroke.path.slice();
+    const [r0, c0] = [Math.floor(last / n), last % n];
+    const [dr, dc] = [Math.floor(i / n) - r0, (i % n) - c0];
+    const steps = Math.max(Math.abs(dr), Math.abs(dc));
+    for (let t = 1; t <= steps; t++) {
+      const j = (r0 + Math.round((dr * t) / steps)) * n + c0 + Math.round((dc * t) / steps);
+      if (!path.includes(j)) path.push(j);
+    }
+    stroke = { ...stroke, path };
+  }
+
+  function up(e: PointerEvent) {
+    if (!stroke || e.pointerId !== stroke.pointer) return;
+    const s = stroke;
+    stroke = null;
+    dispatch(action(s));
+  }
+
+  function cancel(e: PointerEvent) {
+    if (stroke && e.pointerId === stroke.pointer) stroke = null;
+  }
+
+  // A keyboard press on a cell (Enter or Space) acts like a tap; pointer taps go through the stroke.
+  function keyTap(e: MouseEvent, i: number) {
+    if (e.detail !== 0 || game.done) return;
+    dispatch(action(strokeAt(i, -1)));
+  }
+
+  // What's on screen: the game, with the stroke in progress drawn over it.
+  const shown = $derived(stroke ? gridReducer(game, action(stroke), shape) : game);
 </script>
 
 <svelte:document onkeydown={onKey} />
@@ -134,12 +229,22 @@
   onnext={() => (game = create(game.difficulty))}
 >
   <div class="board-area">
-    <div class="board grid-board" style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} aria-label="{title} board">
-      {#each game.values as v, i (i)}
+    <div
+      bind:this={board}
+      class="board grid-board"
+      role="group"
+      onpointerdown={down}
+      onpointermove={move}
+      onpointerup={up}
+      onpointercancel={cancel}
+      onlostpointercapture={cancel}
+      style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} aria-label="{title} board"
+    >
+      {#each shown.values as v, i (i)}
         {@const r = Math.floor(i / shape.size)}
         {@const c = i % shape.size}
         {@const given = game.puzzle[i] !== 0}
-        {@const mask = v ? 0 : game.notes[i]}
+        {@const mask = v ? 0 : shown.notes[i]}
         {@const label = shape.label?.(i)}
         <button
           type="button"
@@ -152,19 +257,18 @@
             'corner-tr': i === shape.size - 1,
             'corner-bl': i === shape.size * (shape.size - 1),
             'corner-br': i === shape.size * shape.size - 1,
-            selected: i === game.selected,
-            peer: game.selected !== null && shape.peers[game.selected].includes(i),
-            same: v !== 0 && v === selValue && i !== game.selected,
-            conflict: !given && (hasConflict(game.values, shape.peers, i) || shape.error?.(i)),
+            same: mode !== 'erase' && v === digit,
+            conflict: !given && (hasConflict(shown.values, shape.peers, i) || shape.error?.(i)),
           }]}
           aria-label="{label ? `${label}, ` : ''}row {r + 1}, column {c + 1}: {v || 'empty'}"
-          onclick={() => dispatch({ type: 'select', index: i })}
+          data-cell={i}
+          onclick={(e) => keyTap(e, i)}
         >
           {#if shape.zone}<span class="zone-fill" style={zoneFill(i)}></span>{/if}
           {#if label}<span class="label">{label}</span>{/if}
           <span class="value">{v || ''}</span>
           <span class="notes">
-            {#each digits as d (d)}<span>{mask & (1 << d) ? d : ''}</span>{/each}
+            {#each digits as d (d)}<span class={{ hit: mode !== 'erase' && d === digit }}>{mask & (1 << d) ? d : ''}</span>{/each}
           </span>
         </button>
       {/each}
@@ -172,13 +276,19 @@
   </div>
 
   <div class="tools">
-    <button type="button" class="btn" disabled={game.done} onclick={() => dispatch({ type: 'erase' })}>Erase</button>
-    <button type="button" class="btn" aria-pressed={game.notesMode} onclick={() => dispatch({ type: 'toggleNotes' })}>Notes</button>
+    {#each [['erase', 'Erase'], ['notes', 'Notes'], ['set', 'Set']] as const as [m, name] (m)}
+      <button type="button" class="btn" aria-pressed={mode === m} onclick={() => setMode(m)}>{name}</button>
+    {/each}
   </div>
 
-  <div class={['pad', { 'notes-mode': game.notesMode }]} style:--n={shape.size}>
+  <div class={['pad', { 'notes-mode': mode === 'notes' || (mode === 'erase' && writing === 'notes') }]} style:--n={shape.size}>
     {#each digits as d, k (d)}
-      <button type="button" class={['digit', { complete: remaining[k] <= 0 }]} onclick={() => dispatch({ type: 'enter', digit: d })}>
+      <button
+        type="button"
+        class={['digit', { complete: remaining[k] <= 0 }]}
+        aria-pressed={mode !== 'erase' && d === digit}
+        onclick={() => pickDigit(d)}
+      >
         <span class="digit-n">{d}</span>
         <span class="digit-left">{remaining[k] > 0 ? remaining[k] : ''}</span>
       </button>
