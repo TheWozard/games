@@ -30,6 +30,7 @@
   border: 0;
   background: var(--bg);
   color: var(--accent);
+  transition: background-color 0.2s ease;
   font-size: calc(58cqi / var(--n));
   font-variant-numeric: tabular-nums;
 }
@@ -106,7 +107,33 @@
 
 .grid-board .notes span { display: grid; place-items: center; }
 /* The pad's digit among the notes, so a drag shows where that digit could still go. */
+.grid-board .notes span { transition: color 0.2s ease; }
 .grid-board .notes span.hit { color: var(--accent); font-weight: 600; }
+
+/* While a digit is picked, its cells breathe at a relaxed slow breath (six a minute): a layer of
+   accent under the digit brightens for 4s, holds half a second, and fades for 5.5s, out a little
+   longer than in. Every cell breathes all the time, in step with the clock (GridPlay sets --breath
+   and the delay that lines it up), and a picked cell only turns its layer's color on, so picking
+   another digit joins the breath where it is instead of starting it over. */
+.grid-board .cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transition: background-color 0.2s ease;
+  animation: same-breathe var(--breath) ease-in-out var(--breath-delay) infinite;
+}
+.grid-board .cell.same:not(.conflict)::before { background: var(--accent); }
+@keyframes same-breathe {
+  0%, 100% { opacity: 0; }
+  40%, 45% { opacity: 0.14; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grid-board .cell::before { animation: none; }
+}
 
 .pad { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
 

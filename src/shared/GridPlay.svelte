@@ -59,6 +59,11 @@
 
   const digits = $derived(Array.from({ length: shape.size }, (_, k) => k + 1));
 
+  // The picked digit's cells breathe on the wall clock (grid.css): a delay that puts the board where
+  // the clock is in the cycle, so it keeps its place across new games and reloads.
+  const BREATH = 10_000;
+  const breathDelay = `-${Date.now() % BREATH}ms`;
+
   // What a tap does, and with which digit. Picking a digit while erasing goes back to the mode that
   // writes (Set or Notes) used last.
   let mode = $state<Mode>('set');
@@ -238,7 +243,7 @@
       onpointerup={up}
       onpointercancel={cancel}
       onlostpointercapture={cancel}
-      style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} aria-label="{title} board"
+      style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} style:--breath="{BREATH}ms" style:--breath-delay={breathDelay} aria-label="{title} board"
     >
       {#each shown.values as v, i (i)}
         {@const r = Math.floor(i / shape.size)}
