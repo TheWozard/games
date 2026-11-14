@@ -17,7 +17,9 @@
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   // Set from the launcher's gear; read once, as the page opens.
-  const inset = loadSettings().mahjongFaces === 'inset';
+  const settings = loadSettings();
+  const inset = settings.mahjongFaces === 'inset';
+  const dim = settings.mahjongBlocked === 'dimmed';
 
   const layout = $derived(LAYOUTS[game.layout]);
   const moves = $derived(pairsLeft(game).length);
@@ -161,7 +163,7 @@
           <button
             type="button"
             class={['mj-tile', {
-              blocked: !free(game, s.i),
+              blocked: dim && !free(game, s.i),
               selected: game.selected === s.i,
               shake: shake.current === s.i,
               inset,

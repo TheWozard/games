@@ -9,6 +9,8 @@ export const SETTINGS_KEY = 'games.settings.v1';
 export const CHOICES = {
   /** Mahjong: a face fills its tile, or sits back from the edges, leaving space between tiles. */
   mahjongFaces: ['full', 'inset'],
+  /** Mahjong: tiles that can't be taken yet are dimmed, so the free ones stand out, or look like the rest. */
+  mahjongBlocked: ['dimmed', 'plain'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type Settings = { -readonly [K in keyof typeof CHOICES]: (typeof CHOICES)[K][number] };

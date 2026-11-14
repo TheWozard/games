@@ -178,7 +178,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   New Game dialog). Add a setting to `CHOICES` in `src/shared/settings.ts` (first choice is the
   default), a group of `data-setting` / `data-value` tiles under the game's name in the dialog in
   `src/index.html`, and read it with `loadSettings()` as the game opens. Taps save at once; there's
-  no Play button. Mahjong's Tile Faces (Full / Inset) is the first.
+  no Play button. Mahjong has two: Tile Faces (Full / Inset) and Blocked Tiles (Dimmed / Plain).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.

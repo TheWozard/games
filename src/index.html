@@ -132,6 +132,11 @@
         <button type="button" class="btn" data-setting="mahjongFaces" data-value="full"><strong>Full</strong><span>fill the tile</span></button>
         <button type="button" class="btn" data-setting="mahjongFaces" data-value="inset"><strong>Inset</strong><span>space between tiles</span></button>
       </div>
+      <h3 class="pick-title">Blocked Tiles</h3>
+      <div class="pick">
+        <button type="button" class="btn" data-setting="mahjongBlocked" data-value="dimmed"><strong>Dimmed</strong><span>free tiles stand out</span></button>
+        <button type="button" class="btn" data-setting="mahjongBlocked" data-value="plain"><strong>Plain</strong><span>all look alike</span></button>
+      </div>
       <button class="dialog-close" value="" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </form>
   </dialog>
@@ -765,7 +770,7 @@
           <h3 class="pick-title">Rules</h3>
           <ul>
             <li>Any flower matches any other flower, and any season any other season.</li>
-            <li>A tile is free when nothing lies on it and its left or right side is open. Dimmed tiles aren’t free yet.</li>
+            <li>A tile is free when nothing lies on it and its left or right side is open. Dimmed tiles aren’t free yet (Settings can turn dimming off).</li>
             <li>Easy deals forgive a careless match. On harder ones, the wrong pair early can leave its twin stuck, so look ahead.</li>
           </ul>
           <h3 class="pick-title">How to Play</h3>
