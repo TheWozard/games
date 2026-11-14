@@ -15,6 +15,8 @@
   shows a spinner until it settles, and the dialog stays open (and can't be closed) meanwhile.
 -->
 <script lang="ts">
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import X from '@lucide/svelte/icons/x';
   import type { Snippet } from 'svelte';
   import Dialog from './Dialog.svelte';
   import BackButton from './BackButton.svelte';
@@ -144,11 +146,11 @@
     {#if busy === 'play'}
       <span class="spinner" aria-hidden="true"></span>
     {:else}
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5L15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <ChevronRight strokeWidth={2.4} aria-hidden="true" />
     {/if}
   </button>
   <!-- Drawn in the top corner. -->
   <button class="dialog-close" value="" aria-label="Close" disabled={busy === 'play'}>
-    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+    <X strokeWidth={2.4} aria-hidden="true" />
   </button>
 </Dialog>

@@ -5,6 +5,8 @@
   `sizes`, only the rules (Shading's Nonogram tab, under the tab's own difficulties).
 -->
 <script lang="ts" generics="S extends string, R extends string">
+  import Check from '@lucide/svelte/icons/check';
+
   interface Props {
     sizes?: Record<S, { label: string; detail: string }>;
     rules: Record<R, { label: string; info: string }>;
@@ -39,7 +41,7 @@
       <!-- Each rule turns on or off by itself (not one of a set), so it shows a check box. -->
       <button type="button" class="btn toggle" aria-pressed={on[key as R]} onclick={() => (on = { ...on, [key]: !on[key as R] })}>
         <span class="check" aria-hidden="true">
-          <svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <Check strokeWidth={3.5} />
         </span>
         <strong>{label}</strong>
       </button>

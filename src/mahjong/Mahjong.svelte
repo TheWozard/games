@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Check from '@lucide/svelte/icons/check';
   import { scale } from 'svelte/transition';
   import GameScreen from '../shared/GameScreen.svelte';
   import { attachPan } from '../shared/pan';
@@ -132,7 +133,7 @@
         <!-- Any number can be on, so each shows a check box (like the rules in other games). -->
         <button type="button" class="btn toggle" aria-pressed={chosen.includes(key as LayoutName)} onclick={() => toggle(key as LayoutName)}>
           <span class="check" aria-hidden="true">
-            <svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <Check strokeWidth={3.5} />
           </span>
           <span class="mj-layout-name"><strong>{l.name}</strong><span>{l.slots.length} tiles</span></span>
         </button>

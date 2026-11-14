@@ -4,6 +4,7 @@
   Orange or red when that setting is slow to make (wait.ts), with a spinner while it's being made.
 -->
 <script lang="ts">
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import { fly } from 'svelte/transition';
 
   import type { Wait } from './wait';
@@ -17,7 +18,7 @@
     {#if busy}
       <span class="spinner" aria-hidden="true"></span>
     {:else}
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5L15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <ChevronRight strokeWidth={2.4} aria-hidden="true" />
     {/if}
   </button>
 {/if}
