@@ -8,10 +8,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 const root = resolve(import.meta.dirname, 'src');
 
 // Every src/<name>/index.html is a page: the launcher plus one per game. No list to keep in sync.
+// src/dev/ holds pages for development (the tile viewer at /dev/tiles/): `just dev` serves them,
+// but they're never built, so they don't ship or get precached.
 const pages = Object.fromEntries([
   ['index', resolve(root, 'index.html')],
   ...readdirSync(root, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && existsSync(resolve(root, d.name, 'index.html')))
+    .filter((d) => d.isDirectory() && d.name !== 'dev' && existsSync(resolve(root, d.name, 'index.html')))
     .map((d) => [d.name, resolve(root, d.name, 'index.html')]),
 ]);
 
