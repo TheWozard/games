@@ -58,6 +58,17 @@
     .game svg { flex: none; width: 48px; height: 48px; color: var(--accent); }
     .game strong { display: block; font-size: 1.1rem; }
     .game span { color: var(--muted); font-size: 0.95rem; }
+    /* How many kinds a game comes in (the tabs of its New Game dialog), beside its name: just the
+       number on screen, with the word for screen readers and as a tooltip. */
+    .variants {
+      display: inline-block; margin-left: 6px; padding: 1px 8px; vertical-align: 0.15em;
+      border: 1px solid var(--line); border-radius: 999px;
+      color: var(--muted); font-size: 0.7rem; font-weight: 600; line-height: 1.5; white-space: nowrap;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip-path: inset(50%); white-space: nowrap;
+    }
     /* How to play: an "i" on the right of each card opens a popover (no script needed). */
     .games li { position: relative; }
     .game { padding-right: 60px; }
@@ -111,7 +122,7 @@
           <text x="24" y="28" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">3</text>
           <text x="38.5" y="42" font-size="10" font-weight="700" fill="currentColor" font-family="system-ui, sans-serif" text-anchor="middle">8</text>
         </svg>
-        <div><strong>Sudoku</strong><span>Classic, Killer or Jigsaw: fill the grid so every row, column and box has 1–9.</span></div>
+        <div><strong>Sudoku <small class="variants" title="3 variants">3<span class="sr-only"> variants</span></small></strong><span>Classic, Killer or Jigsaw: fill the grid so every row, column and box has 1–9.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-sudoku" aria-label="How to play Sudoku">i</button>
       <div class="how" id="how-sudoku" popover>
@@ -186,7 +197,7 @@
           <g fill="currentColor"><rect x="4" y="4" width="8.5" height="8.5" rx="1.5"/><rect x="25" y="14.5" width="8.5" height="8.5" rx="1.5"/><rect x="14.5" y="35.5" width="8.5" height="8.5" rx="1.5"/></g>
           <path d="M39.75 25.15L40.87 28.01L43.93 28.19L41.56 30.14L42.34 33.11L39.75 31.45L37.16 33.11L37.94 30.14L35.57 28.19L38.63 28.01Z" fill="currentColor"/>
         </svg>
-        <div><strong>Shading</strong><span>Nonogram, Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
+        <div><strong>Shading <small class="variants" title="5 variants">5<span class="sr-only"> variants</span></small></strong><span>Nonogram, Star Battle, Nurikabe, Hitori and Light Up: decide which cells to fill.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-shading" aria-label="How to play Shading">i</button>
       <div class="how" id="how-shading" popover>
@@ -488,7 +499,7 @@
           <g fill="currentColor" opacity="0.6"><rect x="22.9" y="2.9" width="8.2" height="18.2" rx="2.2"/><rect x="2.9" y="32.9" width="18.2" height="8.2" rx="2.2"/><rect x="32.9" y="22.9" width="8.2" height="18.2" rx="2.2"/></g>
           <path d="M42.8 14l3 3l-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <div><strong>Sliding Blocks</strong><span>Slide the blocks aside to clear a way out for the red one.</span></div>
+        <div><strong>Sliding Blocks <small class="variants" title="4 variants">4<span class="sr-only"> variants</span></small></strong><span>Slide the blocks aside to clear a way out for the red one.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-blocks" aria-label="How to play Sliding Blocks">i</button>
       <div class="how" id="how-blocks" popover>
@@ -641,7 +652,7 @@
             <text x="23.5" y="15" font-size="8">A</text><text x="31" y="31" font-size="12" text-anchor="middle">♥</text>
           </g>
         </svg>
-        <div><strong>Solitaire</strong><span>Klondike or FreeCell: build each suit up from Ace to King. Every deal can be won.</span></div>
+        <div><strong>Solitaire <small class="variants" title="2 variants">2<span class="sr-only"> variants</span></small></strong><span>Klondike or FreeCell: build each suit up from Ace to King. Every deal can be won.</span></div>
       </a>
       <button class="info" type="button" popovertarget="how-solitaire" aria-label="How to play Solitaire">i</button>
       <div class="how" id="how-solitaire" popover>
