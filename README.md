@@ -89,3 +89,16 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 
 The PNGs in [public/icons/](public/icons/) are rendered from [public/icons/icon.svg](public/icons/icon.svg) with `just icons` (needs Inkscape).
 Keep the artwork inside the central 80% so it survives Android's maskable crop.
+
+## License
+
+Copyright (C) 2026 Dan Bond and contributors.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. It is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
+
+Third-party parts keep their own licenses, credited where they're used: the in-game icons are
+[Lucide](https://lucide.dev) (ISC).
