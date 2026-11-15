@@ -85,6 +85,17 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 (`../`); the build rewrites them so the site works under `/games/`. Store per-game state with
 `loadJSON`/`saveJSON` from [storage.ts](src/shared/storage.ts) under a `games.<name>.` key.
 
+## Mahjong tiles
+
+Mahjong has two sets of tile art, picked in the launcher's Settings: Classic, the default, drawn in
+[src/mahjong/ClassicFaces.svelte](src/mahjong/ClassicFaces.svelte), and Riichi.
+The Riichi faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
+([scripts/mahjong-tiles.ts](scripts/mahjong-tiles.ts)), which fetches and cleans up two sets of vector tiles:
+[FluffyStuff/riichi-mahjong-tiles](https://github.com/FluffyStuff/riichi-mahjong-tiles) by FluffyStuff (public domain, CC0)
+for the suits, winds and dragons, and the flowers and seasons by xhokir from
+[xhokir/riichi-mahjong-tiles](https://github.com/xhokir/riichi-mahjong-tiles), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The white dragon's frame is our own.
+
 ## Icons
 
 The PNGs in [public/icons/](public/icons/) are rendered from [public/icons/icon.svg](public/icons/icon.svg) with `just icons` (needs Inkscape).

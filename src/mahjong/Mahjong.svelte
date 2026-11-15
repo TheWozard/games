@@ -4,14 +4,22 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import { attachPan } from '../shared/pan';
   import { createShake } from '../shared/shake.svelte';
+  import { loadSettings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
+  import { DEPTH } from './body';
+  import TileBody from './TileBody.svelte';
   import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, STORAGE_KEY, type Action } from './game';
   import { DIFFICULTIES, drawOrder, LAYOUTS, SLIM, type Difficulty, type LayoutName } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
+
+  // Set from the launcher's gear; read once, as the page opens.
+  const settings = loadSettings();
+  const inset = settings.mahjongFaces === 'inset';
+  const dim = settings.mahjongBlocked === 'dimmed';
 
   const layout = $derived(LAYOUTS[game.layout]);
   const moves = $derived(pairsLeft(game).length);
@@ -20,7 +28,6 @@
   // Geometry, in units where a tile is 3 × 4: half-tile steps of 1.5 across and 2 down, each layer
   // raised up and left by LIFT, and every tile showing DEPTH of its side below and to the right.
   const LIFT = 0.42;
-  const DEPTH = 0.42;
   const box = $derived.by(() => {
     const maxX = Math.max(...layout.slots.map((s) => s.x)) + 2;
     const maxY = Math.max(...layout.slots.map((s) => s.y)) + 2;
@@ -90,7 +97,7 @@
   }
 </script>
 
-<TileFaces />
+<TileFaces art={settings.mahjongArt} />
 
 <GameScreen
   wide
@@ -156,9 +163,10 @@
           <button
             type="button"
             class={['mj-tile', {
-              blocked: !free(game, s.i),
+              blocked: dim && !free(game, s.i),
               selected: game.selected === s.i,
               shake: shake.current === s.i,
+              inset,
             }]}
             style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
             style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"
@@ -169,7 +177,7 @@
             onclick={() => tap(s.i)}
             transition:scale={{ duration: 180, start: 0.7 }}
           >
-            <svg viewBox="0 0 30 40" aria-hidden="true"><use href="#mj-k{game.kinds[s.i]}" /></svg>
+            <TileBody href="mj-k{game.kinds[s.i]}" />
           </button>
         {/if}
       {/each}

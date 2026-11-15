@@ -14,6 +14,7 @@ just build         # svelte-check (fails on warnings) + production build into di
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
 just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour; --keep only trims it)
+just mahjong-tiles # remake Mahjong's Riichi tile art from two public tile sets (needs a network connection)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -22,12 +23,14 @@ Before calling a change done: `npm test` and `npm run build` must both pass with
 
 ```
 src/
-  index.html            launcher: one card per game
+  index.html            launcher: one card per game, and the gear (Settings) in its header
+  launcher.ts           the launcher's Settings dialog
   shared/               loaded by every page
     app.ts              shared CSS + service worker registration (import first in every main.ts)
     wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
+    settings.ts         how games look, set from the launcher's gear (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
@@ -44,7 +47,7 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
-scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles)
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the card's i)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
@@ -171,6 +174,12 @@ only forwards old links), `blocks` (Sliding Blocks).
   headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
   Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
   own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
+- **Settings** (the launcher's gear) are for how a game looks, never how it plays (that's the
+  New Game dialog). Add a setting to `CHOICES` in `src/shared/settings.ts` (first choice is the
+  default), a group of `data-setting` / `data-value` tiles under the game's name in the dialog in
+  `src/index.html`, and read it with `loadSettings()` as the game opens. Taps save at once; there's
+  no Play button. Mahjong has three: Tile Art (Classic / Riichi), Tile Faces (Full / Inset) and Blocked
+  Tiles (Dimmed / Plain).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
@@ -183,8 +192,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 ### Gotchas
 
 - **SVG `<use>`:** CSS from the page doesn't reliably reach the copies that `<use>` draws. Put
-  `text-anchor`, `font-family` and similar on the symbol's elements as attributes (see
-  `src/mahjong/TileFaces.svelte`).
+  `text-anchor`, `font-family` and similar on the symbol's elements as attributes.
 - **Grid lines:** every grid board uses the same line sizes, in screen pixels whatever the board's
   size: `--grid-thin`, `--grid-thick` and `--grid-radius` in `base.css`. In HTML (Sudoku), draw
   thin lines as `gap` over a line-colored background, thick lines as overlays (`::after`) centered
