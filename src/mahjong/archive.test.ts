@@ -47,8 +47,10 @@ describe('archive layouts', () => {
     expect(bridged.map((l) => l.id)).toEqual(expect.arrayContaining(['gnome-mahjongg/overpass', 'gnome-mahjongg/the_ziggurat']));
   });
 
-  it('deals every layout in pairs that can be cleared', () => {
-    for (const { id, tiles } of ARCHIVE) {
+  // One test per layout, as for the game's own (logic.test.ts): all of them in one can outlast the
+  // test timeout on a slow machine.
+  for (const { id, tiles } of ARCHIVE) {
+    it(`deals ${id} in pairs that can be cleared`, () => {
       const slots = decode(tiles);
       const near = neighbors(slots);
       const { kinds, order } = deal(slots, 'easy');
@@ -61,6 +63,6 @@ describe('archive layouts', () => {
         gone[a] = gone[b] = true;
       }
       expect(gone.every(Boolean), id).toBe(true);
-    }
-  });
+    });
+  }
 });
