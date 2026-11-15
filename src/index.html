@@ -127,6 +127,11 @@
     <form method="dialog">
       <h2>Settings</h2>
       <h3 class="settings-game">Mahjong</h3>
+      <h3 class="pick-title">Tile Art</h3>
+      <div class="pick">
+        <button type="button" class="btn" data-setting="mahjongArt" data-value="classic"><strong>Classic</strong><span>hand-drawn</span></button>
+        <button type="button" class="btn" data-setting="mahjongArt" data-value="riichi"><strong>Riichi</strong><span>Japanese-style set</span></button>
+      </div>
       <h3 class="pick-title">Tile Faces</h3>
       <div class="pick">
         <button type="button" class="btn" data-setting="mahjongFaces" data-value="full"><strong>Full</strong><span>fill the tile</span></button>
@@ -780,7 +785,7 @@
             <li>New Game (+) picks one layout or several; each deal takes one of them at random.</li>
           </ul>
           <p class="how-promise">Every deal can be cleared.</p>
-          <p class="how-credit">Tiles by <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles">FluffyStuff</a> (public domain); flowers and seasons by <a href="https://github.com/xhokir/riichi-mahjong-tiles">xhokir</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</p>
+          <p class="how-credit">Riichi tile art by <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles">FluffyStuff</a> (public domain); flowers and seasons by <a href="https://github.com/xhokir/riichi-mahjong-tiles">xhokir</a> (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</p>
           <button class="dialog-close" type="button" popovertarget="how-mahjong" popovertargetaction="hide" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         </div>
       </div>

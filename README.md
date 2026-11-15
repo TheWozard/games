@@ -87,7 +87,9 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 
 ## Mahjong tiles
 
-Mahjong's tile faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
+Mahjong has two sets of tile art, picked in the launcher's Settings: Classic, the default, drawn in
+[src/mahjong/ClassicFaces.svelte](src/mahjong/ClassicFaces.svelte), and Riichi.
+The Riichi faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
 ([scripts/mahjong-tiles.ts](scripts/mahjong-tiles.ts)), which fetches and cleans up two sets of vector tiles:
 [FluffyStuff/riichi-mahjong-tiles](https://github.com/FluffyStuff/riichi-mahjong-tiles) by FluffyStuff (public domain, CC0)
 for the suits, winds and dragons, and the flowers and seasons by xhokir from

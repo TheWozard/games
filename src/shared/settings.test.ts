@@ -3,21 +3,23 @@ import { CHOICES, DEFAULTS, readSettings } from './settings';
 
 describe('readSettings', () => {
   it('defaults to the first choice of each setting', () => {
-    expect(DEFAULTS).toEqual({ mahjongFaces: 'full', mahjongBlocked: 'dimmed' });
+    expect(DEFAULTS).toEqual({ mahjongArt: 'classic', mahjongFaces: 'full', mahjongBlocked: 'dimmed' });
     for (const saved of [null, undefined, 3, 'x', [], {}]) expect(readSettings(saved)).toEqual(DEFAULTS);
   });
 
   it('keeps each choice it knows, and drops anything else', () => {
     expect(readSettings({ mahjongFaces: 'inset' })).toEqual({ ...DEFAULTS, mahjongFaces: 'inset' });
-    expect(readSettings({ mahjongFaces: 'inset', mahjongBlocked: 'plain' })).toEqual({ mahjongFaces: 'inset', mahjongBlocked: 'plain' });
-    expect(readSettings({ mahjongFaces: 'huge', mahjongBlocked: true, gone: 1 })).toEqual(DEFAULTS);
+    expect(readSettings({ mahjongArt: 'riichi', mahjongFaces: 'inset', mahjongBlocked: 'plain' })).toEqual({ mahjongArt: 'riichi', mahjongFaces: 'inset', mahjongBlocked: 'plain' });
+    expect(readSettings({ mahjongArt: 'neon', mahjongFaces: 'huge', mahjongBlocked: true, gone: 1 })).toEqual(DEFAULTS);
   });
 
   it('round-trips through JSON', () => {
-    for (const faces of CHOICES.mahjongFaces) {
-      for (const blocked of CHOICES.mahjongBlocked) {
-        const settings = { ...DEFAULTS, mahjongFaces: faces, mahjongBlocked: blocked };
-        expect(readSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings);
+    for (const art of CHOICES.mahjongArt) {
+      for (const faces of CHOICES.mahjongFaces) {
+        for (const blocked of CHOICES.mahjongBlocked) {
+          const settings = { mahjongArt: art, mahjongFaces: faces, mahjongBlocked: blocked };
+          expect(readSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings);
+        }
       }
     }
   });

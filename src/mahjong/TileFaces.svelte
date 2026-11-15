@@ -1,13 +1,26 @@
 <!--
-  Every tile face as an SVG <symbol> (mj-k<kind>, viewBox 300×400), defined once and drawn with
-  <use>. The faces are made by scripts/mahjong-tiles.ts (`just mahjong-tiles`) into faces.svg:
-  FluffyStuff's riichi tiles (CC0), with xhokir's flowers and seasons (CC BY 4.0).
+  Every tile face as an SVG <symbol> (mj-k<kind>), defined once and drawn with <use>, in one of
+  two sets (the launcher's Settings, Tile Art), which share their ids:
+  - Classic (ClassicFaces.svelte), drawn here after a traditional Chinese set; the default.
+  - Riichi (faces.svg, viewBox 300×400), made by scripts/mahjong-tiles.ts (`just mahjong-tiles`):
+    FluffyStuff's riichi tiles (CC0), with xhokir's flowers and seasons (CC BY 4.0). Loaded only
+    when picked, so Classic players don't download it.
+  A face fills its tile's padding box whatever its viewBox, so either set fits the same tile.
 -->
 <script lang="ts">
-  import faces from './faces.svg?raw';
+  import type { Settings } from '../shared/settings';
+  import ClassicFaces from './ClassicFaces.svelte';
+
+  let { art }: { art: Settings['mahjongArt'] } = $props();
 </script>
 
-{@html faces}
+{#if art === 'riichi'}
+  {#await import('./faces.svg?raw') then { default: faces }}
+    {@html faces}
+  {/await}
+{:else}
+  <ClassicFaces />
+{/if}
 
 <!-- The tile's top, plain and picked (as CSS's 160deg: down and a little right). -->
 <svg class="mj-faces" aria-hidden="true" width="0" height="0">

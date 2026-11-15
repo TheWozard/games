@@ -7,6 +7,8 @@ export const SETTINGS_KEY = 'games.settings.v1';
 
 /** Every setting and the choices it takes; the first choice is the default. */
 export const CHOICES = {
+  /** Mahjong: the tile art, Classic (drawn here) or Riichi (FluffyStuff's and xhokir's sets). */
+  mahjongArt: ['classic', 'riichi'],
   /** Mahjong: a face fills its tile, or sits back from the edges, leaving space between tiles. */
   mahjongFaces: ['full', 'inset'],
   /** Mahjong: tiles that can't be taken yet are dimmed, so the free ones stand out, or look like the rest. */

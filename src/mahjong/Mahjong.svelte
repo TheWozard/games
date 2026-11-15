@@ -97,7 +97,7 @@
   }
 </script>
 
-<TileFaces />
+<TileFaces art={settings.mahjongArt} />
 
 <GameScreen
   wide

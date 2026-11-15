@@ -14,7 +14,7 @@ just build         # svelte-check (fails on warnings) + production build into di
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
 just blocks        # remake the Sliding Blocks puzzle list (about a quarter of an hour; --keep only trims it)
-just mahjong-tiles # remake Mahjong's tile faces from two public tile sets (needs a network connection)
+just mahjong-tiles # remake Mahjong's Riichi tile art from two public tile sets (needs a network connection)
 ```
 
 Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
@@ -47,7 +47,7 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
-scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's tile faces, credited in README.md and the card's i)
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the card's i)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
@@ -178,7 +178,8 @@ only forwards old links), `blocks` (Sliding Blocks).
   New Game dialog). Add a setting to `CHOICES` in `src/shared/settings.ts` (first choice is the
   default), a group of `data-setting` / `data-value` tiles under the game's name in the dialog in
   `src/index.html`, and read it with `loadSettings()` as the game opens. Taps save at once; there's
-  no Play button. Mahjong has two: Tile Faces (Full / Inset) and Blocked Tiles (Dimmed / Plain).
+  no Play button. Mahjong has three: Tile Art (Classic / Riichi), Tile Faces (Full / Inset) and Blocked
+  Tiles (Dimmed / Plain).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.
