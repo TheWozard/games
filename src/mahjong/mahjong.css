@@ -65,6 +65,8 @@
 .mj-layouts .btn.toggle { gap: 8px; padding: 7px 10px; }
 .mj-layout-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .mj-layout-name span { color: var(--muted); font-size: 0.75rem; }
+/* How many layouts are picked on a Layouts tab, beside its name. */
+.mj-tab-count { margin-left: 6px; color: var(--accent); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 
 /* A board wider than its space overflows it evenly on both sides (one column the area's width),
    and is then panned into place. */

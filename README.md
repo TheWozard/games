@@ -96,6 +96,20 @@ for the suits, winds and dragons, and the flowers and seasons by xhokir from
 [xhokir/riichi-mahjong-tiles](https://github.com/xhokir/riichi-mahjong-tiles), licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The white dragon's frame is our own.
 
+## Mahjong layouts
+
+Besides its own layouts, Mahjong has layouts from the
+[Mahjong Solitaire Layout Museum](https://ffalt.github.io/mahseum/), in
+[src/mahjong/archive.ts](src/mahjong/archive.ts), made by `just mahjong-layouts`
+([scripts/mahjong-layouts.ts](scripts/mahjong-layouts.ts)). Only its GPL sources are taken:
+[KMahjongg](https://github.com/KDE/kmahjongg/tree/master/layouts/) (KDE, GPL-2.0-or-later; most
+layouts by Alexey Charkov) and [GNOME Mahjongg](https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/)
+(GPL-3.0-or-later). Layouts with more than 144 tiles (one set of faces) or too big for the board
+are left out. Bridges, tiles over a gap, are allowed. They're picked on the New Game dialog's
+Archive tab. On an upright screen, any layout drawn wider than tall is dealt turned a quarter turn
+(`turn` in [logic.ts](src/mahjong/logic.ts)); the game keeps its turn, since turning changes which
+tiles are free.
+
 ## Icons
 
 The PNGs in [public/icons/](public/icons/) are rendered from [public/icons/icon.svg](public/icons/icon.svg) with `just icons` (needs Inkscape).

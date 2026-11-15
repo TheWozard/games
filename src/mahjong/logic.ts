@@ -244,6 +244,43 @@ export function drawOrder(slots: readonly Slot[]): number[] {
 /** Layouts at most 8 tiles across: they fit a phone held upright, with no panning (Mahjong.svelte). */
 export const SLIM = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => Math.max(...LAYOUTS[k].slots.map((s) => s.x)) + 2 <= 16);
 
+/** Whether a layout is drawn wider than tall (a tile is 3 × 4, so a half-tile step is 1.5 across, 2 down). */
+export function isWide(slots: readonly Slot[]): boolean {
+  const w = Math.max(...slots.map((s) => s.x)) + 2;
+  const h = Math.max(...slots.map((s) => s.y)) + 2;
+  return w * 1.5 > h * 2;
+}
+
+/**
+ * The layout turned a quarter turn clockwise, its left column now its top row. A tile covers 2 × 2
+ * half tiles either way, so the slots stay on the grid; layers keep their order. It's a different
+ * puzzle, though: which tiles are free depends on their left and right sides.
+ */
+export function turn(slots: readonly Slot[]): Slot[] {
+  const h = Math.max(...slots.map((s) => s.y)) + 2;
+  return slots.map(({ x, y, z }) => ({ x: h - 2 - y, y: x, z }));
+}
+
+/** The full set: the most tiles a layout can have, since every deal uses one set of faces. */
+export const MAX_TILES = 144;
+
+/**
+ * What's wrong with a layout's slots, if anything: the rules every layout keeps. An even count no
+ * bigger than the full set, and no two tiles in one place. A raised tile needn't rest on anything:
+ * some archive layouts (archive.ts) have bridges, tiles over a gap. An empty list means it's fine.
+ */
+export function layoutProblems(slots: readonly Slot[]): string[] {
+  const problems: string[] = [];
+  if (slots.length % 2) problems.push(`an odd number of tiles (${slots.length})`);
+  if (slots.length > MAX_TILES) problems.push(`more tiles than the full set (${slots.length})`);
+  for (const [i, s] of slots.entries()) {
+    for (const t of slots.slice(i + 1)) {
+      if (s.z === t.z && Math.abs(s.x - t.x) < 2 && Math.abs(s.y - t.y) < 2) problems.push(`tiles overlap at (${s.x}, ${s.y}, ${s.z})`);
+    }
+  }
+  return problems;
+}
+
 export const isLayout = (value: unknown): value is LayoutName =>
   typeof value === 'string' && Object.hasOwn(LAYOUTS, value);
 
@@ -280,11 +317,14 @@ function shuffle<T>(a: T[], random: Random): T[] {
 
 // ---- Rules ----
 
-/** For each slot, the slots lying on it and the slots touching its left and right sides. */
+/**
+ * For each slot, the slots over it and the slots touching its left and right sides. Over is any
+ * higher layer, not just the next: a bridge can cover a tile with a gap between them.
+ */
 export function neighbors(slots: readonly Slot[]) {
   const overlapY = (a: Slot, b: Slot) => Math.abs(a.y - b.y) < 2;
   return slots.map((s) => ({
-    above: slots.flatMap((t, j) => (t.z === s.z + 1 && Math.abs(t.x - s.x) < 2 && overlapY(s, t) ? [j] : [])),
+    above: slots.flatMap((t, j) => (t.z > s.z && Math.abs(t.x - s.x) < 2 && overlapY(s, t) ? [j] : [])),
     left: slots.flatMap((t, j) => (t.z === s.z && t.x === s.x - 2 && overlapY(s, t) ? [j] : [])),
     right: slots.flatMap((t, j) => (t.z === s.z && t.x === s.x + 2 && overlapY(s, t) ? [j] : [])),
   }));
@@ -490,8 +530,8 @@ const BUDGET = 600;
  * dropped for a fresh one. Within the budget it nearly always lands in the tier; past it, the
  * closest deal found is played.
  */
-export function deal(layout: LayoutName, difficulty: Difficulty = 'medium', random: Random = Math.random): Dealt {
-  const { slots } = LAYOUTS[layout];
+export function deal(layout: LayoutName | readonly Slot[], difficulty: Difficulty = 'medium', random: Random = Math.random): Dealt {
+  const slots = typeof layout === 'string' ? LAYOUTS[layout].slots : layout;
   const near = neighbors(slots);
   const grade = grader(near);
   const tier = TIERS[difficulty];
