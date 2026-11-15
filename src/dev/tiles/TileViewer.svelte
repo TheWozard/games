@@ -22,15 +22,17 @@
   const FULL = facesFor(144);
   const copies = Array.from({ length: KINDS }, (_, k) => FULL.filter((f) => f === k).length);
 
-  let next = 0;
-  const sections = GROUPS.map(({ title, names }) => {
-    const kinds = names.map((name) => ({ kind: next++, name }));
+  // Kinds are numbered in GROUPS' order, as in the game.
+  const starts = GROUPS.map((_, g) => GROUPS.slice(0, g).reduce((n, { names }) => n + names.length, 0));
+  const named = GROUPS.reduce((n, { names }) => n + names.length, 0);
+  const sections = GROUPS.map(({ title, names }, g) => {
+    const kinds = names.map((name, i) => ({ kind: starts[g] + i, name }));
     const counts = new Set(kinds.map(({ kind }) => copies[kind]));
     const each = counts.size === 1 ? `${[...counts][0]} of each` : 'mixed counts';
     return { title, each, kinds };
   });
   // Names must cover every face the game draws; say so on the page if they drift apart.
-  const mismatch = next !== KINDS;
+  const mismatch = named !== KINDS;
 
   // The guide tile. Every face is a <symbol viewBox="0 0 300 400"> (faces.svg, made by
   // scripts/mahjong-tiles.ts), drawn into a 300 × 400 box (TileBody.svelte); keep these in step
@@ -50,8 +52,18 @@
     { label: 'Normal', cls: '' },
     { label: 'Blocked', cls: 'blocked' },
     { label: 'Selected', cls: 'selected' },
-    { label: 'Inset', cls: 'inset' },
   ];
+
+  // The drawing area to try: how much of the tile, across and down, a face's box fills. It sets
+  // every tile's padding here. Presets are the game's (mahjong.css): Full's 5% margin each side,
+  // Inset's 10%.
+  const PRESETS = [
+    { label: 'Full', percent: 90 },
+    { label: 'Inset', percent: 80 },
+  ];
+  let percent = $state(90);
+  const margin = $derived((100 - percent) / 200);
+  const padding = $derived(`calc(var(--u) * ${fmt(margin * 4)}) calc(var(--u) * ${fmt(margin * 3)})`);
 </script>
 
 <TileFaces />
@@ -93,10 +105,24 @@
   </div>
 {/snippet}
 
-<main class="viewer">
+<main class="viewer" style:--face-margin={margin}>
   <h1>Mahjong Tiles</h1>
+  <div class="scale">
+    <label>
+      <span>Drawing area <strong>{percent}%</strong></span>
+      <input type="range" min="50" max="100" step="1" bind:value={percent} />
+    </label>
+    <div class="presets">
+      {#each PRESETS as preset (preset.label)}
+        <button type="button" class="btn" aria-pressed={percent === preset.percent} onclick={() => (percent = preset.percent)}>
+          {preset.label} {preset.percent}%
+        </button>
+      {/each}
+    </div>
+    <code>padding: {padding};</code>
+  </div>
   {#if mismatch}
-    <p class="warn">The viewer names {next} faces, but the game has {KINDS}. Update GROUPS in TileViewer.svelte.</p>
+    <p class="warn">The viewer names {named} faces, but the game has {KINDS}. Update GROUPS in TileViewer.svelte.</p>
   {/if}
 
   <section>
@@ -172,6 +198,24 @@
 
   /* The game positions tiles absolutely on its board; here they sit in the flow. */
   .mj-tile { position: relative; flex: none; }
+  /* The slider's drawing area, for every tile. */
+  .viewer .mj-tile {
+    padding: calc(var(--u) * 4 * var(--face-margin)) calc(var(--u) * 3 * var(--face-margin));
+  }
+
+  /* The slider stays in reach while scrolling through the faces. */
+  .scale {
+    position: sticky; top: 0; z-index: 1;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+    margin: 8px -16px 0; padding: 10px 16px;
+    background: var(--bg); border-bottom: 1px solid var(--line);
+  }
+  .scale label { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; font-size: 0.9rem; }
+  .scale label span { flex: none; min-width: 9.5em; }
+  .scale input { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .presets { display: flex; gap: 6px; }
+  .presets .btn { padding: 4px 10px; font-size: 0.8rem; }
+  .scale code { flex: 1 1 100%; color: var(--muted); }
 
   .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
