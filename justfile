@@ -26,3 +26,7 @@ blocks *variants:
 # Remake Mahjong's tile faces (src/mahjong/faces.svg) from the FluffyStuff and xhokir tile sets; needs a network connection
 mahjong-tiles:
     node --experimental-strip-types scripts/mahjong-tiles.ts
+
+# Remake Mahjong's archive layouts (src/mahjong/archive.ts) from the Mahjong Solitaire Layout Museum's GPL sources; needs a network connection
+mahjong-layouts:
+    node --experimental-strip-types scripts/mahjong-layouts.ts

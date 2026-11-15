@@ -9,8 +9,9 @@
   import TileFaces from './TileFaces.svelte';
   import { DEPTH } from './body';
   import TileBody from './TileBody.svelte';
-  import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, STORAGE_KEY, type Action } from './game';
-  import { DIFFICULTIES, drawOrder, LAYOUTS, SLIM, type Difficulty, type LayoutName } from './logic';
+  import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, slotsOf, STORAGE_KEY, type Action } from './game';
+  import { ARCHIVE_IDS, isArchive, layoutOf, OWN_IDS, SLIM_IDS, type LayoutId } from './layouts';
+  import { DIFFICULTIES, drawOrder, type Difficulty } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
@@ -21,7 +22,8 @@
   const inset = settings.mahjongFaces === 'inset';
   const dim = settings.mahjongBlocked === 'dimmed';
 
-  const layout = $derived(LAYOUTS[game.layout]);
+  const layout = $derived(layoutOf(game.layout));
+  const slots = $derived(slotsOf(game)); // turned, if it was dealt for an upright screen
   const moves = $derived(pairsLeft(game).length);
   const tilesLeft = $derived(game.gone.filter((g) => !g).length);
 
@@ -29,9 +31,9 @@
   // raised up and left by LIFT, and every tile showing DEPTH of its side below and to the right.
   const LIFT = 0.42;
   const box = $derived.by(() => {
-    const maxX = Math.max(...layout.slots.map((s) => s.x)) + 2;
-    const maxY = Math.max(...layout.slots.map((s) => s.y)) + 2;
-    const maxZ = Math.max(...layout.slots.map((s) => s.z));
+    const maxX = Math.max(...slots.map((s) => s.x)) + 2;
+    const maxY = Math.max(...slots.map((s) => s.y)) + 2;
+    const maxZ = Math.max(...slots.map((s) => s.z));
     return { w: maxX * 1.5 + DEPTH + maxZ * LIFT, h: maxY * 2 + DEPTH + maxZ * LIFT, maxZ };
   });
 
@@ -61,7 +63,7 @@
   });
 
   // Back to front, so each tile's side and shadow land under the neighbors that should cover them.
-  const order = $derived(drawOrder(layout.slots).map((i) => ({ ...layout.slots[i], i })));
+  const order = $derived(drawOrder(slots).map((i) => ({ ...slots[i], i })));
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
@@ -74,15 +76,38 @@
 
   // The New dialog's picks, starting on the current game's: a difficulty, and any number of
   // layouts, a pool each deal takes one from at random (Play needs at least one). Play deals them.
-  let chosen = $state<LayoutName[]>([]);
+  // Layouts are on two tabs, the game's own and the archive's (layouts.ts); a pool can mix them,
+  // and All and None change only the tab shown.
+  const TABS = {
+    own: { label: 'Original', ids: OWN_IDS },
+    archive: { label: 'Archive', ids: ARCHIVE_IDS },
+  };
+  type Tab = keyof typeof TABS;
+  const EVERY = [...OWN_IDS, ...ARCHIVE_IDS];
+  let chosen = $state<LayoutId[]>([]);
   let level = $state<Difficulty>('medium');
-  function toggle(key: LayoutName) {
-    if (!chosen.includes(key)) chosen = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => k === key || chosen.includes(k));
-    else chosen = chosen.filter((k) => k !== key);
+  let tab = $state<Tab>('own');
+  const ordered = (ids: Set<LayoutId>) => EVERY.filter((id) => ids.has(id));
+  function toggle(id: LayoutId) {
+    chosen = chosen.includes(id) ? chosen.filter((k) => k !== id) : ordered(new Set([...chosen, id]));
+  }
+  /** Replaces the picks on the tab shown with `ids`, keeping the other tab's. */
+  function pickOnTab(ids: readonly LayoutId[]) {
+    const shown = new Set(TABS[tab].ids);
+    chosen = ordered(new Set([...chosen.filter((id) => !shown.has(id)), ...ids]));
+  }
+  function openNew() {
+    chosen = poolOf(game);
+    level = game.difficulty;
+    tab = isArchive(game.layout) ? 'archive' : 'own';
   }
   function start(value: string) {
-    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout));
+    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout, upright()));
   }
+
+  // A layout wider than tall is dealt turned on an upright board area (game.ts, newGame); the game
+  // keeps its turn to the end, even if the screen turns.
+  const upright = () => areaH > areaW;
 
   function deal(next: typeof game) {
     game = next;
@@ -105,11 +130,11 @@
   subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => ((chosen = poolOf(game)), (level = game.difficulty))}
+  onopennew={openNew}
   onstart={start}
   canPlay={chosen.length > 0}
   finished={game.done}
-  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout))}
+  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout, upright()))}
 >
   {#snippet status()}
     {#if !game.done}
@@ -130,15 +155,26 @@
     </div>
     <div class="mj-layouts-head">
       <h3 class="pick-title">Layouts</h3>
-      <button type="button" class="btn" onclick={() => (chosen = Object.keys(LAYOUTS) as LayoutName[])}>All</button>
-      <!-- Just the ones that fit a phone upright, with no panning. -->
-      <button type="button" class="btn" onclick={() => (chosen = [...SLIM])}>Slim</button>
-      <button type="button" class="btn" onclick={() => (chosen = [])}>None</button>
+      <button type="button" class="btn" onclick={() => pickOnTab(TABS[tab].ids)}>All</button>
+      {#if tab === 'own'}
+        <!-- Just the ones that fit a phone upright, with no panning. -->
+        <button type="button" class="btn" onclick={() => pickOnTab(SLIM_IDS)}>Slim</button>
+      {/if}
+      <button type="button" class="btn" onclick={() => pickOnTab([])}>None</button>
     </div>
-    <div class="mj-layouts">
-      {#each Object.entries(LAYOUTS) as [key, l] (key)}
+    <div class="pick-tabs" role="tablist" aria-label="Layouts">
+      {#each Object.entries(TABS) as [key, t] (key)}
+        {@const picked = t.ids.filter((id) => chosen.includes(id)).length}
+        <button type="button" role="tab" aria-selected={tab === key} onclick={() => (tab = key as Tab)}>
+          {t.label}{#if picked}<span class="mj-tab-count">{picked}</span>{/if}
+        </button>
+      {/each}
+    </div>
+    <div class="mj-layouts" role="tabpanel">
+      {#each TABS[tab].ids as id (id)}
+        {@const l = layoutOf(id)}
         <!-- Any number can be on, so each shows a check box (like the rules in other games). -->
-        <button type="button" class="btn toggle" aria-pressed={chosen.includes(key as LayoutName)} onclick={() => toggle(key as LayoutName)}>
+        <button type="button" class="btn toggle" aria-pressed={chosen.includes(id)} onclick={() => toggle(id)}>
           <span class="check" aria-hidden="true">
             <Check strokeWidth={3.5} />
           </span>
