@@ -65,7 +65,7 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
-scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the card's i; mahjong-layouts.ts: Mahjong's archive layouts, src/mahjong/archive.ts)
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the game menu's Credits; mahjong-layouts.ts: Mahjong's archive layouts, src/mahjong/archive.ts)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
