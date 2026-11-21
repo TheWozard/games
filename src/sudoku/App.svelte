@@ -1,14 +1,14 @@
 <!-- The Sudoku page: Classic, Killer or Jigsaw, whichever was played last, switched from the New Game dialog. -->
 <script lang="ts">
   import GridPlay from '../shared/GridPlay.svelte';
-  import { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import { parsePick } from '../shared/VariantPicker.svelte';
   import * as classic from './classic/game';
   import { DIFFICULTIES as CLASSIC, isDifficulty as isClassic } from './classic/logic';
   import * as jigsaw from './jigsaw/game';
-  import { DIFFICULTIES as JIGSAW, isDifficulty as isJigsaw } from './jigsaw/logic';
+  import { isDifficulty as isJigsaw, DIFFICULTIES as JIGSAW } from './jigsaw/logic';
   import * as killer from './killer/game';
-  import { DIFFICULTIES as KILLER, isDifficulty as isKiller } from './killer/logic';
+  import { isDifficulty as isKiller, DIFFICULTIES as KILLER } from './killer/logic';
   import { GAMES, isVariant, VARIANT_KEY, type Variant } from './variants';
 
   let variant = $state<Variant>(loadJSON(VARIANT_KEY, isVariant) ?? 'classic');

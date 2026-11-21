@@ -272,7 +272,9 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
 
 ## Formatting and lint
 
-- Prettier formats every file (`just fmt`); don't hand-format against it. Generated data
+- Prettier formats every file (`just fmt`); don't hand-format against it. It also sorts imports
+  (built-ins, packages, then relative paths; side-effect imports such as `../shared/app` stay
+  where they are) and the keys of `package.json`. Generated data
   (`src/blocks/puzzles.ts`, `src/mahjong/archive.ts`, `src/solitaire/klondike/deals.ts`,
   `faces.svg`) is left as its scripts write it (`.prettierignore`).
 - ESLint's `no-unsafe-*` rules are off: typescript-eslint can't read the types of `.svelte`

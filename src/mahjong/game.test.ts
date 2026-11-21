@@ -12,6 +12,7 @@ import {
   type Game,
 } from './game';
 import { ARCHIVE_IDS, isArchive, layoutOf, OWN_IDS } from './layouts';
+import { deal, FLOWERS, matches, SEASONS } from './logic';
 
 /** A game played with random free pairs until no match is left (common in Mahjong). */
 function stuck(): Game {
@@ -27,7 +28,6 @@ function stuck(): Game {
   }
   throw new Error('never got stuck');
 }
-import { deal, FLOWERS, matches, SEASONS } from './logic';
 
 describe('reducer', () => {
   it('removes a free matching pair, and undoes it', () => {

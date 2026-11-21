@@ -1,11 +1,11 @@
 <script lang="ts">
-  import Choice from '../shared/ui/Choice.svelte';
-  import PickGroup from '../shared/ui/PickGroup.svelte';
   import { untrack } from 'svelte';
   import { cubicOut } from 'svelte/easing';
   import { Tween } from 'svelte/motion';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import {
     DEFAULT,
     describe,

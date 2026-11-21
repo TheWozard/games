@@ -1,7 +1,7 @@
 <!-- The Shading page: Star Battle, Nurikabe, Hitori or Light Up, whichever was played last, switched from the New Game dialog. -->
 <script lang="ts">
-  import { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import { parsePick } from '../shared/VariantPicker.svelte';
   import Hitori from './hitori/Hitori.svelte';
   import LightUp from './lightup/LightUp.svelte';
   import Nurikabe from './nurikabe/Nurikabe.svelte';

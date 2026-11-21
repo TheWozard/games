@@ -4,16 +4,17 @@
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "test": "vitest run",
+    "dev": "vite",
+    "format": "prettier --write . && eslint --fix . && stylelint --fix \"src/**/*.{css,svelte}\"",
     "lint": "eslint . && stylelint \"src/**/*.{css,svelte}\" && prettier --check .",
-    "format": "prettier --write . && eslint --fix . && stylelint --fix \"src/**/*.{css,svelte}\""
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@lucide/svelte": "^1.72.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^26.6.6",
@@ -22,6 +23,7 @@
     "globals": "^17.14.0",
     "postcss-html": "^2.0.1",
     "prettier": "^3.10.1",
+    "prettier-plugin-packagejson": "^3.1.0",
     "prettier-plugin-svelte": "^4.2.0",
     "stylelint": "^18.1.0",
     "stylelint-config-standard": "^41.1.0",

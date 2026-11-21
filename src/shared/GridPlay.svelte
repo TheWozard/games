@@ -21,6 +21,9 @@
 </script>
 
 <script lang="ts" generics="G extends GridState">
+  import Eraser from '@lucide/svelte/icons/eraser';
+  import NotebookPen from '@lucide/svelte/icons/notebook-pen';
+  import Pencil from '@lucide/svelte/icons/pencil';
   import { untrack } from 'svelte';
   import GameScreen from './GameScreen.svelte';
   import {
@@ -33,9 +36,6 @@
   } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import VariantPicker, { parsePick, type Games } from './VariantPicker.svelte';
-  import Eraser from '@lucide/svelte/icons/eraser';
-  import Pencil from '@lucide/svelte/icons/pencil';
-  import NotebookPen from '@lucide/svelte/icons/notebook-pen';
   import './grid.css';
 
   interface Props {

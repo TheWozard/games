@@ -6,7 +6,6 @@
 <script lang="ts">
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import { fly } from 'svelte/transition';
-
   import type { Wait } from './wait';
 
   let {

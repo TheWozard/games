@@ -9,8 +9,8 @@
   import { untrack, type Snippet } from 'svelte';
   import BrushPicker from '../shared/BrushPicker.svelte';
   import GameScreen from '../shared/GameScreen.svelte';
-  import VariantPicker, { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import VariantPicker, { parsePick } from '../shared/VariantPicker.svelte';
   import { EMPTY, gameOf, isGame, MAIN, NOTE, reducer, type Action, type Shape } from './board';
   import type { Switcher } from './variants';
 

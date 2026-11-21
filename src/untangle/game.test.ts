@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describe as label, fromSaved, isGame, newGame, reducer, type Game } from './game';
+import { fromSaved, isGame, describe as label, newGame, reducer, type Game } from './game';
 import { crossings, DEFAULT_BOARD, generate } from './logic';
 
 describe('reducer', () => {

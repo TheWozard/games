@@ -6,21 +6,24 @@
 <script lang="ts">
   import Bug from '@lucide/svelte/icons/bug';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import Eraser from '@lucide/svelte/icons/eraser';
   import MenuIcon from '@lucide/svelte/icons/menu';
+  import Palette from '@lucide/svelte/icons/palette';
   import Pencil from '@lucide/svelte/icons/pencil';
   import Plus from '@lucide/svelte/icons/plus';
-  import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-  import Palette from '@lucide/svelte/icons/palette';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import Trophy from '@lucide/svelte/icons/trophy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
+  import { layoutOf } from '../../mahjong/layouts';
+  import LayoutThumb from '../../mahjong/LayoutThumb.svelte';
   import Dialog from '../../shared/Dialog.svelte';
   import NewDialog from '../../shared/NewDialog.svelte';
   import NextButton from '../../shared/NextButton.svelte';
   import { toast } from '../../shared/toast';
   import Button from '../../shared/ui/Button.svelte';
+  import Chip from '../../shared/ui/Chip.svelte';
   import Choice from '../../shared/ui/Choice.svelte';
   import IconButton from '../../shared/ui/IconButton.svelte';
   import MenuItem from '../../shared/ui/MenuItem.svelte';
@@ -28,11 +31,8 @@
   import MenuSection from '../../shared/ui/MenuSection.svelte';
   import PickGroup from '../../shared/ui/PickGroup.svelte';
   import PickList from '../../shared/ui/PickList.svelte';
-  import Chip from '../../shared/ui/Chip.svelte';
-  import Toggle from '../../shared/ui/Toggle.svelte';
-  import LayoutThumb from '../../mahjong/LayoutThumb.svelte';
-  import { layoutOf } from '../../mahjong/layouts';
   import { slidePick } from '../../shared/ui/slide';
+  import Toggle from '../../shared/ui/Toggle.svelte';
   import type { Wait } from '../../shared/wait';
 
   // The log: newest first, a few lines, each with how long since the one before (a double fire

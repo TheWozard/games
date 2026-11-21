@@ -3,10 +3,10 @@
   at phone size in each state it takes in play. Names live here, not in the game, which shows none.
 -->
 <script lang="ts">
+  import { facesFor, KINDS } from '../../mahjong/logic';
   import TileBody from '../../mahjong/TileBody.svelte';
   import TileFaces from '../../mahjong/TileFaces.svelte';
   import { CHOICES, loadSettings } from '../../shared/settings';
-  import { facesFor, KINDS } from '../../mahjong/logic';
 
   const NUMBERS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
   const GROUPS = [

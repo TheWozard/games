@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { slidePick } from '../shared/ui/slide';
-  import Choice from '../shared/ui/Choice.svelte';
-  import PickGroup from '../shared/ui/PickGroup.svelte';
   import { flip } from 'svelte/animate';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
+  import { slidePick } from '../shared/ui/slide';
   import {
     DEFAULT,
     describe,

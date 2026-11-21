@@ -1,9 +1,9 @@
 import { execSync } from 'node:child_process';
-import { readdirSync, existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vitest/config';
 
 const root = resolve(import.meta.dirname, 'src');
 

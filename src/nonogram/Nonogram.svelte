@@ -2,9 +2,9 @@
   import { untrack } from 'svelte';
   import BrushPicker from '../shared/BrushPicker.svelte';
   import GameScreen from '../shared/GameScreen.svelte';
-  import RulesPicker from '../shared/RulesPicker.svelte';
-  import { attachPan } from '../shared/pan';
   import { PALETTE, PALETTE_NAMES } from '../shared/palette';
+  import { attachPan } from '../shared/pan';
+  import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import {
     CROSS,

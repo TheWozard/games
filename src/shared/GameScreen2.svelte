@@ -31,24 +31,24 @@
   first visit (see src/mahjong/App.svelte).
 -->
 <script lang="ts">
-  import Undo2 from '@lucide/svelte/icons/undo-2';
-  import MenuIcon from '@lucide/svelte/icons/menu';
-  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import X from '@lucide/svelte/icons/x';
+  import MenuIcon from '@lucide/svelte/icons/menu';
   import Palette from '@lucide/svelte/icons/palette';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+  import Undo2 from '@lucide/svelte/icons/undo-2';
+  import X from '@lucide/svelte/icons/x';
   import type { Snippet } from 'svelte';
   import BackButton from './BackButton.svelte';
   import Dialog from './Dialog.svelte';
   import NewDialog, { type NewOptions } from './NewDialog.svelte';
   import NextButton from './NextButton.svelte';
-  import ZoomStage from './ZoomStage.svelte';
-  import type { Size } from './zoom';
   import IconButton from './ui/IconButton.svelte';
   import MenuItem from './ui/MenuItem.svelte';
   import MenuPuzzle from './ui/MenuPuzzle.svelte';
   import MenuSection from './ui/MenuSection.svelte';
   import type { Wait } from './wait';
+  import type { Size } from './zoom';
+  import ZoomStage from './ZoomStage.svelte';
 
   interface Props extends Omit<NewOptions, 'onstart'> {
     /** Starts the picked game (Play): made in a worker, so it settles once the game is ready. */

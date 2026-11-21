@@ -10,6 +10,7 @@
 <script lang="ts" module>
   import Choice from './ui/Choice.svelte';
   import PickGroup from './ui/PickGroup.svelte';
+
   /** Each game's tab name, and its choices under a heading. Choice values are "<game>:<setting>". */
   export type Games = Record<
     string,

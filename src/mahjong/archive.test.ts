@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ARCHIVE, decode } from './archive';
 import { seeded } from '../shared/seed';
+import { ARCHIVE, decode } from './archive';
 import { reaches } from './layouts';
 import {
   deal,

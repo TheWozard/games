@@ -1,10 +1,13 @@
 <script lang="ts">
-  import GameScreen from '../../shared/GameScreen.svelte';
+  import { untrack } from 'svelte';
   import CardFace from '../../shared/CardFace.svelte';
   import { cardName, isRed, SUITS, type Card } from '../../shared/cards';
+  import GameScreen from '../../shared/GameScreen.svelte';
   import { attachPan } from '../../shared/pan';
   import { createShake } from '../../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../../shared/storage';
+  import VariantPicker from '../../shared/VariantPicker.svelte';
+  import { GAMES, parse, type VariantProps } from '../variants';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
     bestTarget,
@@ -16,9 +19,6 @@
     type Source,
     type Target,
   } from './logic';
-  import { untrack } from 'svelte';
-  import VariantPicker from '../../shared/VariantPicker.svelte';
-  import { GAMES, parse, type VariantProps } from '../variants';
 
   let { start: first, onswitch }: VariantProps = $props();
   // The New dialog's pick, "<variant>:<setting>", starting on this game each time it opens.

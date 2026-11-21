@@ -8,8 +8,8 @@
 // a dig needs the difficulty's own tier.
 import { BOXES, geometry, type Geometry } from '../classic/grade';
 import {
-  dig,
   DIFFICULTIES,
+  dig,
   MAX_TRIES,
   shuffle,
   type Difficulty,

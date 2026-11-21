@@ -1,7 +1,7 @@
 // Jigsaw Sudoku on top of the shared grid mechanics (../shared/grid.ts). Cells can't repeat a
 // digit with their row, column or region; regions are outlined with thick lines.
-import type { GridLayout } from '../../shared/GridPlay.svelte';
 import { gridStart, isGridState, type GridState } from '../../shared/grid';
+import type { GridLayout } from '../../shared/GridPlay.svelte';
 import { geometry } from '../classic/grade';
 import { generate, isDifficulty, type Difficulty } from './logic';
 

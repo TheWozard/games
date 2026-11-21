@@ -5,14 +5,6 @@
   import { scale } from 'svelte/transition';
   import Dialog from '../shared/Dialog.svelte';
   import GameScreen2 from '../shared/GameScreen2.svelte';
-  import Button from '../shared/ui/Button.svelte';
-  import Choice from '../shared/ui/Choice.svelte';
-  import PickGroup from '../shared/ui/PickGroup.svelte';
-  import Toggle from '../shared/ui/Toggle.svelte';
-  import MenuItem from '../shared/ui/MenuItem.svelte';
-  import MenuSection from '../shared/ui/MenuSection.svelte';
-  import Chip from '../shared/ui/Chip.svelte';
-  import PickList from '../shared/ui/PickList.svelte';
   import { formatSeed } from '../shared/seed';
   import {
     CHOICES,
@@ -22,11 +14,16 @@
     type Settings,
   } from '../shared/settings';
   import { saveJSON } from '../shared/storage';
+  import Button from '../shared/ui/Button.svelte';
+  import Chip from '../shared/ui/Chip.svelte';
+  import Choice from '../shared/ui/Choice.svelte';
+  import MenuItem from '../shared/ui/MenuItem.svelte';
+  import MenuSection from '../shared/ui/MenuSection.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
+  import PickList from '../shared/ui/PickList.svelte';
+  import Toggle from '../shared/ui/Toggle.svelte';
   import { dealInBackground } from './background';
-  import TileFaces from './TileFaces.svelte';
-  import LayoutThumb from './LayoutThumb.svelte';
   import { DEPTH } from './body';
-  import TileBody from './TileBody.svelte';
   import {
     free,
     nextDeal,
@@ -39,7 +36,10 @@
     type Game,
   } from './game';
   import { ARCHIVE_IDS, layoutOf, OWN_IDS, reaches, type Layout, type LayoutId } from './layouts';
+  import LayoutThumb from './LayoutThumb.svelte';
   import { DIFFICULTIES, drawOrder, MAX_TILES, type Difficulty } from './logic';
+  import TileBody from './TileBody.svelte';
+  import TileFaces from './TileFaces.svelte';
 
   // The game to start on: the saved one, or one App.svelte dealt.
   let { initial }: { initial: Game } = $props();

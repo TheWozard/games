@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Choice from '../shared/ui/Choice.svelte';
-  import PickGroup from '../shared/ui/PickGroup.svelte';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
     counts,

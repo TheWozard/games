@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   deal,
   DIFFICULTIES,
-  SLIM,
   drawOrder,
   facesFor,
   FLOWERS,
@@ -15,6 +14,7 @@ import {
   neighbors,
   reshuffle,
   SEASONS,
+  SLIM,
   TIERS,
   type LayoutName,
 } from './logic';
