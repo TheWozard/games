@@ -43,7 +43,7 @@
   <button
     style:--count={stops.length}
     style:--size="{SIZE}px"
-    style:width="{SIZE + stack[stack.length - 1].edge}px"
+    style:width="{SIZE + stack.at(-1)!.edge}px"
     class="brush"
     aria-label="Placing {stops[index].name}; tap for {next.name}"
     onclick={() => (value = next.value)}

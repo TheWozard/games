@@ -391,8 +391,8 @@ function connected(n: number, edges: readonly Edge[]): boolean {
   }
   const seen = new Set([0]);
   const queue = [0];
-  for (let q = 0; q < queue.length; q++) {
-    for (const j of next[queue[q]]) {
+  for (const here of queue) {
+    for (const j of next[here]) {
       if (!seen.has(j)) {
         seen.add(j);
         queue.push(j);

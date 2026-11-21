@@ -57,7 +57,7 @@ export const toFoundation = (t: Table, c: Card) => t.foundations[suitOf(c)] === 
 export function fitsColumn(t: Table, c: Card, col: number): boolean {
   const { down, up } = t.tableau[col];
   if (up.length === 0) return down.length === 0 && rankOf(c) === 13;
-  const top = up[up.length - 1];
+  const top = up.at(-1)!;
   return rankOf(top) === rankOf(c) + 1 && isRed(top) !== isRed(c);
 }
 
@@ -81,7 +81,7 @@ const clone = (t: Table): Table => ({
 
 /** The cards a source would lift, or null if it's empty. */
 export function lifted(t: Table, s: Source): Card[] | null {
-  if (s.from === 'waste') return t.waste.length ? [t.waste[t.waste.length - 1]] : null;
+  if (s.from === 'waste') return t.waste.length ? [t.waste.at(-1)!] : null;
   if (s.from === 'foundation') {
     const n = t.foundations[s.suit];
     return n ? [s.suit * 13 + n - 1] : null;
@@ -135,7 +135,7 @@ export function finish(t: Table): Table {
     progress = false;
     for (let col = 0; col < 7; col++) {
       const up = out.tableau[col].up;
-      if (up.length && toFoundation(out, up[up.length - 1])) {
+      if (up.length && toFoundation(out, up.at(-1)!)) {
         out = move(out, { from: 'tableau', col, index: up.length - 1 }, { to: 'foundation' });
         progress = true;
       }
@@ -258,7 +258,7 @@ export function reachable(t: Table, n: Draw): Table[] {
   const size = t.stock.length + t.waste.length;
   let s = t;
   for (let k = 0; k <= size + 2; k++) {
-    const top = s.waste[s.waste.length - 1];
+    const top = s.waste.at(-1);
     if (top !== undefined && !tops.has(top)) {
       tops.add(top);
       out.push(s);

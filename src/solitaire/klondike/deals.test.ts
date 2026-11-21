@@ -33,7 +33,7 @@ describe('stored deals', () => {
   it('rename suits the eight ways that keep colors together', () => {
     expect(new Set(SUIT_RENAMES.map(String)).size).toBe(8);
     for (const rename of SUIT_RENAMES) {
-      expect(rename.toSorted()).toEqual([0, 1, 2, 3]);
+      expect(rename.toSorted((a, b) => a - b)).toEqual([0, 1, 2, 3]);
       // Same-colored suits stay the same color as each other.
       expect(isRed(rename[0] * 13)).toBe(isRed(rename[3] * 13));
       expect(isRed(rename[1] * 13)).toBe(isRed(rename[2] * 13));

@@ -69,8 +69,8 @@ export function pourAmount(
   const a = tubes[from];
   const b = tubes[to];
   if (from === to || a.length === 0 || b.length >= capacity) return 0;
-  const color = a[a.length - 1];
-  if (b.length > 0 && b[b.length - 1] !== color) return 0;
+  const color = a.at(-1);
+  if (b.length > 0 && b.at(-1) !== color) return 0;
   let run = 0;
   for (let k = a.length - 1; k >= 0 && a[k] === color && !(run > 0 && hidden?.[from][k]); k--)
     run++;

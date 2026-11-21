@@ -192,7 +192,7 @@
   }
 
   function move(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.pointer || stroke.mode === 'set') return;
+    if (e.pointerId !== stroke?.pointer || stroke.mode === 'set') return;
     const i = cellAt(e);
     const last = stroke.path.at(-1)!;
     if (i === null || i === last) return;
@@ -210,14 +210,14 @@
   }
 
   function up(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.pointer) return;
+    if (e.pointerId !== stroke?.pointer) return;
     const s = stroke;
     stroke = null;
     dispatch(action(s));
   }
 
   function cancel(e: PointerEvent) {
-    if (stroke && e.pointerId === stroke.pointer) stroke = null;
+    if (e.pointerId === stroke?.pointer) stroke = null;
   }
 
   // A keyboard press on a cell (Enter or Space) acts like a tap; pointer taps go through the stroke.

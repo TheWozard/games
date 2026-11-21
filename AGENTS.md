@@ -287,6 +287,11 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
 - ESLint's `no-unsafe-*` rules are off: typescript-eslint can't read the types of `.svelte`
   imports. Mark a promise left to run on its own with `void` (`no-floating-promises`).
 - Silence a rule only for one line, with a reason: `// eslint-disable-next-line <rule> -- why`.
+- Every `<button>` says its `type` (`svelte/button-has-type`). Inside a `Dialog` (a
+  `<form method="dialog">`) or GameScreen2's menu, a button that closes it with its value is
+  `type="submit"`; any other is `type="button"`.
+- `a.at(-1)` rather than `a[a.length - 1]` (`unicorn/prefer-at`); it's typed as possibly
+  `undefined`, so add `!` where the array can't be empty.
 
 ## Testing
 

@@ -32,7 +32,7 @@ export function attachPan(
       pan = { id: e.pointerId, x0: e.clientX, start: get(), moved: false };
   };
   const move = (e: PointerEvent) => {
-    if (!pan || e.pointerId !== pan.id) return;
+    if (e.pointerId !== pan?.id) return;
     const dx = e.clientX - pan.x0;
     if (!pan.moved && Math.abs(dx) > 8) {
       pan.moved = true;
@@ -42,7 +42,7 @@ export function attachPan(
     if (pan.moved) set(clamp(pan.start - dx));
   };
   const up = (e: PointerEvent) => {
-    if (!pan || e.pointerId !== pan.id) return;
+    if (e.pointerId !== pan?.id) return;
     justPanned = pan.moved;
     if (pan.moved) onPanning?.(false);
     pan = null;

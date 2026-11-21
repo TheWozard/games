@@ -99,6 +99,7 @@
     aria-busy={busy}
     disabled={!canPlay}
     onclick={play}
+    type="submit"
   >
     Play
     {#if busy}
@@ -108,7 +109,7 @@
     {/if}
   </button>
   <!-- Drawn in the top corner. -->
-  <button class="dialog-close" aria-label="Close" disabled={busy} value="">
+  <button class="dialog-close" aria-label="Close" disabled={busy} type="submit" value="">
     <X aria-hidden="true" strokeWidth={2.4} />
   </button>
 </Dialog>

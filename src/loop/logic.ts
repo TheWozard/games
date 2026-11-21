@@ -189,8 +189,8 @@ export function isSolved(
   const total = on.filter(Boolean).length;
   const seen = new Set([start]);
   const queue = [start];
-  for (let q = 0; q < queue.length; q++) {
-    for (const [r, c] of edgeEnds(g, queue[q])) {
+  for (const here of queue) {
+    for (const [r, c] of edgeEnds(g, here)) {
       for (const e of dotEdges(g, r, c)) {
         if (on[e] && !seen.has(e)) {
           seen.add(e);
@@ -255,8 +255,8 @@ function blob(g: Grid, random: Random): boolean[] {
         queue.push(i);
       }
     }
-    for (let q = 0; q < queue.length; q++) {
-      for (const j of near(queue[q])) {
+    for (const here of queue) {
+      for (const j of near(here)) {
         if (!inside[j] && !seen.has(j)) {
           seen.add(j);
           queue.push(j);
@@ -527,8 +527,8 @@ export function solve(
       if (comp[d] !== -1 || !dots[d].some((e) => s[e] === ON)) continue;
       comp[d] = id;
       const queue = [d];
-      for (let q = 0; q < queue.length; q++) {
-        for (const e of dots[queue[q]]) {
+      for (const here of queue) {
+        for (const e of dots[here]) {
           if (s[e] !== ON) continue;
           for (const x of ends[e]) {
             if (comp[x] === -1) {

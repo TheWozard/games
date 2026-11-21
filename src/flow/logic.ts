@@ -228,7 +228,7 @@ export function generate(
     const paths = merge(board, start, colors, random);
     if (!paths) continue;
     if (rules.walls) board = { ...board, walls: walls(board, paths, random) };
-    const dots = paths.map((p): [number, number] => [p[0], p[p.length - 1]]);
+    const dots = paths.map((p): [number, number] => [p[0], p.at(-1)!]);
     if (countSolutions(dots, board, 2) !== 1) continue;
     return { dots, solution: paths, board };
   }
@@ -253,8 +253,8 @@ function holes(board: Board, random: Random): number[] {
     // Still one piece?
     const seen = new Set([open[0]]);
     const queue = [open[0]];
-    for (let q = 0; q < queue.length; q++)
-      for (const j of neighbors(queue[q], trial))
+    for (const here of queue)
+      for (const j of neighbors(here, trial))
         if (!seen.has(j)) {
           seen.add(j);
           queue.push(j);
@@ -322,7 +322,7 @@ function merge(board: Board, start: Path[], target: number, random: Random): nul
     owner.fill(-1);
     paths.forEach((p, k) => {
       owner[p[0]] = k;
-      owner[p[p.length - 1]] = k;
+      owner[p.at(-1)!] = k;
     });
   };
   reindex();
@@ -336,7 +336,7 @@ function merge(board: Board, start: Path[], target: number, random: Random): nul
     for (const a of order.slice(0, 12)) {
       const p = paths[a];
       const options: { a: number; b: number; path: Path }[] = [];
-      for (const end of p.length === 1 ? [p[0]] : [p[0], p[p.length - 1]]) {
+      for (const end of p.length === 1 ? [p[0]] : [p[0], p.at(-1)!]) {
         for (const nb of neighbors(end, board)) {
           const b = owner[nb];
           if (b === -1 || b === a) continue; // not the end of another path
@@ -381,7 +381,7 @@ export function connected(
   const p = paths[k];
   if (p.length < 2) return false;
   const [a, b] = dots[k];
-  return (p[0] === a && p[p.length - 1] === b) || (p[0] === b && p[p.length - 1] === a);
+  return (p[0] === a && p.at(-1) === b) || (p[0] === b && p.at(-1) === a);
 }
 
 /**
@@ -420,7 +420,7 @@ export function extend(
   board: Board,
 ): Path[] {
   const p = paths[k];
-  const last = p[p.length - 1];
+  const last = p.at(-1);
   if (last === undefined || !adjacent(last, cell, board)) return paths as Path[];
   const at = p.indexOf(cell);
   // Back onto its own path: cut back to there. Not onto a bridge it crosses from another side
@@ -430,7 +430,7 @@ export function extend(
   if (connected(dots, paths, k)) return paths as Path[];
   // Leaving a bridge: straight on only.
   if (isBridge(last, board) && p.length >= 2) {
-    const d = dirOf(p[p.length - 2], last, board);
+    const d = dirOf(p.at(-2)!, last, board);
     if (step(last, d, board) !== cell) return paths as Path[];
   }
   const d = dotColor(dots, cell);
@@ -458,9 +458,9 @@ export function settle(
   board: Board,
 ): Path[] {
   const p = paths[k];
-  const last = p[p.length - 1];
+  const last = p.at(-1)!;
   if (p.length < 2 || !isBridge(last, board)) return paths as Path[];
-  const on = extend(dots, paths, k, step(last, dirOf(p[p.length - 2], last, board), board), board);
+  const on = extend(dots, paths, k, step(last, dirOf(p.at(-2)!, last, board), board), board);
   if (on !== paths) return on;
   return paths.map((q, j) => (j === k ? q.slice(0, -1) : q));
 }

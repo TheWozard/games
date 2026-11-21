@@ -25,11 +25,11 @@ import {
 function isConnected(n: number, edges: [number, number][]): boolean {
   const seen = new Set([0]);
   const queue = [0];
-  for (let q = 0; q < queue.length; q++) {
+  for (const here of queue) {
     for (const [a, b] of edges) {
       const j =
-        a === queue[q] ? b
-        : b === queue[q] ? a
+        a === here ? b
+        : b === here ? a
         : -1;
       if (j >= 0 && !seen.has(j)) {
         seen.add(j);

@@ -173,7 +173,7 @@
   }
 
   function pointerMove(e: PointerEvent) {
-    if (!press || e.pointerId !== press.id) return;
+    if (e.pointerId !== press?.id) return;
     const dx = e.clientX - press.x;
     const dy = e.clientY - press.y;
     pointerX = e.clientX - (board?.getBoundingClientRect().left ?? 0);
@@ -221,7 +221,7 @@
   }
 
   function pointerUp(e: PointerEvent) {
-    if (!press || e.pointerId !== press.id) return;
+    if (e.pointerId !== press?.id) return;
     if (drag) {
       swallowClick = true;
       const target = dropTarget();

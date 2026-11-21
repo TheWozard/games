@@ -182,7 +182,7 @@
   }
 
   function pointerMove(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.id) return;
+    if (e.pointerId !== stroke?.id) return;
     const target = spotAt(e);
     let paths = game.paths;
     let at = stroke.at;
@@ -204,7 +204,7 @@
   }
 
   function pointerUp(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.id) return;
+    if (e.pointerId !== stroke?.id) return;
     const { before, color } = stroke;
     stroke = null;
     drawing = false;

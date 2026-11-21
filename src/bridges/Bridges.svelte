@@ -88,7 +88,7 @@
   }
 
   function pointerMove(e: PointerEvent) {
-    if (!press || e.pointerId !== press.id) return;
+    if (e.pointerId !== press?.id) return;
     const p = toBoard(e);
     if (!gesture) {
       if (Math.hypot(p.x - press.start.x, p.y - press.start.y) < START) return;
@@ -114,7 +114,7 @@
   }
 
   function pointerUp(e: PointerEvent) {
-    if (!press || e.pointerId !== press.id) return;
+    if (e.pointerId !== press?.id) return;
     if (gesture?.kind === 'build' && gesture.edge >= 0)
       dispatch({ type: 'build', edge: gesture.edge });
     press = null;

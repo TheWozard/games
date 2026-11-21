@@ -165,7 +165,7 @@ describe('generate', () => {
         () => generate('hard', { colors: true, mystery: false }).solution,
       ).flat(),
     );
-    expect([...used].sort()).toEqual([0, 1, 2, 3]);
+    expect([...used].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
   });
 
   it('makes patterns in range', () => {

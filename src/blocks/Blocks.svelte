@@ -101,14 +101,14 @@
   }
 
   function pointerMove(e: PointerEvent) {
-    if (!held || e.pointerId !== held.id) return;
+    if (e.pointerId !== held?.id) return;
     const b = game.blocks[held.index];
     const to = Math.min(held.hi, Math.max(held.lo, held.at + along(e, b.across) - held.from));
     held = { ...held, offset: to - held.at };
   }
 
   function pointerUp(e: PointerEvent) {
-    if (!held || e.pointerId !== held.id) return;
+    if (e.pointerId !== held?.id) return;
     const { index, at, offset } = held;
     held = null;
     const b = game.blocks[index];

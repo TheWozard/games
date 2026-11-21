@@ -33,8 +33,8 @@ export function nurikabeValid(n: number, clues: (null | number)[], sea: boolean[
     if (sea[i] || seen.has(i)) continue;
     const island = [i];
     seen.add(i);
-    for (let q = 0; q < island.length; q++)
-      for (const j of sides(n, island[q]))
+    for (const here of island)
+      for (const j of sides(n, here))
         if (!sea[j] && !seen.has(j)) {
           seen.add(j);
           island.push(j);

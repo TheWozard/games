@@ -37,8 +37,8 @@ export function connected(regions: readonly number[], k: number): boolean {
   const cells = regions.flatMap((r, i) => (r === k ? [i] : []));
   const seen = new Set([cells[0]]);
   const queue = [cells[0]];
-  for (let q = 0; q < queue.length; q++) {
-    for (const j of orthogonal(queue[q])) {
+  for (const here of queue) {
+    for (const j of orthogonal(here)) {
       if (regions[j] === k && !seen.has(j)) {
         seen.add(j);
         queue.push(j);

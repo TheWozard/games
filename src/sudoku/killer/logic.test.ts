@@ -15,9 +15,9 @@ const orthogonal = (a: number, b: number) =>
 function connected(cells: number[]): boolean {
   const seen = new Set([cells[0]]);
   const queue = [cells[0]];
-  for (let k = 0; k < queue.length; k++) {
+  for (const here of queue) {
     for (const j of cells)
-      if (!seen.has(j) && orthogonal(queue[k], j)) {
+      if (!seen.has(j) && orthogonal(here, j)) {
         seen.add(j);
         queue.push(j);
       }

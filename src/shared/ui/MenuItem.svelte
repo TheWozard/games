@@ -16,7 +16,7 @@
   let { icon: Icon, label, value, disabled = false, onclick }: Props = $props();
 </script>
 
-<button class="menu-item" {disabled} {onclick} {value}>
+<button class="menu-item" {disabled} {onclick} type="submit" {value}>
   {#if Icon}<Icon aria-hidden="true" strokeWidth={2.4} />{/if}
   {label}
 </button>

@@ -89,7 +89,7 @@ export function canMove(t: Table, s: Source, d: Target): boolean {
       const onto = t.columns[d.col];
       if (!onto || (s.from === 'column' && s.col === d.col)) return false;
       if (onto.length === 0) return cards.length <= capacity(t, true);
-      return fits(cards[0], onto[onto.length - 1]) && cards.length <= capacity(t, false);
+      return fits(cards[0], onto.at(-1)!) && cards.length <= capacity(t, false);
     }
   }
 }
@@ -307,7 +307,7 @@ function candidates(t: Table): [Source, Target][] {
     for (const to of cols) {
       const onto = t.columns[to];
       if (to === from || !onto.length) continue;
-      const head = onto[onto.length - 1];
+      const head = onto.at(-1)!;
       for (let i = start; i < col.length; i++) {
         if (fits(col[i], head)) {
           const s: Source = { from: 'column', col: from, index: i };

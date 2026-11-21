@@ -203,7 +203,7 @@
     <h2>Display</h2>
     {@render settings()}
     <!-- Drawn in the top corner. -->
-    <button class="dialog-close" aria-label="Close" value="">
+    <button class="dialog-close" aria-label="Close" type="submit" value="">
       <X aria-hidden="true" strokeWidth={2.4} />
     </button>
   </Dialog>

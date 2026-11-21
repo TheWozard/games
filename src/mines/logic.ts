@@ -63,8 +63,7 @@ export function flood(
 ): number[] {
   const seen = new Set([start]);
   const queue = [start];
-  for (let k = 0; k < queue.length; k++) {
-    const i = queue[k];
+  for (const i of queue) {
     if (near[i] !== 0) continue;
     for (const j of neighbors(i, board)) {
       if (!seen.has(j) && !blocked(j)) {

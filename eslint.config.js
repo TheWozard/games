@@ -1,7 +1,9 @@
 // Lint for bugs and for this repo's conventions (AGENTS.md); formatting is Prettier's job.
 import js from '@eslint/js';
+import vitest from '@vitest/eslint-plugin';
 import perfectionist from 'eslint-plugin-perfectionist';
 import svelte from 'eslint-plugin-svelte';
+import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 
@@ -78,7 +80,33 @@ export default ts.config(
           message: 'No vibration: feedback is visual only.',
         },
       ],
+      // Real bugs: .sort() with no compare sorts numbers as text ([10, 9] stays put).
+      '@typescript-eslint/require-array-sort-compare': 'error',
+      // Debug logging left in; console.error / warn is how a real failure is reported.
+      'no-console': ['error', { allow: ['error', 'warn'] }],
+      // Guards that cost nothing: none of these fire today.
+      eqeqeq: 'error',
+      'no-alert': 'error',
+      radix: 'error',
+      'no-useless-return': 'error',
+      'no-unneeded-ternary': 'error',
+      'logical-assignment-operators': 'error',
+      '@typescript-eslint/prefer-find': 'error',
+      '@typescript-eslint/prefer-includes': 'error',
+      '@typescript-eslint/prefer-string-starts-ends-with': 'error',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+      '@typescript-eslint/no-unnecessary-template-expression': 'error',
+      '@typescript-eslint/no-deprecated': 'error',
+      '@typescript-eslint/prefer-promise-reject-errors': 'error',
+      // Tidier, and fixed by `just fmt`.
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-for-of': 'error',
     },
+  },
+  {
+    plugins: { unicorn },
+    // a.at(-1) rather than a[a.length - 1].
+    rules: { 'unicorn/prefer-at': 'error' },
   },
   {
     // `let [a, b] = ...` stays let when either is reassigned. (Svelte files keep the plugin's own
@@ -94,6 +122,13 @@ export default ts.config(
     rules: {
       // It can't see the types Svelte gives, so it calls needed assertions unnecessary.
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      // A <button> in a form submits it, and a form in a <dialog> closes it: say which one it is.
+      'svelte/button-has-type': 'error',
+      'svelte/no-useless-mustaches': 'error',
+      'svelte/shorthand-attribute': 'error',
+      'svelte/shorthand-directive': 'error',
+      'svelte/no-useless-children-snippet': 'error',
+      'svelte/prefer-writable-derived': 'error',
     },
   },
   {
@@ -133,8 +168,28 @@ export default ts.config(
     },
   },
   {
+    // Tests must check something (AGENTS.md: prove it, don't assume it), and all of them must run.
+    files: ['**/*.test.ts'],
+    plugins: { vitest },
+    rules: {
+      'vitest/expect-expect': 'error',
+      'vitest/no-focused-tests': 'error',
+      'vitest/no-identical-title': 'error',
+      'vitest/valid-title': 'error',
+      'vitest/no-standalone-expect': 'error',
+      'vitest/no-commented-out-tests': 'error',
+      // expect(value, 'message') is Vitest's.
+      'vitest/valid-expect': ['error', { maxArgs: 2 }],
+    },
+  },
+  {
     // Plain config and the one-off scripts: no type-aware linting outside tsconfig's files.
     files: ['*.js', 'scripts/**'],
     ...ts.configs.disableTypeChecked,
+  },
+  {
+    // The scripts are command-line tools: printing is their output.
+    files: ['scripts/**'],
+    rules: { 'no-console': 'off' },
   },
 );

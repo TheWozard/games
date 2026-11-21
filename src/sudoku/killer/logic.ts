@@ -214,8 +214,8 @@ function split(cells: number[], keep: number, random: Random): [number[], number
     // The rest must be connected too.
     const seen = new Set([rest[0]]);
     const queue = [rest[0]];
-    for (let q = 0; q < queue.length; q++) {
-      for (const j of orthogonal(queue[q])) {
+    for (const here of queue) {
+      for (const j of orthogonal(here)) {
         if (rest.includes(j) && !seen.has(j)) {
           seen.add(j);
           queue.push(j);

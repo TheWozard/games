@@ -166,7 +166,7 @@
   }
 
   function move(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.pointer) return;
+    if (e.pointerId !== stroke?.pointer) return;
     const i = cellAt(e);
     if (i === null || i === stroke.end || stroke.drag === 'none') return;
     if (stroke.drag === 'free') {
@@ -197,14 +197,14 @@
   }
 
   function up(e: PointerEvent) {
-    if (!stroke || e.pointerId !== stroke.pointer) return;
+    if (e.pointerId !== stroke?.pointer) return;
     const s = stroke;
     stroke = null;
     dispatch({ type: 'paint', indices: strokeCells(s), value: s.value });
   }
 
   function cancel(e: PointerEvent) {
-    if (stroke && e.pointerId === stroke.pointer) stroke = null;
+    if (e.pointerId === stroke?.pointer) stroke = null;
   }
 
   // What's on screen: the game, with the stroke in progress drawn over it.

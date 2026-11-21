@@ -222,8 +222,8 @@ function paint(islands: Island[], links: Map<string, number>, random: Random): b
     const color = random() < 0.5 ? 1 : 2;
     const queue = [i];
     islands[i].color = color;
-    for (let q = 0; q < queue.length; q++) {
-      for (const j of near[queue[q]]) {
+    for (const here of queue) {
+      for (const j of near[here]) {
         if (islands[j].color === -1) {
           islands[j].color = color;
           queue.push(j);
@@ -434,10 +434,10 @@ export function solve(
   const component = (start: number, usable: (k: number) => boolean): Set<number> => {
     const seen = new Set([start]);
     const queue = [start];
-    for (let q = 0; q < queue.length; q++) {
-      for (const k of of[queue[q]]) {
+    for (const here of queue) {
+      for (const k of of[here]) {
         if (!usable(k)) continue;
-        const j = edges[k].a === queue[q] ? edges[k].b : edges[k].a;
+        const j = edges[k].a === here ? edges[k].b : edges[k].a;
         if (!seen.has(j)) {
           seen.add(j);
           queue.push(j);
@@ -502,12 +502,12 @@ export function isSolved(
     return false;
   const seen = new Set([0]);
   const queue = [0];
-  for (let q = 0; q < queue.length; q++) {
+  for (const here of queue) {
     edges.forEach((e, k) => {
       if (!bridges[k]) return;
       const j =
-        e.a === queue[q] ? e.b
-        : e.b === queue[q] ? e.a
+        e.a === here ? e.b
+        : e.b === here ? e.a
         : -1;
       if (j >= 0 && !seen.has(j)) {
         seen.add(j);

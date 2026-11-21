@@ -134,8 +134,8 @@ export function countSolutions(
       let odd = 0; // ... and end 2k+1
       const queue = [v];
       pocket[v] = r;
-      for (let q = 0; q < queue.length; q++) {
-        for (const u of next[queue[q]]) {
+      for (const here of queue) {
+        for (const u of next[here]) {
           if (color[u] === -1) {
             if (pocket[u] === -1) {
               pocket[u] = r;

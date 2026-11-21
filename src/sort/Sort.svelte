@@ -45,8 +45,8 @@
     const out: [number, number, number][] = [];
     tube.forEach((c, k) => {
       const color = hidden[k] ? HIDDEN : c;
-      const last = out[out.length - 1];
-      if (last && last[0] === color) last[2]++;
+      const last = out.at(-1);
+      if (last?.[0] === color) last[2]++;
       else out.push([color, k, 1]);
     });
     return out;
