@@ -91,8 +91,9 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Saved games:** key `games.<name>.v1`. `isGame()` must reject anything that doesn't fit the
   current shape, so a stale save falls back to a new game instead of crashing. As a backstop,
   `mountGame` (`src/shared/mount.ts`) catches a save that passes the check but breaks the first
-  render: it drops the saves the page loaded and reloads once into a new game, with a toast. If you change the
-  saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
+  render: it drops the saves the page loaded and reloads once into a new game, with a toast. No
+  backward compatibility: when the saved shape changes, `isGame()` checks only the new one, and an
+  older save just starts a new game (games are short). Don't keep code that reads or upgrades old shapes.
 - **Digit-grid games** (Sudoku-like) don't need their own component: use `GridPlay` with a
   `layout(game)` that gives size, peers (cells that can't share a digit), thick walls, zone colors
   (0–4, drawn inset from each zone's outline; touching zones must differ) and cage labels. See
@@ -129,6 +130,13 @@ only forwards old links), `blocks` (Sliding Blocks).
   `inBackground` from `src/shared/background.ts`; see `src/loop/`):
   `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the
   New Game dialog held open meanwhile.
+- **On `GameScreen2`, every puzzle is made off the main thread,** quick setting or not: a game
+  moving to it gets a `worker.ts` and `background.ts` (see `src/mahjong/`), and its `onstart` /
+  `onnext` must return promises (GameScreen2's types require it). The first game on a first visit
+  is made there too: an `App.svelte` shows the saved game, or deals one in the background and
+  mounts the screen once it's ready (`src/mahjong/App.svelte`). Keep the inputs of a deal (seed
+  and settings) as a plain JSON message, picked on the page, so the same deal comes out in the
+  worker or in the fallback on the page.
 
 ## UI conventions
 

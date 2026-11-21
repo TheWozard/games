@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { scale } from 'svelte/transition';
   import GameScreen2 from '../shared/GameScreen2.svelte';
   import Button from '../shared/ui/Button.svelte';
@@ -9,17 +10,19 @@
   import PickList from '../shared/ui/PickList.svelte';
   import { formatSeed } from '../shared/seed';
   import { CHOICES, loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
-  import { loadJSON, saveJSON } from '../shared/storage';
+  import { saveJSON } from '../shared/storage';
+  import { dealInBackground } from './background';
   import TileFaces from './TileFaces.svelte';
   import LayoutThumb from './LayoutThumb.svelte';
   import { DEPTH } from './body';
   import TileBody from './TileBody.svelte';
-  import { dealFrom, free, fromSaved, newGame, pairsLeft, poolOf, reducer, slotsOf, STORAGE_KEY, type Action } from './game';
+  import { free, nextDeal, pairsLeft, reducer, slotsOf, STORAGE_KEY, type Action, type Deal, type Game } from './game';
   import { ARCHIVE_IDS, layoutOf, OWN_IDS, type Layout, type LayoutId } from './layouts';
   import { DIFFICULTIES, drawOrder, MAX_TILES, type Difficulty } from './logic';
 
-  const anything = (_value: unknown): _value is unknown => true;
-  let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
+  // The game to start on: the saved one, or one App.svelte dealt.
+  let { initial }: { initial: Game } = $props();
+  let game = $state.raw(untrack(() => initial));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   // How the tiles look: set in the Display dialog (from the menu), and changed at once (saved for next time too).
@@ -73,12 +76,8 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  // What the menu's Details copies: what deals these tiles again (no seed in saves from before there was one).
-  const puzzle = $derived(
-    [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty]
-      .filter(Boolean)
-      .join(' · '),
-  );
+  // What the menu's Details copies: what deals these tiles again.
+  const puzzle = $derived([formatSeed(game.seed), game.layout, game.difficulty].join(' · '));
 
   // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
   const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
@@ -124,18 +123,15 @@
     chosen = ordered(new Set([...chosen.filter((id) => !seen.has(id)), ...ids]));
   }
   function openNew() {
-    chosen = poolOf(game);
+    chosen = game.pool;
     level = game.difficulty;
     filters = [];
   }
-  function start(value: string) {
-    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout));
-  }
+  const start = (value: string) =>
+    value === 'start' && chosen.length ? deal(nextDeal(chosen, level, game.layout)) : Promise.resolve();
 
-
-  function deal(next: typeof game) {
-    game = next; // the stage opens it on its starting view (boardKey)
-  }
+  // Every deal is made in a worker (background.ts); the stage opens it on its starting view (boardKey).
+  const deal = (next: Deal) => dealInBackground(next).then((g) => (game = g));
 
   // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
   let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
@@ -159,7 +155,7 @@
   onstart={start}
   canPlay={chosen.length > 0}
   finished={game.done}
-  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout))}
+  onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
   {puzzle}
   {board}
   boardKey="{game.layout} {game.seed}"
@@ -196,7 +192,7 @@
     {/each}
   {/snippet}
   {#snippet dev()}
-    {#if DevMenu}<DevMenu {game} set={deal} />{/if}
+    {#if DevMenu}<DevMenu {game} set={(g) => (game = g)} {deal} />{/if}
   {/snippet}
   {#snippet picker()}
     <PickGroup title="Difficulty">

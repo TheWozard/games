@@ -11,11 +11,11 @@ type Move = { pair: [number, number] } | { shuffled: number[] }; // what to rest
 export interface Game {
   /** An own layout's key or an archive layout's id (layouts.ts). */
   layout: LayoutId;
-  /** The layouts picked in the New dialog: each deal takes one at random (missing in older saves: just `layout`). */
-  pool?: LayoutId[];
+  /** The layouts picked in the Customize dialog: each deal takes one at random. */
+  pool: LayoutId[];
   difficulty: Difficulty;
-  /** What the deal was made from: the same layout, difficulty and seed deal the same tiles (missing in older saves). */
-  seed?: number;
+  /** What the deal was made from: the same layout, difficulty and seed deal the same tiles. */
+  seed: number;
   kinds: number[]; // face per slot of slotsOf(game)
   gone: boolean[];
   selected: number | null;
@@ -40,42 +40,41 @@ export function newGame(layout: LayoutId, difficulty: Difficulty = 'medium', poo
   return { layout, pool: [...pool], difficulty, seed, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
 }
 
-/** The layouts a game's deals are drawn from. */
-export const poolOf = (g: Game): LayoutId[] => g.pool ?? [g.layout];
-
 /** One of the pool's layouts at random: not the one just played, when there's another to pick. */
 export function pickLayout(pool: readonly LayoutId[], last?: LayoutId, random: () => number = Math.random): LayoutId {
   const others = pool.length > 1 ? pool.filter((l) => l !== last) : pool;
   return others[Math.floor(random() * others.length)];
 }
 
-/** A new game from a pool of layouts (at least one), at a difficulty. */
-export const dealFrom = (pool: readonly LayoutId[], difficulty: Difficulty, last?: LayoutId): Game =>
-  newGame(pickLayout(pool, last), difficulty, pool);
+/**
+ * What a new game is dealt from. Picked on the page (cheap), then dealt in a worker (background.ts):
+ * the same deal always gives the same tiles, wherever it's dealt.
+ */
+export interface Deal {
+  layout: LayoutId;
+  difficulty: Difficulty;
+  pool: LayoutId[];
+  seed: number;
+}
+
+/** The next deal from a pool of layouts (at least one), at a difficulty: not `last` again if there's another. */
+export const nextDeal = (pool: readonly LayoutId[], difficulty: Difficulty, last?: LayoutId): Deal =>
+  ({ layout: pickLayout(pool, last), difficulty, pool: [...pool], seed: newSeed() });
+
+/** The same deal again, from its start. */
+export const replayOf = (g: Game): Deal => ({ layout: g.layout, difficulty: g.difficulty, pool: g.pool, seed: g.seed });
+
+/** The game a deal makes: the slow part (logic.ts's `deal`), so it runs in the worker. */
+export const dealt = ({ layout, difficulty, pool, seed }: Deal): Game => newGame(layout, difficulty, pool, seed);
 
 const isPool = (pool: unknown) =>
-  pool === undefined || (Array.isArray(pool) && pool.length > 0 && pool.every(isLayoutId) && new Set(pool).size === pool.length);
+  Array.isArray(pool) && pool.length > 0 && pool.every(isLayoutId) && new Set(pool).size === pool.length;
 
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   if (!isLayoutId(g?.layout) || !isDifficulty(g.difficulty)) return false;
   const n = layoutOf(g.layout).slots.length;
-  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history) && isPool(g.pool) && (g.seed === undefined || isSeed(g.seed))
-    // Dealt turned a quarter turn (layouts no longer are): which tiles are free changes with the
-    // turn, so it can't be played unturned, and falls back to a new game.
-    && !('turned' in g);
-}
-
-/**
- * A saved game in the current shape, or one saved before deals had a difficulty (it plays on as
- * Medium, the old deals' middle ground); else null.
- */
-export function fromSaved(value: unknown): Game | null {
-  if (isGame(value)) return value;
-  const old = value as Partial<Game> | null;
-  if (typeof old !== 'object' || old === null || 'difficulty' in old) return null;
-  const upgraded = { ...old, difficulty: 'medium' };
-  return isGame(upgraded) ? upgraded : null;
+  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history) && isPool(g.pool) && isSeed(g.seed);
 }
 
 export const free = (g: Game, i: number) => !g.gone[i] && isFree(i, near(g), g.gone);

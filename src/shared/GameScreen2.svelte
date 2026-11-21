@@ -24,6 +24,11 @@
     index, a version: whatever makes it again). It leaves the menu open.
 
   Next floats at the bottom once the game is over. Ctrl/Cmd+Z undoes when the game has undo.
+
+  A game on this frame never makes a puzzle on the main thread: it deals or generates every one in
+  a Web Worker (inBackground, background.ts), whatever the setting, so `onstart` and `onnext`
+  return promises, and Play and Next show a spinner until they settle. Its first game too, on a
+  first visit (see src/mahjong/App.svelte).
 -->
 <script lang="ts">
   import Undo2 from '@lucide/svelte/icons/undo-2';
@@ -45,7 +50,9 @@
   import MenuSection from './ui/MenuSection.svelte';
   import type { Wait } from './wait';
 
-  interface Props extends NewOptions {
+  interface Props extends Omit<NewOptions, 'onstart'> {
+    /** Starts the picked game (Play): made in a worker, so it settles once the game is ready. */
+    onstart: (value: string) => Promise<unknown>;
     title: string;
     /** The current setting, shown small under the title (the difficulty, layout...). */
     subtitle: string;
@@ -66,7 +73,8 @@
     onopennew?: () => void;
     /** Won, completed or lost: show Next. */
     finished: boolean;
-    onnext: () => unknown;
+    /** Starts another puzzle with the same settings (Next, and the menu's New): made in a worker. */
+    onnext: () => Promise<unknown>;
     /** How long the current setting takes to make: Next turns orange or red. */
     nextWait?: Wait;
     /** The game's controls, floating over the bottom of the board. */
@@ -95,11 +103,8 @@
 
   function next() {
     if (nexting || starting) return;
-    const made = onnext();
-    if (made instanceof Promise) {
-      nexting = true;
-      made.finally(() => (nexting = false));
-    }
+    nexting = true;
+    onnext().finally(() => (nexting = false));
   }
 
   function closeMenu(value: string) {

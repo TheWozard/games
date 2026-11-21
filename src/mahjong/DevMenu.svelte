@@ -7,9 +7,9 @@
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
   import Trophy from '@lucide/svelte/icons/trophy';
   import MenuItem from '../shared/ui/MenuItem.svelte';
-  import { newGame, pairsLeft, poolOf, reducer, type Game } from './game';
+  import { pairsLeft, reducer, replayOf, type Deal, type Game } from './game';
 
-  let { game, set }: { game: Game; set: (game: Game) => void } = $props();
+  let { game, set, deal }: { game: Game; set: (game: Game) => void; deal: (deal: Deal) => unknown } = $props();
 
   const win = () => set({ ...game, gone: game.gone.map(() => true), selected: null, done: true });
 
@@ -26,11 +26,9 @@
   }
 
   /** The same deal again from the start, from its seed. */
-  function replay() {
-    if (game.seed !== undefined) set(newGame(game.layout, game.difficulty, poolOf(game), game.seed));
-  }
+  const replay = () => deal(replayOf(game));
 </script>
 
 <MenuItem icon={Trophy} label="Win" onclick={win} />
 <MenuItem icon={Lock} label="Get Stuck" onclick={stuck} />
-<MenuItem icon={RotateCcw} label="Replay Deal" disabled={game.seed === undefined} onclick={replay} />
+<MenuItem icon={RotateCcw} label="Replay Deal" onclick={replay} />
