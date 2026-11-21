@@ -5,7 +5,6 @@
   import Choice from '../shared/ui/Choice.svelte';
   import PickGroup from '../shared/ui/PickGroup.svelte';
   import Toggle from '../shared/ui/Toggle.svelte';
-  import { attachPan } from '../shared/pan';
   import { createShake } from '../shared/shake.svelte';
   import { formatSeed } from '../shared/seed';
   import { CHOICES, loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
@@ -33,44 +32,39 @@
   const pickSetting = <K extends Setting>(key: K, value: Settings[K]) => (prefs = saveSetting(key, value));
 
   const layout = $derived(layoutOf(game.layout));
-  const slots = $derived(slotsOf(game)); // turned, if it was dealt for an upright screen
+  const slots = $derived(slotsOf(game));
   const moves = $derived(pairsLeft(game).length);
   const tilesLeft = $derived(game.gone.filter((g) => !g).length);
 
   // Geometry, in units where a tile is 3 × 4: half-tile steps of 1.5 across and 2 down, each layer
   // raised up and left by LIFT, and every tile showing DEPTH of its side below and to the right.
   const LIFT = 0.42;
+  // A tile's top left corner, before the board's own offset: lower layers are drawn further right
+  // and down, so the top layer sits up and left of them.
+  const leftOf = (s: { x: number; z: number }, maxZ: number) => s.x * 1.5 + (maxZ - s.z) * LIFT;
+  const topOf = (s: { y: number; z: number }, maxZ: number) => s.y * 2 + (maxZ - s.z) * LIFT;
+  // The board: just around the tiles as drawn, face to the far edge of its side, so it has as much
+  // room on the left and top as on the right and bottom (a layout whose raised tiles don't reach
+  // its left edge would otherwise leave an empty strip there). x0, y0: its top left, as above.
   const box = $derived.by(() => {
-    const maxX = Math.max(...slots.map((s) => s.x)) + 2;
-    const maxY = Math.max(...slots.map((s) => s.y)) + 2;
     const maxZ = Math.max(...slots.map((s) => s.z));
-    return { w: maxX * 1.5 + DEPTH + maxZ * LIFT, h: maxY * 2 + DEPTH + maxZ * LIFT, maxZ };
+    const lefts = slots.map((s) => leftOf(s, maxZ));
+    const tops = slots.map((s) => topOf(s, maxZ));
+    const x0 = Math.min(...lefts);
+    const y0 = Math.min(...tops);
+    return { x0, y0, w: Math.max(...lefts) + 3 + DEPTH - x0, h: Math.max(...tops) + 4 + DEPTH - y0, maxZ };
   });
 
-  // Size, in pixels per unit: fit the board to the space, but never smaller than an 8-wide layout
-  // gets on an upright phone (PHONE_W). Wide layouts keep that tile size and pan sideways
-  // (scrollX, null: centered) when they don't fit; a wider screen (a tablet, a desktop) uses its
-  // extra width and only pans if it must.
-  const NARROW_W = 8 * 3 + DEPTH + 3 * LIFT; // about the widest layout that fits a phone upright
-  const PHONE_W = 400;
-  let areaW = $state(360);
-  let areaH = $state(560);
-  const u = $derived(Math.min(areaH / box.h, Math.max(areaW / box.w, Math.min(areaW, PHONE_W) / NARROW_W)));
-  const maxScroll = $derived(Math.max(0, box.w * u - areaW));
-  let scrollX = $state<number | null>(null);
-  const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
-
-  let area = $state<HTMLElement>();
-  let panning = $state(false);
-  $effect(() => {
-    if (!area) return;
-    return attachPan(area, {
-      max: () => maxScroll,
-      get: () => sx,
-      set: (x) => (scrollX = x),
-      onPanning: (on) => (panning = on),
-    });
-  });
+  // Size, in pixels per unit: the same for every layout, so a small one's tiles are as big as a large
+  // one's. A layout 8 tiles across just fills the width (an upright phone), or one 8 tiles down
+  // the height (a landscape tablet or desktop), whichever is smaller. That's the board at zoom 1,
+  // where the stage (GameScreen2) opens it, centered; a bigger layout pans, and any zooms.
+  const EIGHT_W = 8 * 3 + DEPTH + 3 * LIFT; // 8 tiles across, with sides and a few layers
+  const EIGHT_H = 8 * 4 + DEPTH + 3 * LIFT; // 8 tiles down
+  let stageW = $state(0);
+  let stageH = $state(0);
+  const u = $derived(Math.min((stageW || 360) / EIGHT_W, (stageH || 640) / EIGHT_H));
+  const board = $derived({ width: box.w * u, height: box.h * u });
 
   // Back to front, so each tile's side and shadow land under the neighbors that should cover them.
   const order = $derived(drawOrder(slots).map((i) => ({ ...slots[i], i })));
@@ -79,7 +73,7 @@
 
   // What the menu's Game Details copies: what deals these tiles again (no seed in saves from before there was one).
   const puzzle = $derived(
-    [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty, game.turned && 'turned']
+    [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty]
       .filter(Boolean)
       .join(' · '),
   );
@@ -119,16 +113,12 @@
     tab = isArchive(game.layout) ? 'archive' : 'own';
   }
   function start(value: string) {
-    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout, upright()));
+    if (value === 'start' && chosen.length) deal(dealFrom(chosen, level, game.layout));
   }
 
-  // A layout wider than tall is dealt turned on an upright board area (game.ts, newGame); the game
-  // keeps its turn to the end, even if the screen turns.
-  const upright = () => areaH > areaW;
 
   function deal(next: typeof game) {
-    game = next;
-    scrollX = null; // a new deal opens centered
+    game = next; // the stage opens it on its starting view (boardKey)
   }
 
   // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
@@ -154,8 +144,12 @@
   onstart={start}
   canPlay={chosen.length > 0}
   finished={game.done}
-  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout, upright()))}
+  onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout))}
   {puzzle}
+  {board}
+  boardKey="{game.layout} {game.seed}"
+  bind:stageWidth={stageW}
+  bind:stageHeight={stageH}
 >
   {#snippet status()}
     {#if !game.done}
@@ -221,39 +215,36 @@
     </div>
   {/snippet}
 
-  <div class={['board-area mj-area', { pannable: maxScroll > 0, panning }]} bind:this={area} bind:clientWidth={areaW} bind:clientHeight={areaH}>
-    <div
-      class="mj-board"
-      style:width="{box.w * u}px"
-      style:height="{box.h * u}px"
-      style:--u="{u}px"
-      style:translate="{maxScroll / 2 - sx}px 0"
-      role="group"
-      aria-label="Mahjong tiles"
-    >
-      {#each order as s (s.i)}
-        {#if !game.gone[s.i]}
-          <button
-            type="button"
-            class={['mj-tile', {
-              blocked: dim && !free(game, s.i),
-              selected: game.selected === s.i,
-              shake: shake.current === s.i,
-              inset,
-            }]}
-            style:left="{((s.x * 1.5 + (box.maxZ - s.z) * LIFT) / box.w) * 100}%"
-            style:top="{((s.y * 2 + (box.maxZ - s.z) * LIFT) / box.h) * 100}%"
-            style:width="{(3 / box.w) * 100}%"
-            style:height="{(4 / box.h) * 100}%"
-            data-slot={s.i}
-            aria-label="Tile"
-            onclick={() => tap(s.i)}
-            transition:scale={{ duration: 180, start: 0.7 }}
-          >
-            <TileBody href="mj-k{game.kinds[s.i]}" />
-          </button>
-        {/if}
-      {/each}
-    </div>
+  <div
+    class="mj-board"
+    style:width="{board.width}px"
+    style:height="{board.height}px"
+    style:--u="{u}px"
+    role="group"
+    aria-label="Mahjong tiles"
+  >
+    {#each order as s (s.i)}
+      {#if !game.gone[s.i]}
+        <button
+          type="button"
+          class={['mj-tile', {
+            blocked: dim && !free(game, s.i),
+            selected: game.selected === s.i,
+            shake: shake.current === s.i,
+            inset,
+          }]}
+          style:left="{((leftOf(s, box.maxZ) - box.x0) / box.w) * 100}%"
+          style:top="{((topOf(s, box.maxZ) - box.y0) / box.h) * 100}%"
+          style:width="{(3 / box.w) * 100}%"
+          style:height="{(4 / box.h) * 100}%"
+          data-slot={s.i}
+          aria-label="Tile"
+          onclick={() => tap(s.i)}
+          transition:scale={{ duration: 180, start: 0.7 }}
+        >
+          <TileBody href="mj-k{game.kinds[s.i]}" />
+        </button>
+      {/if}
+    {/each}
   </div>
 </GameScreen2>

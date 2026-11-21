@@ -64,10 +64,3 @@
 .mj-layouts .btn.toggle { gap: 8px; padding: 7px 10px; }
 /* How many layouts are picked on a Layouts tab, beside its name. */
 .mj-tab-count { margin-left: 6px; color: var(--accent); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
-
-/* A board wider than its space overflows it evenly on both sides (one column the area's width),
-   and is then panned into place. */
-.mj-area { grid-template-columns: minmax(0, 1fr); }
-/* Wide layouts pan sideways (src/shared/pan.ts); keep the browser from panning too. Not clipped:
-   like the card games, tiles run on to the screen's edges (the page itself never scrolls). */
-.mj-area.pannable { touch-action: none; }

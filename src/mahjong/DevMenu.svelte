@@ -27,7 +27,7 @@
 
   /** The same deal again from the start, from its seed. */
   function replay() {
-    if (game.seed !== undefined) set(newGame(game.layout, game.difficulty, poolOf(game), !!game.turned, game.seed));
+    if (game.seed !== undefined) set(newGame(game.layout, game.difficulty, poolOf(game), game.seed));
   }
 </script>
 

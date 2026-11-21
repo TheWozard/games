@@ -5,7 +5,10 @@
   1. The header bar, a fixed height: back to the launcher, the title with its setting beneath,
      an optional status, Undo if the game has undo, and the menu (☰) last on the right.
   2. The stage (`<main class="stage">`): everything below the header, fixed and never scrolling,
-     holding only the game board (`children`).
+     holding only the game board (`children`). With a `board` size, the board is drawn at that
+     size (zoom 1: comfortable to play at, never shrunk to start with) and the stage pans and zooms
+     it (ZoomStage.svelte: drag, pinch, wheel); `stageWidth` / `stageHeight` give the space, for a
+     game that sizes its board from it. Without one, the board lays itself out in the space.
   3. The control layer, floating over the stage: the game's `controls`, at the bottom. Only the
      controls themselves take taps; the rest of the layer lets them through to the board.
 
@@ -32,6 +35,8 @@
   import Dialog from './Dialog.svelte';
   import NewDialog, { type NewOptions } from './NewDialog.svelte';
   import NextButton from './NextButton.svelte';
+  import ZoomStage from './ZoomStage.svelte';
+  import type { Size } from './zoom';
   import IconButton from './ui/IconButton.svelte';
   import MenuItem from './ui/MenuItem.svelte';
   import MenuPuzzle from './ui/MenuPuzzle.svelte';
@@ -64,13 +69,20 @@
     nextWait?: Wait;
     /** The game's controls, floating over the bottom of the board. */
     controls?: Snippet;
+    /** The board's size at zoom 1, in pixels: the stage then pans and zooms it. */
+    board?: Size;
+    /** Changes for a new board (a new deal), so it opens on the starting view even at the same size. */
+    boardKey?: unknown;
+    /** The stage's size (bindable), for a game that sizes its board from it. */
+    stageWidth?: number;
+    stageHeight?: number;
     /** The game board: the stage's only content. */
     children: Snippet;
   }
 
   let {
     title, subtitle, status, onundo, canUndo = false, menu, settings, dev, puzzle, onopennew, finished, onnext,
-    nextWait = 'quick', controls, children, ...newOptions
+    nextWait = 'quick', controls, board, boardKey, stageWidth = $bindable(0), stageHeight = $bindable(0), children, ...newOptions
   }: Props = $props();
 
   let menuOpen = $state(false);
@@ -118,7 +130,11 @@
 </header>
 
 <main class="stage">
-  {@render children()}
+  {#if board}
+    <ZoomStage {board} key={boardKey} bind:width={stageWidth} bind:height={stageHeight}>{@render children()}</ZoomStage>
+  {:else}
+    {@render children()}
+  {/if}
   <div class="control-layer">
     {@render controls?.()}
   </div>

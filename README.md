@@ -106,9 +106,8 @@ Besides its own layouts, Mahjong has layouts from the
 layouts by Alexey Charkov) and [GNOME Mahjongg](https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/)
 (GPL-3.0-or-later). Layouts with more than 144 tiles (one set of faces) or too big for the board
 are left out. Bridges, tiles over a gap, are allowed. They're picked on the New Game dialog's
-Archive tab. On an upright screen, any layout drawn wider than tall is dealt turned a quarter turn
-(`turn` in [logic.ts](src/mahjong/logic.ts)); the game keeps its turn, since turning changes which
-tiles are free.
+Archive tab. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
+wheel) to zoom.
 
 ## Icons
 

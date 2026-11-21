@@ -412,6 +412,21 @@ body.game:has(> #root > .stage) { padding-bottom: 0; }
   flex-direction: column;
   overflow: hidden;
 }
+/* A stage that pans and zooms (ZoomStage.svelte): fills the stage, and takes every touch itself
+   (one finger drags, two pinch), so the browser neither scrolls nor zooms the page. */
+.zoom-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.zoom-stage { cursor: grab; }
+.zoom-board { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+/* The part of the stage the board is centered and held in: above the home indicator. Only measured. */
+.zoom-frame { position: absolute; inset: 0 0 var(--safe-bottom); visibility: hidden; pointer-events: none; }
 /* Over the stage, controls at the bottom. Only the controls take taps: the board gets the rest. */
 .control-layer {
   position: absolute;

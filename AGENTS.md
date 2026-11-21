@@ -35,6 +35,11 @@ src/
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
     GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New Game, the game's
                         sections, the puzzle's seed/id), a stage holding only the board, controls floating over it
+    ZoomStage.svelte, zoom.ts   GameScreen2's stage for a game that gives a `board` size: drawn at that
+                        size (comfortable, never shrunk to start), it pans both ways and zooms (drag,
+                        pinch, wheel; Ctrl/⌘+wheel zooms), from the whole board in view to twice the start,
+                        and pans until an edge of the board is a quarter (side to side) or a third (up and down) of
+                        the way across; centered above the bottom inset (`--safe-bottom`)
                         dev-only menu entries: a `dev` snippet, from a component loaded behind
                         `import.meta.env.DEV` so builds leave it out (see src/mahjong/DevMenu.svelte)
     NewDialog.svelte    the New Game dialog both frames open
@@ -162,6 +167,8 @@ only forwards old links), `blocks` (Sliding Blocks).
   paints) are wider than the screen so cards, tiles and cells stay large, and pan sideways under a finger
   (`src/shared/pan.ts`; not page scrolling: the page itself never moves). These games use
   `GameScreen`'s `wide`, so a tablet or desktop shows everything and only pans if it must.
+  On `GameScreen2`, a game passes its board's comfortable size as `board` instead, and the stage pans
+  it both ways and zooms it (`ZoomStage.svelte`; Mahjong), so odd shapes keep their size on a phone.
 - **Touch:** set `user-select: none`, `-webkit-touch-callout: none` and
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
