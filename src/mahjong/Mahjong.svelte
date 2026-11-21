@@ -17,7 +17,7 @@
   import { DEPTH } from './body';
   import TileBody from './TileBody.svelte';
   import { free, nextDeal, pairsLeft, reducer, slotsOf, STORAGE_KEY, type Action, type Deal, type Game } from './game';
-  import { ARCHIVE_IDS, layoutOf, OWN_IDS, type Layout, type LayoutId } from './layouts';
+  import { ARCHIVE_IDS, layoutOf, OWN_IDS, reaches, type Layout, type LayoutId } from './layouts';
   import { DIFFICULTIES, drawOrder, MAX_TILES, type Difficulty } from './logic';
 
   // The game to start on: the saved one, or one App.svelte dealt.
@@ -92,6 +92,8 @@
   // chips above it: with none on, every layout shows; otherwise a layout must pass every kind of
   // filter that has a chip on (where it's from, how many tiles, how high), and, within a kind, any
   // one of them (a layout has only one source). All and None change only the layouts shown.
+  // A layout the difficulty can't reach (layouts.ts, `reaches`) isn't shown at it; a pick of one
+  // stays picked, for when the difficulty changes back, but isn't counted or dealt.
   const EVERY = [...OWN_IDS, ...ARCHIVE_IDS];
   const layers = (l: Layout) => Math.max(...l.slots.map((s) => s.z)) + 1;
   const FILTERS: { key: string; kind: string; label: string; test: (l: Layout) => boolean }[] = [
@@ -107,11 +109,13 @@
   let level = $state<Difficulty>('medium');
   let filters = $state<string[]>([]);
   const passes = (id: LayoutId) => {
+    if (!reaches(id, level)) return false;
     const on = FILTERS.filter((f) => filters.includes(f.key));
     const kinds = new Set(on.map((f) => f.kind));
     return [...kinds].every((kind) => on.some((f) => f.kind === kind && f.test(layoutOf(id))));
   };
   const shownIds = $derived(EVERY.filter(passes));
+  const playable = $derived(chosen.filter((id) => reaches(id, level)));
   const flip = (key: string) => (filters = filters.includes(key) ? filters.filter((k) => k !== key) : [...filters, key]);
   const ordered = (ids: Set<LayoutId>) => EVERY.filter((id) => ids.has(id));
   function toggle(id: LayoutId) {
@@ -128,7 +132,7 @@
     filters = [];
   }
   const start = (value: string) =>
-    value === 'start' && chosen.length ? deal(nextDeal(chosen, level, game.layout)) : Promise.resolve();
+    value === 'start' && playable.length ? deal(nextDeal(playable, level, game.layout)) : Promise.resolve();
 
   // Every deal is made in a worker (background.ts); the stage opens it on its starting view (boardKey).
   const deal = (next: Deal) => dealInBackground(next).then((g) => (game = g));
@@ -153,7 +157,7 @@
   canUndo={!game.done && game.history.length > 0}
   onopennew={openNew}
   onstart={start}
-  canPlay={chosen.length > 0}
+  canPlay={playable.length > 0}
   finished={game.done}
   onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
   {puzzle}
@@ -200,7 +204,7 @@
         <Choice label={LEVELS[d].label} detail={LEVELS[d].detail} pressed={level === d} onclick={() => (level = d)} />
       {/each}
     </PickGroup>
-    <PickList title="Layouts" count={chosen.length}>
+    <PickList title="Layouts" count={playable.length}>
       {#snippet actions()}
         <span class="pick-select">Select</span>
         <Button small disabled={!shownIds.length} onclick={() => pickShown(shownIds)}>All</Button>

@@ -3,7 +3,7 @@
 // '/'). A game saves a layout's id; saves from before the archive hold own layouts' keys, which
 // are still ids.
 import { ARCHIVE, decode, type ArchiveLayout } from './archive';
-import { LAYOUTS, type LayoutName, type Slot } from './logic';
+import { LAYOUTS, type Difficulty, type LayoutName, type Slot } from './logic';
 
 export type LayoutId = string;
 
@@ -33,6 +33,19 @@ export const isLayoutId = (value: unknown): value is LayoutId =>
   typeof value === 'string' && (Object.hasOwn(LAYOUTS, value) || BY_ID.has(value));
 
 export const isArchive = (id: LayoutId) => BY_ID.has(id);
+
+/**
+ * Difficulties a layout's deals can't reach: however the dealer pairs its tiles, careless play wins
+ * too often (Clubs: about two games in three at Balance, nearly half at Focus). The Customize
+ * dialog doesn't offer a layout at these. Every other layout reaches every difficulty, which
+ * archive.test.ts checks; it fails for a layout that falls short, which then belongs here.
+ */
+const OUT_OF_REACH: Readonly<Record<LayoutId, readonly Difficulty[]>> = {
+  'kmahjongg/clubs': ['medium', 'hard'],
+};
+
+/** Whether the layout's deals can be as hard as the difficulty asks (see OUT_OF_REACH). */
+export const reaches = (id: LayoutId, difficulty: Difficulty) => !OUT_OF_REACH[id]?.includes(difficulty);
 
 const CACHE = new Map<LayoutId, Layout>();
 

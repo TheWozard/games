@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ARCHIVE, decode } from './archive';
-import { deal, isFree, layoutProblems, LAYOUTS, matches, neighbors } from './logic';
+import { seeded } from '../shared/seed';
+import { reaches } from './layouts';
+import { deal, DIFFICULTIES, grader, isFree, layoutProblems, LAYOUTS, matches, neighbors, TIERS } from './logic';
 
 describe('archive layouts', () => {
   it('has layouts from both sources, each with its own id', () => {
@@ -48,21 +50,42 @@ describe('archive layouts', () => {
   });
 
   // One test per layout, as for the game's own (logic.test.ts): all of them in one can outlast the
-  // test timeout on a slow machine.
+  // test timeout on a slow machine. Seeded, so a deal near a tier's edge can't fail it now and then.
   for (const { id, tiles } of ARCHIVE) {
-    it(`deals ${id} in pairs that can be cleared`, () => {
+    it(`deals ${id} in pairs that can be cleared, at each difficulty it's offered at`, () => {
       const slots = decode(tiles);
       const near = neighbors(slots);
-      const { kinds, order } = deal(slots, 'easy');
-      expect(kinds, id).toHaveLength(slots.length);
-      // Play the dealer's order of pairs: each pair matches and is free when taken, and it clears the board.
-      const gone = slots.map(() => false);
-      for (const [a, b] of order) {
-        expect(matches(kinds[a], kinds[b]), id).toBe(true);
-        expect(isFree(a, near, gone) && isFree(b, near, gone), id).toBe(true);
-        gone[a] = gone[b] = true;
+      const grade = grader(near);
+      for (const difficulty of DIFFICULTIES.filter((d) => reaches(id, d))) {
+        const { kinds, order } = deal(slots, difficulty, seeded(1));
+        expect(kinds, id).toHaveLength(slots.length);
+        // Play the dealer's order of pairs: each pair matches and is free when taken, and it clears the board.
+        const gone = slots.map(() => false);
+        for (const [a, b] of order) {
+          expect(matches(kinds[a], kinds[b]), id).toBe(true);
+          expect(isFree(a, near, gone) && isFree(b, near, gone), id).toBe(true);
+          gone[a] = gone[b] = true;
+        }
+        expect(gone.every(Boolean), id).toBe(true);
+        // About as hard as asked: inside its tier, give or take what a grade can be off by (as for the game's own).
+        const [from, to] = TIERS[difficulty];
+        const share = grade(kinds, 400, seeded(2));
+        expect(share, `${id} ${difficulty}`).toBeGreaterThanOrEqual(from - 0.15);
+        expect(share, `${id} ${difficulty}`).toBeLessThanOrEqual(to + 0.15);
       }
-      expect(gone.every(Boolean), id).toBe(true);
-    });
+    }, 10_000);
   }
+
+  it("leaves out only the difficulties a layout really can't reach", () => {
+    // Clubs: most of its deals are too easy for Balance (some land in it), and all for Focus.
+    const slots = decode(ARCHIVE.find((l) => l.id === 'kmahjongg/clubs')!.tiles);
+    const grade = grader(neighbors(slots));
+    for (const difficulty of ['medium', 'hard'] as const) {
+      expect(reaches('kmahjongg/clubs', difficulty)).toBe(false);
+      const shares = Array.from({ length: 10 }, (_, k) => grade(deal(slots, difficulty, seeded(k + 1)).kinds, 400, seeded(k + 1)));
+      expect(shares.filter((share) => share > TIERS[difficulty][1]).length, difficulty).toBeGreaterThan(5);
+    }
+    expect(reaches('kmahjongg/clubs', 'easy')).toBe(true);
+    expect(Object.keys(LAYOUTS).every((id) => DIFFICULTIES.every((d) => reaches(id, d)))).toBe(true);
+  }, 20_000);
 });
