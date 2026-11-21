@@ -107,7 +107,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   not how many givens it has: `src/sudoku/classic/grade.ts` solves like a person, and the
   generator keeps only puzzles that need the difficulty's own tier. Mahjong's is how forgiving a
   deal is: the share of games won by taking any free pair at random (`grader` in
-  `src/mahjong/logic.ts`; Easy wins most, Hard almost none).
+  `src/mahjong/logic.ts`; Zen, its easiest, wins most, Focus, its hardest, almost none).
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
   by `scripts/blocks.ts` (`just blocks`, one thread per variant, about a quarter of an hour) into
   `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs (`KEEP`: 10 Easy,

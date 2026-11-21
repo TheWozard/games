@@ -80,9 +80,9 @@
 
   // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
   const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
-    easy: { label: 'Easy', detail: 'forgiving' },
-    medium: { label: 'Medium', detail: 'a few traps' },
-    hard: { label: 'Hard', detail: 'plan ahead' },
+    easy: { label: 'Zen', detail: 'forgiving' },
+    medium: { label: 'Balance', detail: 'a few traps' },
+    hard: { label: 'Focus', detail: 'plan ahead' },
   };
 
   // The New dialog's picks, starting on the current game's: a difficulty, and any number of
