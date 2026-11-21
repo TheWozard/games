@@ -71,8 +71,7 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  // The menu's puzzle line: what deals these tiles again (no seed in saves from before there was one).
-  // Seed first, since a long line is cut short on a phone (a tap still copies all of it).
+  // What the menu's Copy Seed copies: what deals these tiles again (no seed in saves from before there was one).
   const puzzle = $derived(
     [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty, game.turned && 'turned']
       .filter(Boolean)

@@ -400,7 +400,7 @@ dialog.game-menu form {
   box-shadow: 0 10px 32px rgb(0 0 0 / 0.5);
 }
 .menu-section { display: flex; flex-direction: column; padding: 4px 0; }
-.menu-section + .menu-section, .menu-section + .menu-puzzle { border-top: 1px solid var(--line); }
+.menu-section + .menu-section { border-top: 1px solid var(--line); }
 .menu-section h3 { margin: 6px 10px 2px; color: var(--muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 /* Dev server only: set apart in orange, so it's never mistaken for the game's own. */
 .menu-section.dev h3, .menu-section.dev .menu-item svg { color: var(--warn); }
@@ -418,22 +418,3 @@ dialog.game-menu form {
 .menu-item svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
 .menu-item:hover, .menu-item:focus-visible { background: var(--line); outline: none; }
 .menu-item:disabled { opacity: 0.4; background: none; cursor: default; }
-/* What the puzzle is, last: small, on one line (cut short if it must be), and a tap copies it. */
-.menu-puzzle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 4px;
-  padding: 10px;
-  border: 0;
-  border-radius: 9px;
-  background: none;
-  color: var(--muted);
-  font-size: 0.75rem;
-  white-space: nowrap;
-  text-align: left;
-}
-.menu-puzzle:hover, .menu-puzzle:focus-visible { background: var(--line); outline: none; }
-.menu-puzzle code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
-.menu-puzzle svg { flex: none; width: 14px; height: 14px; }

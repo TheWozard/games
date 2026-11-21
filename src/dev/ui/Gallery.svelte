@@ -21,6 +21,7 @@
   import Choice from '../../shared/ui/Choice.svelte';
   import IconButton from '../../shared/ui/IconButton.svelte';
   import MenuItem from '../../shared/ui/MenuItem.svelte';
+  import MenuPuzzle from '../../shared/ui/MenuPuzzle.svelte';
   import MenuSection from '../../shared/ui/MenuSection.svelte';
   import PickGroup from '../../shared/ui/PickGroup.svelte';
   import Toggle from '../../shared/ui/Toggle.svelte';
@@ -56,8 +57,10 @@
   let rules = $state({ squares: false, rings: true });
   let layouts = $state({ pyramid: true, turtle: false });
 
-  // The menu, as a real dialog (GameScreen2's), and inline to look at.
+  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Copy Seed copies: one
+  // of Mahjong's.
   let menuOpen = $state(false);
+  const PUZZLE = '60bc4843 · kmahjongg/arena · medium · turned';
 
   // New Game dialog
   let newOpen = $state(false);
@@ -146,8 +149,11 @@
   </section>
 
   <section>
-    <h2>MenuSection + MenuItem</h2>
-    <p>GameScreen2's menu. The real one closes as an item is tapped, with its <code>value</code>.</p>
+    <h2>MenuSection + MenuItem + MenuPuzzle</h2>
+    <p>
+      GameScreen2's menu. The real one closes as an item is tapped, with its <code>value</code>. The
+      last entry, Copy Seed, copies the puzzle's seed and leaves the menu open.
+    </p>
     <div class="row">
       <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
     </div>
@@ -197,6 +203,7 @@
   <MenuSection title="Dev" tone="dev">
     <MenuItem icon={Trophy} label="Win" onclick={() => note('Menu: Win')} />
   </MenuSection>
+  <MenuPuzzle puzzle={PUZZLE} oncopy={() => note(`Copied: ${PUZZLE}`)} />
 {/snippet}
 
 <Dialog class="game-menu" label="Menu" open={menuOpen} onclose={(value) => { menuOpen = false; note(`Menu closed (value "${value}")`); }}>
@@ -250,7 +257,7 @@
   .dialog-like { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
   /* Tiles and toggles as they look in a dialog, where they're used. */
   .gallery :global(.btn[aria-pressed='true']) { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
-  .menu-preview { width: min(280px, 100%); padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .menu-preview { width: min(280px, 100%); margin-top: 10px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
   .log {
     position: fixed;
     inset: auto 0 0;

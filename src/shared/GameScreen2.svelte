@@ -11,14 +11,13 @@
 
   The menu opens under its button. It starts with New Game (the New dialog, NewDialog.svelte), then
   the game's own `menu` sections, then (in the dev server only, never in a build) its `dev`
-  entries under a Dev heading: shortcuts for checking a screen, like winning at once. It ends with `puzzle`, a line naming the puzzle being played
-  (a seed, an id, an index, a version: whatever makes it again), which a tap copies.
+  entries under a Dev heading: shortcuts for checking a screen, like winning at once. It ends with Copy Seed, which copies `puzzle`: what the puzzle
+  being played is (a seed, an id, an index, a version: whatever makes it again).
   Buttons in the menu close it as they're tapped.
 
   Next floats at the bottom once the game is over. Ctrl/Cmd+Z undoes when the game has undo.
 -->
 <script lang="ts">
-  import Copy from '@lucide/svelte/icons/copy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Plus from '@lucide/svelte/icons/plus';
@@ -27,9 +26,9 @@
   import Dialog from './Dialog.svelte';
   import NewDialog, { type NewOptions } from './NewDialog.svelte';
   import NextButton from './NextButton.svelte';
-  import { toast } from './toast';
   import IconButton from './ui/IconButton.svelte';
   import MenuItem from './ui/MenuItem.svelte';
+  import MenuPuzzle from './ui/MenuPuzzle.svelte';
   import MenuSection from './ui/MenuSection.svelte';
   import type { Wait } from './wait';
 
@@ -42,11 +41,11 @@
     /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
     onundo?: () => void;
     canUndo?: boolean;
-    /** The game's own sections of the menu, between New Game and the puzzle line. */
+    /** The game's own sections of the menu, between New Game and Copy Seed. */
     menu?: Snippet;
     /** Menu entries for the dev server only (`just dev`), left out of a build: MenuItems (ui/MenuItem.svelte). */
     dev?: Snippet;
-    /** What the puzzle being played is (seed, id, index, version), at the bottom of the menu, on one line; a tap copies it. */
+    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Copy Seed, copies it. */
     puzzle?: string;
     /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
     onopennew?: () => void;
@@ -78,14 +77,6 @@
       nexting = true;
       made.finally(() => (nexting = false));
     }
-  }
-
-  /** Copies the puzzle line; the menu stays open. */
-  function copy(text: string) {
-    navigator.clipboard?.writeText(text).then(
-      () => toast('Copied'),
-      () => toast("Couldn't copy", { tone: 'error' }),
-    ) ?? toast("Couldn't copy", { tone: 'error' });
   }
 
   function closeMenu(value: string) {
@@ -133,9 +124,7 @@
     <MenuSection title="Dev" tone="dev">{@render dev()}</MenuSection>
   {/if}
   {#if puzzle}
-    <button type="button" class="menu-puzzle" title="Copy" onclick={() => copy(puzzle)}>
-      <span>Puzzle</span><code>{puzzle}</code><Copy aria-hidden="true" />
-    </button>
+    <MenuPuzzle {puzzle} />
   {/if}
 </Dialog>
 
