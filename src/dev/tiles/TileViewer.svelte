@@ -61,6 +61,9 @@
     { label: 'Blocked', cls: 'blocked' },
     { label: 'Selected', cls: 'selected' },
   ];
+  // The face shown large in every state (States, below the guide): East Wind to start, whose blue
+  // Riichi symbol is the hardest to read on a picked tile's tint.
+  let stateKind = $state(sections.find((s) => s.title === 'Winds')?.kinds[0].kind ?? 0);
 
   // The drawing area to try: how much of the tile, across and down, a face's box fills. It sets
   // every tile's padding here. Presets are the game's (mahjong.css): Full's 5% margin each side,
@@ -163,6 +166,30 @@
     </article>
   </section>
 
+  <section>
+    <h2>States</h2>
+    <article class="card states-large">
+      <label class="state-face">
+        <span>Face</span>
+        <select bind:value={stateKind}>
+          {#each sections as { title, kinds } (title)}
+            <optgroup label={title}>
+              {#each kinds as { kind, name } (kind)}<option value={kind}>{name}</option>{/each}
+            </optgroup>
+          {/each}
+        </select>
+      </label>
+      <div class="faces">
+        {#each STATES as { label, cls } (label)}
+          <figure>
+            {@render tile(`mj-k${stateKind}`, 40, cls)}
+            <figcaption>{label}</figcaption>
+          </figure>
+        {/each}
+      </div>
+    </article>
+  </section>
+
   {#each sections as { title, each, kinds } (title)}
     <section>
       <h2>{title} <span>{each}</span></h2>
@@ -245,6 +272,12 @@
   .swatch.dot { width: 8px; height: 8px; margin: 0 5px; border-radius: 50%; background: #c8372d; }
   .swatch.grid { background: linear-gradient(90deg, transparent 8px, #8b909b 8px 9px, transparent 9px), linear-gradient(transparent 6px, #8b909b 6px 7px, transparent 7px), #dfe8fb; }
   .swatch.plain { background: linear-gradient(160deg, #fbf7ec, #ece3cc); }
+
+  /* Room below and between for each large tile's side and shadow. */
+  .states-large { padding-bottom: 16px; }
+  .states-large figure { gap: 30px; }
+  .state-face { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 0.9rem; }
+  .state-face select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
 
   footer { margin-top: 28px; color: var(--muted); font-size: 0.85rem; }
 </style>
