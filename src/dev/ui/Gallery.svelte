@@ -26,6 +26,7 @@
   import MenuSection from '../../shared/ui/MenuSection.svelte';
   import PickGroup from '../../shared/ui/PickGroup.svelte';
   import Toggle from '../../shared/ui/Toggle.svelte';
+  import { slidePick } from '../../shared/ui/slide';
   import type { Wait } from '../../shared/wait';
 
   // The log: newest first, a few lines, each with how long since the one before (a double fire
@@ -176,7 +177,7 @@
       <Toggle label="Show Next" on={showNext} onclick={() => (showNext = !showNext)} />
       <Toggle label="Takes a second" detail="spinner, then logs" on={slowNext} onclick={() => (slowNext = !slowNext)} />
     </div>
-    <div class="pick">
+    <div class="pick" {@attach slidePick}>
       {#each ['quick', 'slow', 'slower'] as const as w (w)}
         <Choice label={w[0].toUpperCase() + w.slice(1)} pressed={nextWait === w} onclick={() => (nextWait = w)} />
       {/each}
@@ -256,8 +257,8 @@
   .tools :global(.inline-icon) { width: 16px; height: 16px; vertical-align: -3px; }
   /* Laid out as in a dialog (base.css styles some of these only inside one). */
   .dialog-like { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
-  /* Tiles and toggles as they look in a dialog, where they're used. */
-  .gallery :global(.btn[aria-pressed='true']) { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+  /* Toggles as they look in a dialog, where they're used (.pick rows style their own picks). */
+  .gallery :global(.btn.toggle[aria-pressed='true']) { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
   .menu-preview { width: min(280px, 100%); margin-top: 10px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
   .log {
     position: fixed;

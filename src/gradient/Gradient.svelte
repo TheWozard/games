@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slidePick } from '../shared/ui/slide';
   import Choice from '../shared/ui/Choice.svelte';
   import PickGroup from '../shared/ui/PickGroup.svelte';
   import { flip } from 'svelte/animate';
@@ -85,7 +86,7 @@
 
     <!-- A preview over each name, which is small: its own tiles, not Choice's. -->
     <h3 class="pick-title">Fixed Tiles</h3>
-    <div class="pick patterns">
+    <div class="pick patterns" {@attach slidePick}>
       {#each Object.entries(PATTERNS) as [key, p] (key)}
         <button type="button" class="btn" aria-pressed={choice.pattern === key} onclick={() => (choice.pattern = key as Pattern)}>
           <svg viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}" aria-hidden="true">

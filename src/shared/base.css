@@ -151,10 +151,13 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 .btn.primary.slow { background: var(--warn); border-color: var(--warn); }
 .btn.primary.slower { background: var(--danger); border-color: var(--danger); }
 
-/* Turns in place of a button's arrow while its game is being made. */
+/* Turns in place of a button's arrow while its game is being made. It takes the arrow's exact
+   space (18px square, a 14px ring inside it), so the button keeps its size as one turns into the other. */
 .spinner {
-  width: 16px;
-  height: 16px;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 2px;
   border: 2.4px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -186,6 +189,7 @@ dialog {
   overscroll-behavior: contain;
 }
 dialog[open] { display: flex; flex-direction: column; }
+dialog:focus { outline: none; } /* focused itself as it opens (Dialog.svelte): no ring round the screen */
 
 dialog::backdrop { background: rgb(0 0 0 / 0.45); }
 
@@ -236,10 +240,51 @@ dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color:
 /* New-game dialogs with several choices: a small heading per group, then a row of
    aria-pressed buttons (a name, and an optional detail line in <span>). */
 .pick-title { margin: 6px 0 0; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.pick { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 6px; }
-.pick .btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; min-width: 0; }
+/* A .pick row is one segmented strip, darker than the dialog, with the picked choice lit up inside
+   it (filled with --accent-soft, no outline) rather than a row of separate buttons. */
+.pick {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.pick .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+}
 .pick .btn strong { font-size: 0.85rem; }
 .pick .btn span { font-size: 0.75rem; color: var(--muted); }
+.pick .btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); }
+/* With a sliding highlight (ui/slide.ts), the picked button stays clear and the slider behind it
+   is lit instead, moving from choice to choice. */
+.pick.sliding { position: relative; }
+.pick.sliding > .btn { position: relative; transition: color 0.2s ease; }
+.pick.sliding > .btn[aria-pressed="true"] { background: none; box-shadow: none; }
+.pick-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  pointer-events: none;
+  transition: translate 0.22s cubic-bezier(0.3, 0.7, 0.4, 1), width 0.22s cubic-bezier(0.3, 0.7, 0.4, 1), height 0.22s ease;
+}
+.pick-slider.jump { transition: none; }
+/* Keyboard focus on a choice: a ring the shape of the highlight, inside the strip. */
+.pick .btn:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .pick-slider { transition: none; } }
 .pick .btn[aria-pressed="true"] span { color: inherit; }
 
 /* Rules: one line each, an on/off toggle (a check box at the left, checked while on) and an i at the

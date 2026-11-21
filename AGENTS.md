@@ -170,7 +170,9 @@ only forwards old links), `blocks` (Sliding Blocks).
     **Play** button at the bottom. Nothing else in the dialog starts a game: choices only select.
   - Every group of choices has a `.pick-title` heading ("Difficulty" for Easy / Medium / Hard,
     "Size" for real sizes, "Rules" for optional rules, "Layout"...), over a `.pick` row of
-    `aria-pressed` tiles: a name in `<strong>` and an optional short detail in `<span>`, which
+    `aria-pressed` tiles (`PickGroup` + `Choice`), drawn as one darker segmented strip with the
+    picked tile lit up in it by a highlight that slides between them (`slidePick` in
+    `src/shared/ui/slide.ts`, which PickGroup attaches; put it on any hand-made `.pick` row): a name in `<strong>` and an optional short detail in `<span>`, which
     should fit on one line ("9×9 · 5 colors", "10 mines").
   - One group: pass `options` (`{ value, label, detail? }`), `current` and `optionsTitle`. Several:
     a `picker` snippet of such groups (`RulesPicker` for a size plus optional rules: one line per

@@ -24,6 +24,9 @@
     if (open && !dialog.open) {
       dialog.returnValue = '';
       dialog.showModal();
+      // Focus the dialog itself, not its first button: otherwise that button (often a New Game
+      // choice) wears a focus ring before anything's been touched. Tab goes on from here.
+      dialog.focus();
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -34,6 +37,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
   bind:this={dialog}
+  tabindex="-1"
   class={className}
   aria-label={label}
   onclose={() => onclose(dialog.returnValue)}
