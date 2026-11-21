@@ -158,12 +158,14 @@ function passing(path: Path, j: number, board: Board): 'across' | 'down' | null 
 /** How `path` uses the bridge at `j` so far: from the step into it, or out of it if it starts there. */
 export function bridgeWay(path: Path, j: number, board: Board): 'across' | 'down' | null {
   const d =
-    j > 0
-      ? dirOf(path[j - 1], path[j], board)
-      : j + 1 < path.length
-        ? dirOf(path[j], path[j + 1], board)
-        : -1;
-  return d === -1 ? null : across(d) ? 'across' : 'down';
+    j > 0 ? dirOf(path[j - 1], path[j], board)
+    : j + 1 < path.length ? dirOf(path[j], path[j + 1], board)
+    : -1;
+  return (
+    d === -1 ? null
+    : across(d) ? 'across'
+    : 'down'
+  );
 }
 
 // ---- Generation ----

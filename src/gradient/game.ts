@@ -80,9 +80,8 @@ function swap(g: Game, from: number, to: number, record = true): Game {
     ...g,
     order,
     selected: null,
-    history: record
-      ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT)
-      : g.history,
+    history:
+      record ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT) : g.history,
     done,
   };
 }

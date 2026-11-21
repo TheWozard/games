@@ -234,7 +234,10 @@
         {#each game.blocks as b, i (i)}
           {@const moving = held?.index === i}
           {@const out = !moving && isOut(game.blocks, i, s)}
-          {@const shift = moving ? held!.offset : out ? (pastEdge[i] ?? 0) : 0}
+          {@const shift =
+            moving ? held!.offset
+            : out ? (pastEdge[i] ?? 0)
+            : 0}
           {#if b.fixed}
             <rect class="pillar" x={b.c + 0.2} y={b.r + 0.2} width="0.6" height="0.6" rx="0.12" />
           {:else}

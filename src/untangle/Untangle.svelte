@@ -69,9 +69,15 @@
     return [...ks.filter((k) => !held(k)), ...ks.filter(held)];
   });
   const neighbors = $derived(
-    dragging === null
-      ? new Set<number>()
-      : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
+    dragging === null ?
+      new Set<number>()
+    : new Set(
+        game.edges.flatMap(([a, b]) =>
+          a === dragging ? [b]
+          : b === dragging ? [a]
+          : [],
+        ),
+      ),
   );
 
   // The board fills all the space it's given; when that changes shape (rotation, another
@@ -174,7 +180,9 @@
       {#each Object.entries(STYLES) as [key, s] (key)}
         <Choice
           label={s.label}
-          detail={key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}
+          detail={key === 'lines' ? 'straight lines'
+          : key === 'mesh' ? 'dense'
+          : 'sparse'}
           pressed={choice.style === key}
           onclick={() => (choice.style = key as Style)}
         />

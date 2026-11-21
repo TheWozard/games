@@ -66,7 +66,10 @@
   const brushStops = $derived(
     brushes.map((b) => ({
       value: b,
-      name: b === CROSS ? 'X' : game.colors > 1 ? PALETTE_NAMES[palette[b - 1]] : 'Shade',
+      name:
+        b === CROSS ? 'X'
+        : game.colors > 1 ? PALETTE_NAMES[palette[b - 1]]
+        : 'Shade',
       color: b === CROSS ? undefined : colorOf(b),
     })),
   );
@@ -169,7 +172,9 @@
 
   const crossValue = (from: number) => (from === CROSS ? EMPTY : CROSS);
   const tapValue = (from: number) =>
-    brush === CROSS ? crossValue(from) : from === brush || from === CROSS ? EMPTY : brush;
+    brush === CROSS ? crossValue(from)
+    : from === brush || from === CROSS ? EMPTY
+    : brush;
 
   function strokeCells(s: Stroke): number[] {
     const r0 = Math.floor(s.start / n);
@@ -177,11 +182,9 @@
     const r1 = Math.floor(s.end / n);
     const c1 = s.end % n;
     const line =
-      s.axis === 'row'
-        ? range(c0, c1).map((c) => r0 * n + c)
-        : s.axis === 'col'
-          ? range(r0, r1).map((r) => r * n + c0)
-          : [s.start];
+      s.axis === 'row' ? range(c0, c1).map((c) => r0 * n + c)
+      : s.axis === 'col' ? range(r0, r1).map((r) => r * n + c0)
+      : [s.start];
     return line.filter((i) => game.cells[i] === s.from);
   }
 
@@ -223,14 +226,15 @@
     const dr = Math.floor(i / n) - Math.floor(stroke.start / n);
     const dc = (i % n) - (stroke.start % n);
     const axis =
-      stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
+      stroke.axis ??
+      (dr === 0 && dc === 0 ? null
+      : Math.abs(dc) >= Math.abs(dr) ? 'row'
+      : 'col');
     // Keep to the stroke's line: the nearest cell on it to the pointer.
     const end =
-      axis === 'row'
-        ? Math.floor(stroke.start / n) * n + (i % n)
-        : axis === 'col'
-          ? Math.floor(i / n) * n + (stroke.start % n)
-          : stroke.start;
+      axis === 'row' ? Math.floor(stroke.start / n) * n + (i % n)
+      : axis === 'col' ? Math.floor(i / n) * n + (stroke.start % n)
+      : stroke.start;
     stroke = { ...stroke, axis, end };
   }
 
@@ -259,11 +263,17 @@
   function fitOf(line: number[], clue: Run[]): Fit {
     if (fits(shading(line), clue)) return 'met';
     const all = (1 << (game.colors + 1)) - 1;
-    return solveLine(
-      line.map((v) => (v === CROSS ? 1 : v === EMPTY ? all : 1 << v)),
-      clue,
-    )
-      ? null
+    return (
+        solveLine(
+          line.map((v) =>
+            v === CROSS ? 1
+            : v === EMPTY ? all
+            : 1 << v,
+          ),
+          clue,
+        )
+      ) ?
+        null
       : 'bad';
   }
   const rowFit = $derived(game.rows.map((clue, r) => fitOf(rowOf(shown, n, r), clue)));

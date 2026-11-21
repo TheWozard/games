@@ -95,9 +95,9 @@
       svg.setPointerCapture?.(e.pointerId);
       swallowClick = true;
       gesture =
-        press.from !== null
-          ? { kind: 'build', from: press.from, to: p, edge: -1 }
-          : { kind: 'swipe', last: press.start, trail: [press.start], cut: new Set() };
+        press.from !== null ?
+          { kind: 'build', from: press.from, to: p, edge: -1 }
+        : { kind: 'swipe', last: press.start, trail: [press.start], cut: new Set() };
     }
     if (gesture.kind === 'build') {
       const edge = dragEdge(game, gesture.from, p);

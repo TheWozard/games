@@ -18,7 +18,11 @@ describe('solutions', () => {
     for (let run = 0; run < 60; run++) {
       const n = 4;
       const walls = Array.from({ length: n * n }, () =>
-        random() < 0.25 ? (random() < 0.5 ? WALL : Math.floor(random() * 3)) : null,
+        random() < 0.25 ?
+          random() < 0.5 ?
+            WALL
+          : Math.floor(random() * 3)
+        : null,
       );
       const want = [...subsets(n, (i) => walls[i] === null)].filter((l) =>
         lightupValid(n, walls, l),

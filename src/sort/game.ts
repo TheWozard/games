@@ -106,9 +106,8 @@ export function reducer(g: Game, action: Action): Game {
       const tubes = pour(g.tubes, g.selected, t, cap, g.hidden);
       const done = isSorted(tubes, cap);
       // Sorted: everything shows.
-      const hidden = done
-        ? tubes.map((x) => x.map(() => false))
-        : pourHidden(g.hidden, g.selected, t, n);
+      const hidden =
+        done ? tubes.map((x) => x.map(() => false)) : pourHidden(g.hidden, g.selected, t, n);
       return {
         ...g,
         tubes,

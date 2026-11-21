@@ -174,9 +174,8 @@
     (filters = filters.includes(key) ? filters.filter((k) => k !== key) : [...filters, key]);
   const ordered = (ids: Set<LayoutId>) => EVERY.filter((id) => ids.has(id));
   function toggle(id: LayoutId) {
-    chosen = chosen.includes(id)
-      ? chosen.filter((k) => k !== id)
-      : ordered(new Set([...chosen, id]));
+    chosen =
+      chosen.includes(id) ? chosen.filter((k) => k !== id) : ordered(new Set([...chosen, id]));
   }
   /** Replaces the picks among the layouts shown with `ids`, keeping the hidden ones'. */
   function pickShown(ids: readonly LayoutId[]) {
@@ -189,9 +188,9 @@
     filters = [];
   }
   const start = (value: string) =>
-    value === 'start' && playable.length
-      ? deal(nextDeal(playable, level, game.layout))
-      : Promise.resolve();
+    value === 'start' && playable.length ?
+      deal(nextDeal(playable, level, game.layout))
+    : Promise.resolve();
 
   // Every deal is made in a worker (background.ts); the stage opens it on its starting view (boardKey).
   const deal = (next: Deal) => dealInBackground(next).then((g) => (game = g));
@@ -324,11 +323,7 @@
           type="button"
           class={[
             'mj-tile',
-            {
-              blocked: dim && !free(game, s.i),
-              selected: game.selected === s.i,
-              inset,
-            },
+            { blocked: dim && !free(game, s.i), selected: game.selected === s.i, inset },
           ]}
           style:left="{((leftOf(s, box.maxZ) - box.x0) / box.w) * 100}%"
           style:top="{((topOf(s, box.maxZ) - box.y0) / box.h) * 100}%"

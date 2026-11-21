@@ -99,9 +99,8 @@ if (isMainThread) {
       `Not a variant: ${unknown.join(', ')} (variants: ${Object.keys(VARIANTS).join(', ')})`,
     );
   const variants = (asked.length ? asked : Object.keys(VARIANTS)) as Variant[];
-  const results = keepOnly
-    ? variants.map((v): [Variant, Found] => [v, keepBest(v)])
-    : await makeAll(variants);
+  const results =
+    keepOnly ? variants.map((v): [Variant, Found] => [v, keepBest(v)]) : await makeAll(variants);
   // Every variant, in their usual order: the ones remade, and the rest as they were.
   const made = new Map(results);
   const all = (Object.keys(VARIANTS) as Variant[]).map((v): [Variant, Found] => [

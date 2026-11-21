@@ -37,9 +37,9 @@ export interface Limits {
 
 export function limits(stage: Size, board: Size): Limits {
   const fit =
-    board.width > 0 && board.height > 0
-      ? Math.min(stage.width / board.width, stage.height / board.height)
-      : 1;
+    board.width > 0 && board.height > 0 ?
+      Math.min(stage.width / board.width, stage.height / board.height)
+    : 1;
   return { fit, min: Math.min(fit, 1), start: 1, max: ZOOM_IN };
 }
 

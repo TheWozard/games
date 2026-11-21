@@ -61,15 +61,15 @@ describe('swipedEdges', () => {
     const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     // A short stroke straight across the middle of the bridge.
     const across =
-      e.dr === 0
-        ? [
-            { x: mid.x, y: mid.y - 0.3 },
-            { x: mid.x, y: mid.y + 0.3 },
-          ]
-        : [
-            { x: mid.x - 0.3, y: mid.y },
-            { x: mid.x + 0.3, y: mid.y },
-          ];
+      e.dr === 0 ?
+        [
+          { x: mid.x, y: mid.y - 0.3 },
+          { x: mid.x, y: mid.y + 0.3 },
+        ]
+      : [
+          { x: mid.x - 0.3, y: mid.y },
+          { x: mid.x + 0.3, y: mid.y },
+        ];
     expect(swipedEdges(g, across[0], across[1])).toEqual([]); // nothing built yet
     g = reducer(g, { type: 'build', edge: k });
     expect(swipedEdges(g, across[0], across[1])).toEqual([k]);

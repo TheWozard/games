@@ -604,7 +604,10 @@ export const FLOWERS = 34;
 export const SEASONS = 38;
 
 /** What a face matches as: itself, or any flower or any season (each set of four is one group). */
-export const group = (kind: number) => (kind < FLOWERS ? kind : kind < SEASONS ? FLOWERS : SEASONS);
+export const group = (kind: number) =>
+  kind < FLOWERS ? kind
+  : kind < SEASONS ? FLOWERS
+  : SEASONS;
 export const matches = (a: number, b: number) => group(a) === group(b);
 
 /** The 36 groups of four faces a full set is made of. */
@@ -880,9 +883,9 @@ export function deal(
   const tier = TIERS[difficulty];
   const gone = slots.map(() => false);
   const style: Style =
-    difficulty === 'hard'
-      ? { together: true, covered: true }
-      : { together: false, covered: difficulty === 'medium' };
+    difficulty === 'hard' ?
+      { together: true, covered: true }
+    : { together: false, covered: difficulty === 'medium' };
   let best: { dealt: Dealt; off: number } | null = null;
   let steps = 0;
   // A quick grade, then, once that looks inside the tier, a closer one to confirm it: a deal picked

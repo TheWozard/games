@@ -353,9 +353,9 @@ export function generate(
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++)
         clues.push(
-          squares[r * cols + c] === null
-            ? cellEdges(g, r, c).filter((e) => solution[e]).length
-            : null,
+          squares[r * cols + c] === null ?
+            cellEdges(g, r, c).filter((e) => solution[e]).length
+          : null,
         );
     }
     const puzzle = { clues, squares, rings };

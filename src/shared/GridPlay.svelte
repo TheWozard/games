@@ -60,9 +60,9 @@
   // The whole game is one immutable value; every move replaces it via the reducer in grid.ts.
   let game = $state.raw(
     untrack(() =>
-      first !== undefined && Object.hasOwn(difficulties, first)
-        ? create(first)
-        : (loadJSON(storageKey, isValid) ?? create(Object.keys(difficulties)[0])),
+      first !== undefined && Object.hasOwn(difficulties, first) ?
+        create(first)
+      : (loadJSON(storageKey, isValid) ?? create(Object.keys(difficulties)[0])),
     ),
   );
   const shape = $derived(layout(game));
@@ -104,19 +104,15 @@
     // Corners clockwise from top-left, in the fill's own box (already inset on bordering sides).
     const pts = [
       notch(t, l, -1, -1) ? [`0 ${g}`, `${g} ${g}`, `${g} 0`] : ['0 0'],
-      notch(t, rt, -1, 1)
-        ? [`calc(100% - ${g}) 0`, `calc(100% - ${g}) ${g}`, `100% ${g}`]
-        : ['100% 0'],
-      notch(b, rt, 1, 1)
-        ? [
-            `100% calc(100% - ${g})`,
-            `calc(100% - ${g}) calc(100% - ${g})`,
-            `calc(100% - ${g}) 100%`,
-          ]
-        : ['100% 100%'],
-      notch(b, l, 1, -1)
-        ? [`${g} 100%`, `${g} calc(100% - ${g})`, `0 calc(100% - ${g})`]
-        : ['0 100%'],
+      notch(t, rt, -1, 1) ?
+        [`calc(100% - ${g}) 0`, `calc(100% - ${g}) ${g}`, `100% ${g}`]
+      : ['100% 0'],
+      notch(b, rt, 1, 1) ?
+        [`100% calc(100% - ${g})`, `calc(100% - ${g}) calc(100% - ${g})`, `calc(100% - ${g}) 100%`]
+      : ['100% 100%'],
+      notch(b, l, 1, -1) ?
+        [`${g} 100%`, `${g} calc(100% - ${g})`, `0 calc(100% - ${g})`]
+      : ['0 100%'],
     ].flat();
     return `inset: ${fit(t)} ${fit(rt)} ${fit(b)} ${fit(l)}; clip-path: polygon(${pts.join(', ')})`;
   }
@@ -247,9 +243,9 @@
     .join(' · ')}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={variants
-    ? []
-    : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  options={variants ?
+    []
+  : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
   current={game.difficulty}
   picker={variants ? variantPicker : undefined}
   onopennew={() => {

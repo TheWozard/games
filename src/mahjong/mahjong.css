@@ -1,9 +1,9 @@
 .mj-count {
   display: inline-flex;
-  align-items: center;
   gap: 3px;
-  color: var(--muted);
+  align-items: center;
   font-variant-numeric: tabular-nums;
+  color: var(--muted);
   white-space: nowrap;
 }
 .mj-count svg {
@@ -24,13 +24,13 @@
   /* A 5% margin all around (a tile is 3u × 4u): the face is 3:4 too, so these fill it evenly.
      From the tile, not the board: boards vary in width. */
   padding: calc(var(--u) * 0.2) calc(var(--u) * 0.15);
+  touch-action: manipulation;
+  background: none;
   border: 0;
   border-radius: calc(var(--u) * 0.45);
-  background: none;
   /* A soft shadow on the layer below; the tile itself is drawn by .mj-body. */
   box-shadow: calc(var(--u) * 0.55) calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgb(0 0 0 / 45%);
   transition: filter 0.2s ease;
-  touch-action: manipulation;
 }
 
 /* Inset faces (Settings, from the menu): a 10% margin, leaving space between neighbors' faces. */

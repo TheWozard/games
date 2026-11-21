@@ -26,7 +26,10 @@ export const CROSS = 2;
 export type Mark = typeof EMPTY | typeof LINE | typeof CROSS;
 
 /** What a tap turns a side into: empty → line → cross → empty. */
-export const next = (m: Mark): Mark => (m === EMPTY ? LINE : m === LINE ? CROSS : EMPTY);
+export const next = (m: Mark): Mark =>
+  m === EMPTY ? LINE
+  : m === LINE ? CROSS
+  : EMPTY;
 
 export interface Game extends Grid {
   difficulty: Difficulty;

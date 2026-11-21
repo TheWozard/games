@@ -223,7 +223,10 @@
       if (!pointers.size) moving = false;
     }, 150);
     // Deltas in pixels; some mice (Firefox) give lines or pages.
-    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.height : 1;
+    const unit =
+      e.deltaMode === 1 ? 16
+      : e.deltaMode === 2 ? stage.height
+      : 1;
     const [dx, dy] = [e.deltaX * unit, e.deltaY * unit];
     if (e.ctrlKey || e.metaKey) {
       const at = local(e);

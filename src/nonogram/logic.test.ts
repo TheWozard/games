@@ -68,7 +68,15 @@ describe('solveLine', () => {
   it('finds the overlap', () => {
     // 8 in 10: the middle six are shaded.
     const got = solveLine(new Array(10).fill(ALL1), plain(8))!;
-    expect(got.map((m) => (m === 0b10 ? '#' : m === 0b01 ? '.' : '?')).join('')).toBe('??######??');
+    expect(
+      got
+        .map((m) =>
+          m === 0b10 ? '#'
+          : m === 0b01 ? '.'
+          : '?',
+        )
+        .join(''),
+    ).toBe('??######??');
   });
 
   it('says when nothing fits', () => {

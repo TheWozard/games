@@ -274,7 +274,10 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
 
 - Prettier formats every file (`just fmt`); don't hand-format against it. It also sorts imports
   (built-ins, packages, then relative paths; side-effect imports such as `../shared/app` stay
-  where they are) and the keys of `package.json`. Generated data
+  where they are) and the keys of `package.json`. Stylelint puts CSS properties in one order
+  (`stylelint-config-recess-order`: position, layout, size, box, typography, then visual); a
+  comment inside a rule moves with the declaration under it, so a comment about the whole rule goes
+  above its selector. Generated data
   (`src/blocks/puzzles.ts`, `src/mahjong/archive.ts`, `src/solitaire/klondike/deals.ts`,
   `faces.svg`) is left as its scripts write it (`.prettierignore`).
 - ESLint's `no-unsafe-*` rules are off: typescript-eslint can't read the types of `.svelte`

@@ -38,58 +38,58 @@ html {
 }
 
 body {
-  margin: 0;
   min-height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  margin: 0;
   font:
     16px/1.4 system-ui,
     -apple-system,
     'Segoe UI',
     Roboto,
     sans-serif;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
+  color: var(--text);
+  background: var(--bg);
   -webkit-tap-highlight-color: transparent;
 }
 
 button {
   font: inherit;
   color: inherit;
-  cursor: pointer;
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 .bar {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   width: 100%;
   max-width: 520px;
-  margin: 0 auto;
   padding: 12px 16px;
+  margin: 0 auto;
 }
 
 /* Title, with the difficulty / settings as a smaller line beneath it. */
 .bar h1 {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-width: 0;
   margin: 0;
   font-size: 1.2rem;
   line-height: 1.2;
 }
 .bar h1 small {
-  color: var(--muted);
   font-size: 0.8rem;
   font-weight: 400;
+  color: var(--muted);
 }
 .bar h1,
 .bar h1 small {
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Game pages (<body class="game">) are exactly one screen tall and never scroll: header at the
@@ -102,31 +102,31 @@ html:has(body.game) {
 body.game {
   position: fixed;
   inset: 0 0 auto;
+  display: flex;
+  flex-direction: column;
   height: var(--app-height, 100%);
   min-height: 0; /* not body's 100dvh, which stays too tall after the installed app is reopened */
   padding-bottom: var(--safe-bottom);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
 }
 body.game #root {
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
 }
 
 .play {
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  width: 100%;
   gap: 16px;
+  width: 100%;
   max-width: 520px;
-  margin: 0 auto;
+  min-height: 0;
   padding: 0 16px 20px;
+  margin: 0 auto;
 }
 
 /* A short note under the board for a state the player must act on (Mahjong: stuck, Shuffle).
@@ -137,19 +137,19 @@ body.game #root {
 
 .status {
   margin: 0;
-  color: var(--text);
   font-size: 0.95rem;
+  color: var(--text);
   text-align: center;
 }
 
 /* The space the board may use. Boards size themselves to fit it with container units:
    width: min(100cqw, 100cqh * <width ÷ height>), so they never push the page past one screen. */
 .board-area {
+  display: grid;
   flex: 1;
+  place-items: center;
   min-height: 0;
   container-type: size;
-  display: grid;
-  place-items: center;
 }
 
 .back {
@@ -158,45 +158,45 @@ body.game #root {
 
 /* Round icon buttons at the right of the header (Undo, New game). */
 .icon-btn {
-  flex: none;
   display: grid;
+  flex: none;
   place-items: center;
   width: 38px;
   height: 38px;
   padding: 0;
+  color: var(--accent);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--accent);
 }
 .icon-btn svg {
   width: 20px;
   height: 20px;
 }
 .icon-btn:disabled {
-  opacity: 0.35;
   cursor: default;
+  opacity: 0.35;
 }
 .icon-btn + .icon-btn {
   margin-left: -4px;
 }
 
 .btn {
+  padding: 10px 12px;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--surface);
-  padding: 10px 12px;
 }
 
 .btn:disabled {
-  opacity: 0.4;
   cursor: default;
+  opacity: 0.4;
 }
 
 .btn[aria-pressed='true'] {
+  color: var(--surface);
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--surface);
 }
 
 /* A row of equal-width buttons under a game board. */
@@ -208,9 +208,9 @@ body.game #root {
 }
 
 .btn.primary {
+  color: var(--surface);
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--surface);
 }
 /* A little one beside a heading (Mahjong's All / None). */
 .btn.small {
@@ -265,13 +265,13 @@ dialog {
   max-width: none;
   height: 100%;
   max-height: none;
-  margin: 0;
-  border: 0;
   padding: max(16px, env(safe-area-inset-top, 0px)) 16px var(--safe-bottom);
-  background: transparent;
-  color: var(--text);
+  margin: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  color: var(--text);
+  background: transparent;
+  border: 0;
 }
 dialog[open] {
   display: flex;
@@ -287,16 +287,16 @@ dialog::backdrop {
 
 dialog form {
   position: relative;
-  flex: none;
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: 8px;
   width: min(340px, 100%);
+  padding: 20px;
   margin: auto;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--surface);
-  padding: 20px;
 }
 
 dialog h2 {
@@ -319,28 +319,28 @@ dialog p {
   width: 34px;
   height: 34px;
   padding: 0;
+  color: var(--muted);
+  background: transparent;
   border: 0;
   border-radius: 50%;
-  background: transparent;
-  color: var(--muted);
 }
 .dialog-close svg {
   width: 18px;
   height: 18px;
 }
 .dialog-close:hover {
-  background: var(--line);
-  color: var(--text);
   padding-right: 40px;
+  color: var(--text);
+  background: var(--line);
 }
 
 /* The Play button at the bottom of a New Game dialog, set apart from the choices above it. */
 .new-start {
-  margin-top: 14px;
   display: inline-flex;
+  gap: 6px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  margin-top: 14px;
   font-weight: 600;
 }
 .new-start svg {
@@ -350,18 +350,18 @@ dialog p {
 
 /* In a dialog, a picked choice is outlined (solid accent is kept for Play). */
 dialog .btn[aria-pressed='true'] {
+  color: var(--text);
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--text);
 }
 
 /* New-game dialogs with several choices: a small heading per group, then a row of
    aria-pressed buttons (a name, and an optional detail line in <span>). */
 .pick-title {
   margin: 6px 0 0;
-  color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -373,21 +373,21 @@ dialog .btn[aria-pressed='true'] {
   grid-auto-flow: column;
   gap: 2px;
   padding: 2px;
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--bg);
 }
 .pick .btn {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 3px;
+  align-items: center;
   min-width: 0;
   padding: 7px 2px;
+  color: var(--muted);
+  background: none;
   border: 0;
   border-radius: 8px;
-  background: none;
-  color: var(--muted);
 }
 .pick .btn strong {
   font-size: 0.85rem;
@@ -397,8 +397,8 @@ dialog .btn[aria-pressed='true'] {
   color: var(--muted);
 }
 .pick .btn[aria-pressed='true'] {
-  background: var(--accent-soft);
   color: var(--text);
+  background: var(--accent-soft);
 }
 /* With a sliding highlight (ui/slide.ts), the picked button stays clear and the slider behind it
    is lit instead, moving from choice to choice. */
@@ -417,9 +417,9 @@ dialog .btn[aria-pressed='true'] {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 8px;
-  background: var(--accent-soft);
   pointer-events: none;
+  background: var(--accent-soft);
+  border-radius: 8px;
   transition:
     translate 0.22s cubic-bezier(0.3, 0.7, 0.4, 1),
     width 0.22s cubic-bezier(0.3, 0.7, 0.4, 1),
@@ -451,14 +451,14 @@ dialog .btn[aria-pressed='true'] {
 }
 .rule {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 .btn.toggle {
-  flex: 1;
   display: flex;
-  align-items: center;
+  flex: 1;
   gap: 10px;
+  align-items: center;
   padding: 10px 12px;
   text-align: left;
 }
@@ -467,22 +467,22 @@ dialog .btn[aria-pressed='true'] {
 }
 .btn.toggle .check {
   display: grid;
-  place-items: center;
   flex: none;
+  place-items: center;
   width: 16px;
   height: 16px;
+  color: transparent;
   border: 1.5px solid var(--muted);
   border-radius: 4px;
-  color: transparent;
 }
 .btn.toggle .check svg {
   width: 12px;
   height: 12px;
 }
 .btn.toggle[aria-pressed='true'] .check {
-  border-color: var(--accent);
-  background: var(--accent);
   color: var(--surface);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 /* A name over a detail line ("82 tiles"). */
 .toggle-name {
@@ -492,13 +492,13 @@ dialog .btn[aria-pressed='true'] {
   min-width: 0;
 }
 .toggle-name span {
-  color: var(--muted);
   font-size: 0.75rem;
+  color: var(--muted);
 }
 .toggle-aside {
+  display: flex;
   flex: none;
   margin-left: auto;
-  display: flex;
 }
 /* A long list of toggles drawn like a .pick strip (ui/PickList.svelte): a heading with a count
    and small buttons at its right, then one darker strip no taller than --pick-list-height: a row
@@ -507,8 +507,8 @@ dialog .btn[aria-pressed='true'] {
    shrink and jump as they narrow the list. */
 .pick-head {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
   margin-top: 6px;
 }
 .pick-head .pick-title {
@@ -517,15 +517,15 @@ dialog .btn[aria-pressed='true'] {
 }
 /* "Select", before a PickList's All and None. */
 .pick-select {
-  color: var(--muted);
-  font-size: 0.8rem;
   margin-right: 2px;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 .pick-count {
   margin-left: 6px;
-  color: var(--accent);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 .pick.pick-list {
   --pick-list-height: min(420px, 50dvh);
@@ -539,8 +539,8 @@ dialog .btn[aria-pressed='true'] {
 /* The chips: one row that scrolls sideways under a finger, with no scrollbar, a small gap between
    kinds of filter (.chip-gap). */
 .pick-chips {
-  flex: none;
   display: flex;
+  flex: none;
   gap: 6px;
   padding: 4px 4px 6px;
   overflow: auto hidden;
@@ -557,17 +557,17 @@ dialog .btn[aria-pressed='true'] {
 .chip {
   flex: none;
   padding: 6px 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 0.85rem;
-  white-space: nowrap;
 }
 .chip[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
   color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 .chip:focus-visible {
   outline: 2px solid var(--text);
@@ -580,15 +580,15 @@ dialog .btn[aria-pressed='true'] {
   background: var(--line);
 }
 .pick-list-rows {
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
 }
 .pick-list-rows > * {
   flex: none;
@@ -597,27 +597,27 @@ dialog .btn[aria-pressed='true'] {
 .pick-list .btn.toggle {
   flex: none;
   flex-direction: row;
-  align-items: center;
   gap: 10px;
+  align-items: center;
   padding: 6px 8px 6px 10px;
+  color: var(--muted);
+  background: none;
   border: 0;
   border-radius: 8px;
-  background: none;
-  color: var(--muted);
 }
 .pick-list .btn.toggle[aria-pressed='true'] {
-  background: var(--accent-soft);
   color: var(--text);
+  background: var(--accent-soft);
 }
 .pick-list .btn.toggle:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: -2px;
 }
 .pick-empty {
-  margin: 0;
   padding: 10px;
-  color: var(--muted);
+  margin: 0;
   font-size: 0.9rem;
+  color: var(--muted);
 }
 /* The same round i as on the launcher's cards. */
 .rule-info {
@@ -625,22 +625,22 @@ dialog .btn[aria-pressed='true'] {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--bg);
-  color: var(--muted);
   font:
     italic 700 1rem/1 Georgia,
     'Times New Roman',
     serif;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 50%;
 }
 .rule-info[aria-expanded='true'] {
   color: var(--accent);
   border-color: var(--accent);
 }
 dialog p.rule-text {
-  margin: 0 0 4px;
   padding: 0 4px;
+  margin: 0 0 4px;
   font-size: 0.85rem;
   line-height: 1.4;
 }
@@ -671,13 +671,13 @@ dialog p.rule-text {
 .pick-tabs [role='tab'] {
   flex: none;
   padding: 8px 10px; /* four tabs fit at 360px wide (Sliding Blocks) */
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--muted);
   font: inherit;
   font-weight: 600;
+  color: var(--muted);
   white-space: nowrap;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
 }
 .pick-tabs [role='tab'][aria-selected='true'] {
   color: var(--text);
@@ -689,51 +689,51 @@ dialog p.rule-text {
 .toast {
   position: fixed;
   inset: auto auto calc(20px + var(--safe-bottom)) 50%;
-  margin: 0;
   width: max-content; /* size to the text, not to the half-screen left of center */
   max-width: min(420px, calc(100vw - 32px));
   padding: 10px 18px;
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-align: center;
+  pointer-events: none;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 22px; /* a pill on one line, a soft box when it wraps */
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.95rem;
-  text-align: center;
   box-shadow: 0 6px 24px rgb(0 0 0 / 45%);
   opacity: 0;
   translate: -50% 8px;
-  pointer-events: none;
   transition:
     opacity 0.2s ease,
     translate 0.2s ease;
 }
 .toast.show {
+  pointer-events: auto;
   opacity: 1;
   translate: -50% 0;
-  pointer-events: auto;
 }
 /* For a loss or a failed action: toast(message, { tone: 'error' }). */
 .toast.error {
-  border-color: var(--danger);
-  background: var(--danger-soft);
   color: #ffd9d4;
+  background: var(--danger-soft);
+  border-color: var(--danger);
 }
 
 /* Next (src/shared/NextButton.svelte): floats at the bottom once a game is over. */
 .next-fab {
   position: fixed;
-  left: 50%;
   bottom: calc(20px + var(--safe-bottom));
-  translate: -50% 0;
+  left: 50%;
   z-index: 50;
   display: inline-flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
   padding: 12px 22px 12px 28px;
-  border-radius: 999px;
   font-size: 1.05rem;
   font-weight: 600;
+  border-radius: 999px;
   box-shadow: 0 6px 24px rgb(0 0 0 / 50%);
+  translate: -50% 0;
 }
 .next-fab svg {
   width: 18px;
@@ -753,10 +753,10 @@ body.game:has(> #root > .stage) {
 }
 .stage {
   position: relative;
-  flex: 1;
-  min-height: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
   overflow: hidden;
 }
 /* A stage that pans and zooms (ZoomStage.svelte): fills the stage, and takes every touch itself
@@ -766,9 +766,9 @@ body.game:has(> #root > .stage) {
   inset: 0;
   overflow: hidden;
   touch-action: none;
+  cursor: grab;
   user-select: none;
   -webkit-touch-callout: none;
-  cursor: grab;
 }
 .zoom-board {
   position: absolute;
@@ -793,9 +793,9 @@ body.game:has(> #root > .stage) {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
   gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
   padding: 0 16px calc(20px + var(--safe-bottom));
   pointer-events: none;
 }
@@ -804,8 +804,8 @@ body.game:has(> #root > .stage) {
 }
 .control-layer .status {
   padding: 6px 14px;
-  border-radius: 999px;
   background: rgb(22 24 29 / 80%); /* --bg, see-through */
+  border-radius: 999px;
 }
 
 /* The menu (☰): a box under its button at the right of the header, not centered. Its right edge
@@ -817,10 +817,10 @@ dialog.game-menu::backdrop {
   background: rgb(0 0 0 / 30%);
 }
 dialog.game-menu form {
-  width: min(280px, 100%);
-  margin: calc(var(--bar-height) - 4px) max(0px, (100vw - 520px) / 2) auto auto;
-  padding: 6px;
   gap: 0;
+  width: min(280px, 100%);
+  padding: 6px;
+  margin: calc(var(--bar-height) - 4px) max(0px, (100vw - 520px) / 2) auto auto;
   border-radius: 14px;
   box-shadow: 0 10px 32px rgb(0 0 0 / 50%);
 }
@@ -845,14 +845,14 @@ dialog.game-menu form {
 }
 .menu-item {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   width: 100%;
   padding: 10px;
+  text-align: left;
+  background: none;
   border: 0;
   border-radius: 9px;
-  background: none;
-  text-align: left;
 }
 .menu-item svg {
   flex: none;
@@ -862,11 +862,11 @@ dialog.game-menu form {
 }
 .menu-item:hover,
 .menu-item:focus-visible {
-  background: var(--line);
   outline: none;
+  background: var(--line);
 }
 .menu-item:disabled {
-  opacity: 0.4;
-  background: none;
   cursor: default;
+  background: none;
+  opacity: 0.4;
 }

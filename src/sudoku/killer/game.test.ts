@@ -46,7 +46,11 @@ describe('layout', () => {
 describe('zones', () => {
   it('give touching cages different colors, and stay the same for a puzzle', () => {
     for (let run = 0; run < 30; run++) {
-      const g = newGame(run % 3 === 0 ? 'easy' : run % 3 === 1 ? 'medium' : 'hard');
+      const g = newGame(
+        run % 3 === 0 ? 'easy'
+        : run % 3 === 1 ? 'medium'
+        : 'hard',
+      );
       const zone = layout(g).zone!;
       const cageOf = (i: number) => g.cages.findIndex((c) => c.cells.includes(i));
       for (let i = 0; i < 81; i++) {

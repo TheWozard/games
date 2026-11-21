@@ -19,9 +19,9 @@
   const isDraw = (s: string | undefined) => s === '1' || s === '3';
   let game = $state.raw(
     untrack(() =>
-      isDraw(first)
-        ? newGame(Number(first) as Draw)
-        : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)),
+      isDraw(first) ?
+        newGame(Number(first) as Draw)
+      : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)),
     ),
   );
   // Cards glide between places only once the player has moved: not while the page lays out.

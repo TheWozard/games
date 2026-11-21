@@ -1,8 +1,9 @@
-// CSS lint for mistakes (unknown properties and values, duplicates, wrong specificity order).
+// CSS lint for mistakes (unknown properties and values, duplicates, wrong specificity order), and
+// properties in one order (recess: position, box model, typography, visual, then the rest).
 // Formatting is Prettier's job, so the blank-line rules are off: related rules sit together.
 /** @type {import('stylelint').Config} */
 export default {
-  extends: ['stylelint-config-standard'],
+  extends: ['stylelint-config-standard', 'stylelint-config-recess-order'],
   rules: {
     'rule-empty-line-before': null,
     'comment-empty-line-before': null,

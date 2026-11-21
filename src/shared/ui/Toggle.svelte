@@ -13,13 +13,8 @@
     on,
     onclick,
     aside,
-  }: {
-    label: string;
-    detail?: string;
-    on: boolean;
-    onclick: () => void;
-    aside?: Snippet;
-  } = $props();
+  }: { label: string; detail?: string; on: boolean; onclick: () => void; aside?: Snippet } =
+    $props();
 </script>
 
 <button type="button" class="btn toggle" aria-pressed={on} {onclick}>

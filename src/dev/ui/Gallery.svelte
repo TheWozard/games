@@ -377,9 +377,9 @@
   onstart={(value) => {
     wait = value as Wait;
     note(`Play: ${value}`);
-    return value === 'quick'
-      ? undefined
-      : later(value === 'slow' ? 1000 : 3000).then(() => note(`Play: ${value} ready`));
+    return value === 'quick' ? undefined : (
+        later(value === 'slow' ? 1000 : 3000).then(() => note(`Play: ${value} ready`))
+      );
   }}
 />
 
@@ -403,8 +403,8 @@
 <style>
   .gallery {
     max-width: 520px;
-    margin: 0 auto;
     padding-bottom: 200px; /* clear of the log */
+    margin: 0 auto;
   }
   section {
     margin: 0 16px 28px;
@@ -415,19 +415,19 @@
   }
   section > p {
     margin: 0 0 12px;
-    color: var(--muted);
     font-size: 0.85rem;
+    color: var(--muted);
   }
   .sub {
     margin: 14px 0 6px;
-    color: var(--muted);
     font-size: 0.8rem;
     font-weight: 600;
+    color: var(--muted);
   }
   .row {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
     margin-bottom: 10px;
   }
   .row.wrap {
@@ -457,38 +457,38 @@
     flex-direction: column;
     gap: 8px;
     padding: 16px;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 16px;
-    background: var(--surface);
   }
   /* Toggles as they look in a dialog, where they're used (.pick rows style their own picks). */
   .gallery :global(.btn.toggle[aria-pressed='true']) {
+    color: var(--text);
     background: var(--accent-soft);
     border-color: var(--accent);
-    color: var(--text);
   }
   .menu-preview {
     width: min(280px, 100%);
-    margin-top: 10px;
     padding: 6px;
+    margin-top: 10px;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 14px;
-    background: var(--surface);
   }
   .log {
     position: fixed;
     inset: auto 0 0;
     z-index: 40;
-    margin: 0;
     padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-    list-style: none;
-    border-top: 1px solid var(--line);
-    background: rgb(22 24 29 / 94%);
+    margin: 0;
     font:
       0.8rem/1.5 ui-monospace,
       SFMono-Regular,
       Menlo,
       monospace;
+    list-style: none;
+    background: rgb(22 24 29 / 94%);
+    border-top: 1px solid var(--line);
   }
   .log li:first-child {
     color: var(--text);

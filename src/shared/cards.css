@@ -22,20 +22,20 @@
 .card-table .slot {
   display: grid;
   place-items: center;
-  border: 1px dashed var(--line);
-  background: transparent;
-  color: var(--line-strong);
   font-size: calc(var(--cw) * 0.42);
+  color: var(--line-strong);
+  background: transparent;
+  border: 1px dashed var(--line);
 }
 
 .card-table .card {
-  border: 1px solid #c9c4b8;
-  background: #f4f1ea;
+  overflow: hidden;
   color: #1d1f24;
+  touch-action: manipulation;
+  background: #f4f1ea;
+  border: 1px solid #c9c4b8;
   box-shadow: 0 1px 2px rgb(0 0 0 / 40%);
   transition: transform 0.2s ease;
-  touch-action: manipulation;
-  overflow: hidden;
 }
 .card-table .card.red {
   color: #c8372d;
@@ -57,9 +57,9 @@
 
 /* Face down: a quiet pattern in the accent color. */
 .card-table .card.down {
-  border-color: #2b3a5a;
   background:
     repeating-linear-gradient(45deg, rgb(255 255 255 / 8%) 0 2px, transparent 2px 6px), #2f4a80;
+  border-color: #2b3a5a;
 }
 
 .card-table .corner {
@@ -90,6 +90,6 @@
 
 /* Being dragged: follows the finger without easing, raised above the rest. */
 .card-table .card.dragging {
-  transition: none;
   box-shadow: 0 6px 14px rgb(0 0 0 / 50%);
+  transition: none;
 }

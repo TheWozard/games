@@ -231,10 +231,11 @@
         <dt><span class="swatch dashed"></span>The symbol's viewBox</dt>
         <dd>
           <code>viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}"</code>: x {VIEW.x} to {VIEW.x +
-            VIEW.w}, y {VIEW.y} to {VIEW.y + VIEW.h}. This is scaled to fit the tile's padding box{spareX ||
-          spareY
-            ? `, with ${fmt(spareX)} spare at the left and right and ${fmt(spareY)} at the top and bottom`
-            : ''}.
+            VIEW.w}, y {VIEW.y} to {VIEW.y + VIEW.h}. This is scaled to fit the tile's padding box{(
+            spareX || spareY
+          ) ?
+            `, with ${fmt(spareX)} spare at the left and right and ${fmt(spareY)} at the top and bottom`
+          : ''}.
         </dd>
         <dt><span class="swatch dot"></span>Center</dt>
         <dd>x {15 * S}, y {20 * S}. The darker lines cross there.</dd>
@@ -308,8 +309,8 @@
 <style>
   .viewer {
     max-width: 1100px;
-    margin: 0 auto;
     padding: 16px 16px calc(var(--safe-bottom) + 16px);
+    margin: 0 auto;
   }
   h1 {
     margin: 8px 0 4px;
@@ -320,10 +321,10 @@
     font-size: 1.1rem;
   }
   h2 span {
-    color: var(--muted);
+    margin-left: 6px;
     font-size: 0.85rem;
     font-weight: 400;
-    margin-left: 6px;
+    color: var(--muted);
   }
   .warn {
     color: var(--danger);
@@ -336,10 +337,10 @@
     gap: 12px;
   }
   .card {
+    padding: 12px 14px 14px;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 12px 14px 14px;
   }
   .card header {
     display: flex;
@@ -348,17 +349,17 @@
     margin-bottom: 12px;
   }
   .card header span {
-    color: var(--muted);
     font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
+    color: var(--muted);
   }
 
   /* The gap leaves room for the large tile's side and shadow, which fall to its right. */
   .faces {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
     gap: 20px 34px;
+    align-items: flex-start;
   }
   .states {
     display: flex;
@@ -366,15 +367,15 @@
     padding-top: 4px;
   }
   figure {
-    margin: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 8px;
+    align-items: center;
+    margin: 0;
   }
   figcaption {
-    color: var(--muted);
     font-size: 0.7rem;
+    color: var(--muted);
   }
 
   /* The game positions tiles absolutely on its board; here they sit in the flow. */
@@ -394,18 +395,18 @@
     z-index: 1;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 8px 16px;
-    margin: 8px -16px 0;
+    align-items: center;
     padding: 10px 16px;
+    margin: 8px -16px 0;
     background: var(--bg);
     border-bottom: 1px solid var(--line);
   }
   .scale label {
     display: flex;
-    align-items: center;
-    gap: 10px;
     flex: 1 1 260px;
+    gap: 10px;
+    align-items: center;
     font-size: 0.9rem;
   }
   .scale label span {
@@ -455,8 +456,8 @@
   }
   dt {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
     font-weight: 600;
   }
   dd {
@@ -483,8 +484,8 @@
     width: 8px;
     height: 8px;
     margin: 0 5px;
-    border-radius: 50%;
     background: #c8372d;
+    border-radius: 50%;
   }
   .swatch.grid {
     background:
@@ -504,23 +505,23 @@
   }
   .state-face {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
     margin-bottom: 16px;
     font-size: 0.9rem;
   }
   .state-face select {
+    padding: 4px 8px;
     font: inherit;
     color: var(--text);
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 4px 8px;
   }
 
   footer {
     margin-top: 28px;
-    color: var(--muted);
     font-size: 0.85rem;
+    color: var(--muted);
   }
 </style>

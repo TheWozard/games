@@ -1,6 +1,6 @@
 .sol-board .slot.stock {
-  cursor: pointer;
   color: var(--muted);
+  cursor: pointer;
 }
 
 /* Columns wider than the screen pan sideways under a finger (Solitaire.svelte). */

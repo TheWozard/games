@@ -166,9 +166,8 @@ export function generate(
     if (!grown) continue;
     const { islands, links, used } = grown;
     if (rules.colors && !paint(islands, links, random)) continue;
-    const blocks = rules.blocks
-      ? placeBlocks(islands, links, used, cols, rows, rules.diagonals, random)
-      : [];
+    const blocks =
+      rules.blocks ? placeBlocks(islands, links, used, cols, rows, rules.diagonals, random) : [];
     const { edges, crosses } = edgesOf(islands, cols, rows, { blocks, diagonals: rules.diagonals });
     const answer = edges.map((e) => links.get(pair(e.a, e.b)) ?? 0);
     // When another answer also fits, nudge ours toward it on one pair (add a bridge it has, or drop
@@ -182,8 +181,8 @@ export function generate(
       const moves = edges.flatMap((e, k) => {
         const { a, b } = e;
         if (other[k] > answer[k]) {
-          return islands[a].n < 8 && islands[b].n < 8 && !crosses[k].some((j) => answer[j] > 0)
-            ? [{ k, by: 1 }]
+          return islands[a].n < 8 && islands[b].n < 8 && !crosses[k].some((j) => answer[j] > 0) ?
+              [{ k, by: 1 }]
             : [];
         }
         if (other[k] < answer[k] && islands[a].n > 1 && islands[b].n > 1) {
@@ -506,7 +505,10 @@ export function isSolved(
   for (let q = 0; q < queue.length; q++) {
     edges.forEach((e, k) => {
       if (!bridges[k]) return;
-      const j = e.a === queue[q] ? e.b : e.b === queue[q] ? e.a : -1;
+      const j =
+        e.a === queue[q] ? e.b
+        : e.b === queue[q] ? e.a
+        : -1;
       if (j >= 0 && !seen.has(j)) {
         seen.add(j);
         queue.push(j);

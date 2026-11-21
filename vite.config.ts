@@ -58,8 +58,5 @@ export default defineConfig({
       },
     }),
   ],
-  test: {
-    root: import.meta.dirname,
-    include: ['src/**/*.test.ts'],
-  },
+  test: { root: import.meta.dirname, include: ['src/**/*.test.ts'] },
 });

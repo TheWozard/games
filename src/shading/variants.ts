@@ -40,9 +40,9 @@ export const GAMES: Games = {
     label: 'Star Battle',
     title: 'Difficulty',
     options: options('stars', STARS, (d) =>
-      STARS[d as keyof typeof STARS].stars === 1
-        ? '1 star'
-        : `${STARS[d as keyof typeof STARS].stars} stars`,
+      STARS[d as keyof typeof STARS].stars === 1 ?
+        '1 star'
+      : `${STARS[d as keyof typeof STARS].stars} stars`,
     ),
   },
   nurikabe: { label: 'Nurikabe', title: 'Difficulty', options: options('nurikabe', NURIKABE) },

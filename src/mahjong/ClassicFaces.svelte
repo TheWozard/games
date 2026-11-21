@@ -163,7 +163,11 @@
     {#each DOTS as dots, n (n)}
       <symbol id="mj-k{n}" viewBox="1.5 1.5 27 37">
         {#each dots as [x, y], k (k)}
-          {@const r = n === 0 ? 9 : n < 4 ? 5 : n < 6 ? 4.5 : 3.8}
+          {@const r =
+            n === 0 ? 9
+            : n < 4 ? 5
+            : n < 6 ? 4.5
+            : 3.8}
           {@const color = n === 0 ? DOT_COLORS[1] : DOT_COLORS[(k + n) % 3]}
           <circle cx={x} cy={y} {r} fill="none" stroke={color} stroke-width={n === 0 ? 2.4 : 1.6} />
           <circle cx={x} cy={y} r={r * 0.42} fill={color} />
@@ -174,12 +178,18 @@
     {#each STICKS as sticks, n (n)}
       <symbol id="mj-k{9 + n}" viewBox="1.5 1.5 27 37">
         {#each sticks as [x, y], k (k)}
-          {@const h = n === 0 ? 26 : n < 6 ? 12 : 10}
-          {@const w = n === 0 ? 6 : n === 7 ? 3.4 : 4}
+          {@const h =
+            n === 0 ? 26
+            : n < 6 ? 12
+            : 10}
+          {@const w =
+            n === 0 ? 6
+            : n === 7 ? 3.4
+            : 4}
           {@const color =
-            (n === 4 && k === 2) || (n === 6 && k === 0) || (n === 8 && k % 3 === 1)
-              ? '#c8372d'
-              : '#2e8b57'}
+            (n === 4 && k === 2) || (n === 6 && k === 0) || (n === 8 && k % 3 === 1) ?
+              '#c8372d'
+            : '#2e8b57'}
           <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={w / 2} fill={color} />
           <path d="M{x - w / 2} {y}h{w}" stroke="#f4eedf" stroke-width="0.9" />
         {/each}

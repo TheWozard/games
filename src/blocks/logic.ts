@@ -149,7 +149,10 @@ export function slide(blocks: readonly Block[], i: number, to: number): Block[] 
 // characters: row, column, length, and '-' across, '|' down or '+' a fixed pillar. The key blocks
 // come first.
 
-const MARK = (b: Block) => (b.fixed ? '+' : b.across ? '-' : '|');
+const MARK = (b: Block) =>
+  b.fixed ? '+'
+  : b.across ? '-'
+  : '|';
 export const encode = (blocks: readonly Block[]) =>
   blocks.map((b) => `${b.r}${b.c}${b.len}${MARK(b)}`).join('');
 
@@ -182,10 +185,10 @@ export function isLayout(blocks: readonly Block[], s: Shape): boolean {
       [b.r, b.c].every(Number.isInteger) &&
       b.r >= 0 &&
       b.c >= 0 &&
-      (b.fixed
-        ? b.len === 1 && b.r < size && b.c < size
-        : (b.len === 2 || b.len === 3) &&
-          (b.across ? b.c + b.len <= size && b.r < size : b.r + b.len <= size && b.c < size)),
+      (b.fixed ?
+        b.len === 1 && b.r < size && b.c < size
+      : (b.len === 2 || b.len === 3) &&
+        (b.across ? b.c + b.len <= size && b.r < size : b.r + b.len <= size && b.c < size)),
   );
   if (!inside) return false;
   const squares = blocks.reduce((n, b, i) => n + (isOut(blocks, i, s) ? 0 : b.len), 0);

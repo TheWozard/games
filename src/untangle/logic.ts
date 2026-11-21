@@ -81,7 +81,10 @@ export function rescale(points: readonly Point[], from: Board, to: Board): Point
 }
 
 /** Drawn dot radius: a little smaller on the busiest boards. */
-export const dotRadius = (dots: number) => (dots <= 15 ? 2.8 : dots <= 21 ? 2.5 : 2.1);
+export const dotRadius = (dots: number) =>
+  dots <= 15 ? 2.8
+  : dots <= 21 ? 2.5
+  : 2.1;
 /** A dot this close to a line it isn't part of is "on" it, and counts as a crossing. */
 export const touchDistance = (dots: number) => dotRadius(dots) * 0.8;
 /** Dropped dots are nudged at least this far from any other dot. */
@@ -110,7 +113,10 @@ const cross = (o: Point, a: Point, b: Point) =>
 export function segmentsCross(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
   const eps =
     1e-9 * Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) * Math.hypot(p4[0] - p3[0], p4[1] - p3[1]);
-  const side = (v: number) => (v > eps ? 1 : v < -eps ? -1 : 0);
+  const side = (v: number) =>
+    v > eps ? 1
+    : v < -eps ? -1
+    : 0;
   const d1 = side(cross(p3, p4, p1));
   const d2 = side(cross(p3, p4, p2));
   const d3 = side(cross(p1, p2, p3));
@@ -199,9 +205,9 @@ export function nudge(
     if (near === -1) break;
     // Step directly away from it (any direction if they're exactly on top of each other).
     const angle =
-      nearD > 1e-6
-        ? Math.atan2(out[i][1] - out[near][1], out[i][0] - out[near][0])
-        : random() * Math.PI * 2;
+      nearD > 1e-6 ?
+        Math.atan2(out[i][1] - out[near][1], out[i][0] - out[near][0])
+      : random() * Math.PI * 2;
     out[i] = clamp(
       [out[near][0] + Math.cos(angle) * gap * 1.05, out[near][1] + Math.sin(angle) * gap * 1.05],
       board,

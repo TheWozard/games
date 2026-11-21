@@ -119,8 +119,8 @@ export function reducer(g: Game, action: Action): Game {
     case 'remove':
       return g.bridges[action.edge] > 0 ? put(g, action.edge, g.bridges[action.edge] - 1) : g;
     case 'cycle':
-      return buildable(g, action.edge)
-        ? put(g, action.edge, g.bridges[action.edge] + 1)
+      return buildable(g, action.edge) ?
+          put(g, action.edge, g.bridges[action.edge] + 1)
         : put(g, action.edge, 0);
     case 'undo': {
       const last = g.history.at(-1);

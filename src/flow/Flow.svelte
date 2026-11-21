@@ -188,9 +188,9 @@
     let at = stroke.at;
     while (at.r !== target.r || at.c !== target.c) {
       const next =
-        Math.abs(target.r - at.r) > Math.abs(target.c - at.c)
-          ? { r: at.r + Math.sign(target.r - at.r), c: at.c }
-          : { r: at.r, c: at.c + Math.sign(target.c - at.c) };
+        Math.abs(target.r - at.r) > Math.abs(target.c - at.c) ?
+          { r: at.r + Math.sign(target.r - at.r), c: at.c }
+        : { r: at.r, c: at.c + Math.sign(target.c - at.c) };
       const cell = cellOf(next);
       if (cell === null) break;
       const moved = extend(game.dots, paths, stroke.color, cell, board);

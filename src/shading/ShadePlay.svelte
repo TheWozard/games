@@ -65,10 +65,10 @@
 
   let game = $state.raw(
     untrack(() =>
-      first !== undefined && isDifficulty(first)
-        ? make(first)
-        : (loadJSON(storageKey, (v) => isGame<P>(v, isDifficulty, isPuzzle)) ??
-          make(Object.keys(difficulties)[0])),
+      first !== undefined && isDifficulty(first) ?
+        make(first)
+      : (loadJSON(storageKey, (v) => isGame<P>(v, isDifficulty, isPuzzle)) ??
+        make(Object.keys(difficulties)[0])),
     ),
   );
   const isFixed = (i: number) => fixed(game.puzzle, i);
@@ -124,11 +124,9 @@
     const r0 = Math.floor(s.start / n);
     const c0 = s.start % n;
     const line =
-      s.axis === 'row'
-        ? range(c0, s.end % n).map((c) => r0 * n + c)
-        : s.axis === 'col'
-          ? range(r0, Math.floor(s.end / n)).map((r) => r * n + c0)
-          : [s.start];
+      s.axis === 'row' ? range(c0, s.end % n).map((c) => r0 * n + c)
+      : s.axis === 'col' ? range(r0, Math.floor(s.end / n)).map((r) => r * n + c0)
+      : [s.start];
     return line.filter((i) => !isFixed(i) && game.marks[i] === s.from);
   }
 
@@ -183,13 +181,14 @@
     const dr = Math.floor(i / n) - Math.floor(stroke.start / n);
     const dc = (i % n) - (stroke.start % n);
     const axis =
-      stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
+      stroke.axis ??
+      (dr === 0 && dc === 0 ? null
+      : Math.abs(dc) >= Math.abs(dr) ? 'row'
+      : 'col');
     const end =
-      axis === 'row'
-        ? Math.floor(stroke.start / n) * n + (i % n)
-        : axis === 'col'
-          ? Math.floor(i / n) * n + (stroke.start % n)
-          : stroke.start;
+      axis === 'row' ? Math.floor(stroke.start / n) * n + (i % n)
+      : axis === 'col' ? Math.floor(i / n) * n + (stroke.start % n)
+      : stroke.start;
     stroke = { ...stroke, axis, end };
   }
 

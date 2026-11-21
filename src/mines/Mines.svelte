@@ -160,15 +160,12 @@
             },
           ]}
           data-n={open && !mine ? n : undefined}
-          aria-label={open
-            ? mine
-              ? 'Mine'
-              : n
-                ? `${n}`
-                : 'Empty'
-            : flagged
-              ? 'Flagged'
-              : 'Hidden'}
+          aria-label={open ?
+            mine ? 'Mine'
+            : n ? `${n}`
+            : 'Empty'
+          : flagged ? 'Flagged'
+          : 'Hidden'}
           onpointerdown={(e) => pointerDown(e, i)}
           onpointermove={pointerMove}
           onpointerup={cancelPress}

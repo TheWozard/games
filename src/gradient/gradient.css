@@ -1,61 +1,61 @@
 .gradient-wrap {
   /* Board plus a 6px marker gutter (and 6px gap) to the right and below. */
   --gutter: 12px;
-  width: min(100cqw, (100cqh - var(--gutter)) * var(--cols) / var(--rows) + var(--gutter));
   display: grid;
-  grid-template-columns: 1fr 6px;
   grid-template-rows: auto 6px;
+  grid-template-columns: 1fr 6px;
   gap: 6px;
+  width: min(100cqw, (100cqh - var(--gutter)) * var(--cols) / var(--rows) + var(--gutter));
 }
 
 .gradient-board {
-  aspect-ratio: var(--cols) / var(--rows);
   display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
   grid-template-rows: repeat(var(--rows), 1fr);
+  grid-template-columns: repeat(var(--cols), 1fr);
   gap: 3px;
-  border-radius: 12px;
+  aspect-ratio: var(--cols) / var(--rows);
   overflow: hidden;
   user-select: none;
-  -webkit-touch-callout: none;
+  border-radius: 12px;
   transition: gap 0.6s ease;
+  -webkit-touch-callout: none;
 }
 
 .gradient-board .tile {
   position: relative;
   min-width: 0;
   padding: 0;
+  touch-action: manipulation;
   border: 0;
   border-radius: 6px;
   transition:
     border-radius 0.6s ease,
     transform 0.15s ease,
     box-shadow 0.15s ease;
-  touch-action: manipulation;
 }
 
 .gradient-board .tile.fixed {
   cursor: default;
 }
 .gradient-board .tile.fixed::after {
-  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 6px;
   height: 6px;
   margin: -3px 0 0 -3px;
-  border-radius: 50%;
+  content: '';
   background: rgb(0 0 0 / 35%);
+  border-radius: 50%;
   box-shadow: 0 0 0 1px rgb(255 255 255 / 25%);
 }
 
 .gradient-board .tile.selected {
-  transform: scale(0.86);
+  z-index: 1;
   box-shadow:
     0 0 0 3px var(--bg),
     0 0 0 5px var(--text);
-  z-index: 1;
+  transform: scale(0.86);
 }
 
 .marks {
@@ -73,8 +73,8 @@
   place-self: center;
   width: 6px;
   height: 6px;
-  border-radius: 3px;
   background: var(--line);
+  border-radius: 3px;
   transition:
     background 0.3s ease,
     width 0.3s ease,
@@ -124,8 +124,8 @@
   fill: currentColor;
 }
 .pick svg .loose {
+  opacity: 0.45;
   fill: none;
   stroke: currentColor;
   stroke-width: 0.6;
-  opacity: 0.45;
 }
