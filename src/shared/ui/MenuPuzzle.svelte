@@ -1,5 +1,5 @@
 <!--
-  The last entry in GameScreen2's menu: Copy Seed. A tap copies `puzzle`, what the puzzle being
+  The last entry in GameScreen2's menu: Game Details. A tap copies `puzzle`, what the puzzle being
   played is (a seed, an id, an index, a version: whatever makes it again), with a toast; unlike the
   other entries, the menu stays open.
 -->
@@ -26,6 +26,6 @@
 <MenuSection>
   <button type="button" class="menu-item" title={puzzle} onclick={copy}>
     <Copy strokeWidth={2.4} aria-hidden="true" />
-    Copy Game Details
+    Game Details
   </button>
 </MenuSection>

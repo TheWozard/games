@@ -1,6 +1,6 @@
 <!--
   Every tile face as an SVG <symbol> (mj-k<kind>), defined once and drawn with <use>, in one of
-  two sets (the launcher's Settings, Tile Art), which share their ids:
+  two sets (the menu's Settings, Tile Art), which share their ids:
   - Classic (ClassicFaces.svelte), drawn here after a traditional Chinese set; the default.
   - Riichi (faces.svg, viewBox 300×400), made by scripts/mahjong-tiles.ts (`just mahjong-tiles`):
     FluffyStuff's riichi tiles (CC0), with xhokir's flowers and seasons (CC BY 4.0). Loaded only

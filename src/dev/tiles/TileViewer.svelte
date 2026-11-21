@@ -35,7 +35,7 @@
   // Names must cover every face the game draws; say so on the page if they drift apart.
   const mismatch = named !== KINDS;
 
-  // Which tile art to show; starts as picked in the launcher's Settings, not saved from here.
+  // Which tile art to show; starts as picked in Mahjong's Settings (its menu), not saved from here.
   let art = $state(loadSettings().mahjongArt);
   const ART_NAMES = { classic: 'Classic', riichi: 'Riichi' };
 

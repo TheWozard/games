@@ -11,6 +11,7 @@
   import Pencil from '@lucide/svelte/icons/pencil';
   import Plus from '@lucide/svelte/icons/plus';
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+  import SettingsIcon from '@lucide/svelte/icons/settings';
   import Trophy from '@lucide/svelte/icons/trophy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import Dialog from '../../shared/Dialog.svelte';
@@ -57,7 +58,7 @@
   let rules = $state({ squares: false, rings: true });
   let layouts = $state({ pyramid: true, turtle: false });
 
-  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Copy Seed copies: one
+  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Game Details copies: one
   // of Mahjong's.
   let menuOpen = $state(false);
   const PUZZLE = '60bc4843 · kmahjongg/arena · medium · turned';
@@ -152,7 +153,7 @@
     <h2>MenuSection + MenuItem + MenuPuzzle</h2>
     <p>
       GameScreen2's menu. The real one closes as an item is tapped, with its <code>value</code>. The
-      last entry, Copy Seed, copies the puzzle's seed and leaves the menu open.
+      last entry, Game Details, copies what the puzzle is and leaves the menu open.
     </p>
     <div class="row">
       <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
@@ -194,13 +195,13 @@
 {#snippet menuItems()}
   <MenuSection>
     <MenuItem icon={Plus} label="New Game" value="new" onclick={() => note('Menu: New Game')} />
+    <MenuItem icon={SettingsIcon} label="Settings" value="settings" onclick={() => note('Menu: Settings')} />
   </MenuSection>
-  <MenuSection title="A Game's Section">
+  <MenuSection>
     <MenuItem icon={RotateCcw} label="Restart" onclick={() => note('Menu: Restart')} />
-    <MenuItem label="No Icon" onclick={() => note('Menu: No Icon')} />
     <MenuItem icon={Bug} label="Disabled" disabled onclick={() => note('Disabled (should never log)')} />
   </MenuSection>
-  <MenuSection title="Dev" tone="dev">
+  <MenuSection tone="dev">
     <MenuItem icon={Trophy} label="Win" onclick={() => note('Menu: Win')} />
   </MenuSection>
   <MenuPuzzle puzzle={PUZZLE} oncopy={() => note(`Copied: ${PUZZLE}`)} />

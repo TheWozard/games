@@ -9,11 +9,15 @@
   3. The control layer, floating over the stage: the game's `controls`, at the bottom. Only the
      controls themselves take taps; the rest of the layer lets them through to the board.
 
-  The menu opens under its button. It starts with New Game (the New dialog, NewDialog.svelte), then
-  the game's own `menu` sections, then (in the dev server only, never in a build) its `dev`
-  entries under a Dev heading: shortcuts for checking a screen, like winning at once. It ends with Copy Seed, which copies `puzzle`: what the puzzle
-  being played is (a seed, an id, an index, a version: whatever makes it again).
-  Buttons in the menu close it as they're tapped.
+  The menu opens under its button, and its buttons close it as they're tapped. From the top:
+  - New Game (the New dialog, NewDialog.svelte) and, if the game has `settings`, Settings: a dialog
+    like New Game (PickGroups of Choices for how the game looks) but with no Play, since each tap
+    is saved and shown at once; the × closes it.
+  - The game's own `menu` sections.
+  - In the dev server only (never in a build), its `dev` entries, with orange icons: shortcuts
+    for checking a screen, like winning at once.
+  - Last, Game Details, which copies `puzzle`: what the puzzle being played is (a seed, an id, an
+    index, a version: whatever makes it again). It leaves the menu open.
 
   Next floats at the bottom once the game is over. Ctrl/Cmd+Z undoes when the game has undo.
 -->
@@ -21,6 +25,8 @@
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Plus from '@lucide/svelte/icons/plus';
+  import X from '@lucide/svelte/icons/x';
+  import SettingsIcon from '@lucide/svelte/icons/settings';
   import type { Snippet } from 'svelte';
   import BackButton from './BackButton.svelte';
   import Dialog from './Dialog.svelte';
@@ -41,11 +47,13 @@
     /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
     onundo?: () => void;
     canUndo?: boolean;
-    /** The game's own sections of the menu, between New Game and Copy Seed. */
+    /** The game's own sections of the menu, between New Game and Game Details. */
     menu?: Snippet;
+    /** The Settings dialog's content: PickGroups of Choices for how the game looks, each taking effect as it's tapped. */
+    settings?: Snippet;
     /** Menu entries for the dev server only (`just dev`), left out of a build: MenuItems (ui/MenuItem.svelte). */
     dev?: Snippet;
-    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Copy Seed, copies it. */
+    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Game Details, copies it. */
     puzzle?: string;
     /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
     onopennew?: () => void;
@@ -61,12 +69,13 @@
   }
 
   let {
-    title, subtitle, status, onundo, canUndo = false, menu, dev, puzzle, onopennew, finished, onnext,
+    title, subtitle, status, onundo, canUndo = false, menu, settings, dev, puzzle, onopennew, finished, onnext,
     nextWait = 'quick', controls, children, ...newOptions
   }: Props = $props();
 
   let menuOpen = $state(false);
   let askingNew = $state(false);
+  let showingSettings = $state(false);
   let starting = $state(false); // Play is waiting on a new game being made
   let nexting = $state(false); // Next is
 
@@ -84,6 +93,8 @@
     if (value === 'new') {
       onopennew?.();
       askingNew = true;
+    } else if (value === 'settings') {
+      showingSettings = true;
     }
   }
 
@@ -118,14 +129,26 @@
 <Dialog class="game-menu" label="Menu" open={menuOpen} onclose={closeMenu}>
   <MenuSection>
     <MenuItem icon={Plus} label="New Game" value="new" />
+    {#if settings}<MenuItem icon={SettingsIcon} label="Settings" value="settings" />{/if}
   </MenuSection>
   {@render menu?.()}
   {#if import.meta.env.DEV && dev}
-    <MenuSection title="Dev" tone="dev">{@render dev()}</MenuSection>
+    <MenuSection tone="dev">{@render dev()}</MenuSection>
   {/if}
   {#if puzzle}
     <MenuPuzzle {puzzle} />
   {/if}
 </Dialog>
+
+{#if settings}
+  <Dialog open={showingSettings} onclose={() => (showingSettings = false)}>
+    <h2>Settings</h2>
+    {@render settings()}
+    <!-- Drawn in the top corner. -->
+    <button class="dialog-close" value="" aria-label="Close">
+      <X strokeWidth={2.4} aria-hidden="true" />
+    </button>
+  </Dialog>
+{/if}
 
 <NewDialog open={askingNew} bind:busy={starting} onclose={() => (askingNew = false)} {...newOptions} />

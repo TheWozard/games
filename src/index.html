@@ -13,7 +13,6 @@
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script type="module" src="./shared/app.ts"></script>
-  <script type="module" src="./launcher.ts"></script>
   <script type="module">
     // Back from a game (../#sudoku): bring that game's card into the middle of the screen, then
     // drop the hash so a reload starts at the top.
@@ -43,9 +42,6 @@
   </script>
   <style>
     .version { color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
-    /* A game's name over its settings in the Settings dialog. */
-    .settings-game { margin: 8px 0 0; font-size: 1rem; }
-    .settings-game ~ .settings-game { margin-top: 18px; }
     .games { list-style: none; max-width: 520px; margin: 0 auto; padding: 0 16px 8px; display: grid; gap: 12px; }
     .games:last-of-type { padding-bottom: 24px; }
     /* Games are grouped by kind, each under a quiet heading. */
@@ -118,33 +114,8 @@
 <body>
   <header class="bar">
     <h1>Games</h1><small class="version">%VITE_VERSION%</small>
-    <!-- Settings: how games look (src/launcher.ts, src/shared/settings.ts). Lucide's settings icon. -->
-    <button class="icon-btn" type="button" id="open-settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></button>
   </header>
 
-  <!-- Each tap takes effect at once and is kept on this device; games read it as they open. -->
-  <dialog id="settings">
-    <form method="dialog">
-      <h2>Settings</h2>
-      <h3 class="settings-game">Mahjong</h3>
-      <h3 class="pick-title">Tile Art</h3>
-      <div class="pick">
-        <button type="button" class="btn" data-setting="mahjongArt" data-value="classic"><strong>Classic</strong><span>hand-drawn</span></button>
-        <button type="button" class="btn" data-setting="mahjongArt" data-value="riichi"><strong>Riichi</strong><span>Japanese-style set</span></button>
-      </div>
-      <h3 class="pick-title">Tile Faces</h3>
-      <div class="pick">
-        <button type="button" class="btn" data-setting="mahjongFaces" data-value="full"><strong>Full</strong><span>fill the tile</span></button>
-        <button type="button" class="btn" data-setting="mahjongFaces" data-value="inset"><strong>Inset</strong><span>space between tiles</span></button>
-      </div>
-      <h3 class="pick-title">Blocked Tiles</h3>
-      <div class="pick">
-        <button type="button" class="btn" data-setting="mahjongBlocked" data-value="dimmed"><strong>Dimmed</strong><span>free tiles stand out</span></button>
-        <button type="button" class="btn" data-setting="mahjongBlocked" data-value="plain"><strong>Plain</strong><span>all look alike</span></button>
-      </div>
-      <button class="dialog-close" value="" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-    </form>
-  </dialog>
   <h2 class="group">Logic</h2>
   <ul class="games">
     <li>
@@ -775,7 +746,7 @@
           <h3 class="pick-title">Rules</h3>
           <ul>
             <li>Any flower matches any other flower, and any season any other season.</li>
-            <li>A tile is free when nothing lies on it and its left or right side is open. Dimmed tiles aren’t free yet (Settings can turn dimming off).</li>
+            <li>A tile is free when nothing lies on it and its left or right side is open. Dimmed tiles aren’t free yet (the menu’s Settings can turn dimming off).</li>
             <li>Easy deals forgive a careless match. On harder ones, the wrong pair early can leave its twin stuck, so look ahead.</li>
           </ul>
           <h3 class="pick-title">How to Play</h3>

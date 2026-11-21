@@ -24,14 +24,13 @@ Before calling a change done: `npm test` and `npm run build` must both pass with
 
 ```
 src/
-  index.html            launcher: one card per game, and the gear (Settings) in its header
-  launcher.ts           the launcher's Settings dialog
+  index.html            launcher: one card per game
   shared/               loaded by every page
     app.ts              shared CSS + service worker registration (import first in every main.ts)
     wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
-    settings.ts         how games look, set from the launcher's gear (key games.settings.v1)
+    settings.ts         how games look, set in the Settings dialog from a game's menu (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
     GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New Game, the game's
@@ -186,12 +185,13 @@ only forwards old links), `blocks` (Sliding Blocks).
   headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
   Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
   own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
-- **Settings** (the launcher's gear) are for how a game looks, never how it plays (that's the
-  New Game dialog). Add a setting to `CHOICES` in `src/shared/settings.ts` (first choice is the
-  default), a group of `data-setting` / `data-value` tiles under the game's name in the dialog in
-  `src/index.html`, and read it with `loadSettings()` as the game opens. Taps save at once; there's
-  no Play button. Mahjong has three: Tile Art (Classic / Riichi), Tile Faces (Full / Inset) and Blocked
-  Tiles (Dimmed / Plain).
+- **Settings** (Settings in a game's menu, which opens the Settings dialog: GameScreen2's
+  `settings`) are for how a game looks, never how it plays (that's the New Game dialog). The dialog
+  looks like New Game (a `PickGroup` of `Choice` tiles per setting) but has no Play: a tap saves
+  with `saveSetting()` and changes the game at once. Add a setting to `CHOICES` in
+  `src/shared/settings.ts` (first choice is the default), keep it in `$state` from
+  `loadSettings()`, and add its group to the game's `settings` snippet. Mahjong has three: Tile Art
+  (Classic / Riichi), Tile Faces (Full / Inset) and Blocked Tiles (Dimmed / Plain).
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.

@@ -400,10 +400,12 @@ dialog.game-menu form {
   box-shadow: 0 10px 32px rgb(0 0 0 / 0.5);
 }
 .menu-section { display: flex; flex-direction: column; padding: 4px 0; }
+/* The menu's own padding is the edge all round: no section padding above the first or below the last. */
+.menu-section:first-child { padding-top: 0; }
+.menu-section:last-child { padding-bottom: 0; }
 .menu-section + .menu-section { border-top: 1px solid var(--line); }
-.menu-section h3 { margin: 6px 10px 2px; color: var(--muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 /* Dev server only: set apart in orange, so it's never mistaken for the game's own. */
-.menu-section.dev h3, .menu-section.dev .menu-item svg { color: var(--warn); }
+.menu-section.dev .menu-item svg { color: var(--warn); }
 .menu-item {
   display: flex;
   align-items: center;

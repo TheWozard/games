@@ -8,7 +8,7 @@
   import { attachPan } from '../shared/pan';
   import { createShake } from '../shared/shake.svelte';
   import { formatSeed } from '../shared/seed';
-  import { loadSettings } from '../shared/settings';
+  import { CHOICES, loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
   import { DEPTH } from './body';
@@ -21,10 +21,16 @@
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
-  // Set from the launcher's gear; read once, as the page opens.
-  const settings = loadSettings();
-  const inset = settings.mahjongFaces === 'inset';
-  const dim = settings.mahjongBlocked === 'dimmed';
+  // How the tiles look: set in the Settings dialog (from the menu), and changed at once (saved for next time too).
+  let prefs = $state.raw(loadSettings());
+  const inset = $derived(prefs.mahjongFaces === 'inset');
+  const dim = $derived(prefs.mahjongBlocked === 'dimmed');
+  const SETTINGS: { key: Setting & `mahjong${string}`; label: string; names: Record<string, [string, string]> }[] = [
+    { key: 'mahjongArt', label: 'Tile Art', names: { classic: ['Classic', 'hand-drawn'], riichi: ['Riichi', 'Japanese-style set'] } },
+    { key: 'mahjongFaces', label: 'Tile Faces', names: { full: ['Full', 'fill the tile'], inset: ['Inset', 'space between tiles'] } },
+    { key: 'mahjongBlocked', label: 'Blocked Tiles', names: { dimmed: ['Dimmed', 'free tiles stand out'], plain: ['Plain', 'all look alike'] } },
+  ];
+  const pickSetting = <K extends Setting>(key: K, value: Settings[K]) => (prefs = saveSetting(key, value));
 
   const layout = $derived(layoutOf(game.layout));
   const slots = $derived(slotsOf(game)); // turned, if it was dealt for an upright screen
@@ -71,7 +77,7 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  // What the menu's Copy Seed copies: what deals these tiles again (no seed in saves from before there was one).
+  // What the menu's Game Details copies: what deals these tiles again (no seed in saves from before there was one).
   const puzzle = $derived(
     [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty, game.turned && 'turned']
       .filter(Boolean)
@@ -137,7 +143,7 @@
   }
 </script>
 
-<TileFaces art={settings.mahjongArt} />
+<TileFaces art={prefs.mahjongArt} />
 
 <GameScreen2
   title="Mahjong"
@@ -165,6 +171,20 @@
       <p class="status">No matching pairs are free.</p>
       <Button primary onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</Button>
     {/if}
+  {/snippet}
+  {#snippet settings()}
+    {#each SETTINGS as { key, label, names } (key)}
+      <PickGroup title={label}>
+        {#each CHOICES[key] as value (value)}
+          <Choice
+            label={names[value][0]}
+            detail={names[value][1]}
+            pressed={prefs[key] === value}
+            onclick={() => pickSetting(key, value as Settings[typeof key])}
+          />
+        {/each}
+      </PickGroup>
+    {/each}
   {/snippet}
   {#snippet dev()}
     {#if DevMenu}<DevMenu {game} set={deal} />{/if}

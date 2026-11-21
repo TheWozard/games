@@ -87,7 +87,7 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 
 ## Mahjong tiles
 
-Mahjong has two sets of tile art, picked in the launcher's Settings: Classic, the default, drawn in
+Mahjong has two sets of tile art, picked in the game menu's Settings: Classic, the default, drawn in
 [src/mahjong/ClassicFaces.svelte](src/mahjong/ClassicFaces.svelte), and Riichi.
 The Riichi faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
 ([scripts/mahjong-tiles.ts](scripts/mahjong-tiles.ts)), which fetches and cleans up two sets of vector tiles:
