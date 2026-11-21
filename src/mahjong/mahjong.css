@@ -54,12 +54,3 @@
 
 .mj-tile.shake { --shake: 2px; animation: shake 0.3s ease; }
 
-/* Layout picker in the New dialog. */
-/* The Layouts heading, with small All and None buttons at its right. */
-.mj-layouts-head { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-.mj-layouts-head .pick-title { flex: 1; margin: 0; }
-/* Layouts: check box toggles (any number can be on), a name over its tile count. */
-.mj-layouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mj-layouts .btn.toggle { gap: 8px; padding: 7px 10px; }
-/* How many layouts are picked on a Layouts tab, beside its name. */
-.mj-tab-count { margin-left: 6px; color: var(--accent); font-size: 0.75rem; font-variant-numeric: tabular-nums; }

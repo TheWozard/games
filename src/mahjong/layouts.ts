@@ -3,7 +3,7 @@
 // '/'). A game saves a layout's id; saves from before the archive hold own layouts' keys, which
 // are still ids.
 import { ARCHIVE, decode, type ArchiveLayout } from './archive';
-import { LAYOUTS, SLIM, type LayoutName, type Slot } from './logic';
+import { LAYOUTS, type LayoutName, type Slot } from './logic';
 
 export type LayoutId = string;
 
@@ -19,8 +19,6 @@ export interface Layout {
 export const OWN_IDS: readonly LayoutId[] = Object.keys(LAYOUTS);
 /** The archive's ids, by name. */
 export const ARCHIVE_IDS: readonly LayoutId[] = ARCHIVE.toSorted((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)).map((l) => l.id);
-/** Own layouts that fit a phone upright; no archive layout does. */
-export const SLIM_IDS: readonly LayoutId[] = SLIM;
 
 const BY_ID = new Map(ARCHIVE.map((l) => [l.id, l]));
 

@@ -46,7 +46,9 @@ src/
     ui/                 standard pieces; use them rather than writing the markup again:
                         IconButton (round, header), MenuItem / MenuSection (GameScreen2's menu),
                         Button (.btn, `primary`, `small`), PickGroup + Choice (a New Game group of
-                        tiles), Toggle (a check box tile, with an optional detail line)
+                        tiles), Toggle (a check box tile, with an optional detail line and `aside`),
+                        PickList (a long list of Toggles, any number on, drawn like a PickGroup,
+                        with a row of filter Chips at its top: Mahjong's layouts)
                         Try them all at /dev/ui/ (`just dev`; src/dev/ui/), which logs every tap
     seed.ts             seeded random numbers, so a puzzle can be made again from its seed
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
@@ -187,7 +189,7 @@ only forwards old links), `blocks` (Sliding Blocks).
     Play then calls `onstart('start')`. Solitaire puts tabs (`.pick-tabs`) above its groups to pick
     the game.
   - A group where any number can be on (Mahjong's Layouts, a pool each deal draws from) shows a
-    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons (Mahjong adds **Slim**: the layouts that fit a phone upright)
+    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons
     beside its heading; pass `canPlay={false}` while nothing is picked, which disables Play.
   - The header's subtitle lists the picks in the same order, joined by " · ".
 - **Capitalization:** Title Case for names the player sees as labels: game titles, dialog titles,

@@ -105,8 +105,8 @@ Besides its own layouts, Mahjong has layouts from the
 [KMahjongg](https://github.com/KDE/kmahjongg/tree/master/layouts/) (KDE, GPL-2.0-or-later; most
 layouts by Alexey Charkov) and [GNOME Mahjongg](https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/)
 (GPL-3.0-or-later). Layouts with more than 144 tiles (one set of faces) or too big for the board
-are left out. Bridges, tiles over a gap, are allowed. They're picked on the New Game dialog's
-Archive tab. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
+are left out. Bridges, tiles over a gap, are allowed. They're picked in the Customize dialog,
+listed after the game's own and narrowed by filter chips. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
 wheel) to zoom.
 
 ## Icons
