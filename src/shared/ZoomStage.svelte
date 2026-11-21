@@ -83,9 +83,21 @@
   let drag: { x: number; y: number; from: View; moved: boolean } | null = null;
   let pinch: { dist: number; mid: { x: number; y: number }; from: View } | null = null;
   let swallow = false; // the next click ends a drag or pinch
+  // While the board moves under a finger or the wheel, it's its own layer (`.moving`: will-change),
+  // so the phone's GPU moves and scales a picture of it rather than the browser redrawing every
+  // tile's shadow each frame. It may look a little soft mid-pinch; it's drawn sharp again when the
+  // gesture ends. Not set on a press until it moves, so a tap doesn't redraw the board twice.
+  let moving = $state(false);
+  let wheelEnd = 0; // the timer that ends a wheel's `moving`
+  // The stage's place on the page, measured once per gesture: measuring on every move can make
+  // the browser lay the page out again in the middle of one.
+  let rect: DOMRect | null = null;
+  // Pointer moves can come faster than the screen draws: they only note where the fingers are,
+  // and the view follows once per frame.
+  let frame = 0;
 
   function local(e: { clientX: number; clientY: number }) {
-    const r = el.getBoundingClientRect();
+    const r = rect ?? el.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
   function two() {
@@ -99,6 +111,8 @@
   function down(e: PointerEvent) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     swallow = false;
+    if (pointers.size === 0) rect = el.getBoundingClientRect();
+    flush();
     pointers.set(e.pointerId, local(e));
     if (pointers.size === 1) {
       startDrag(local(e), false);
@@ -108,6 +122,7 @@
       drag = null;
       pinch = { ...two(), from: shown };
       touched = true;
+      moving = true;
       swallow = true;
     }
   }
@@ -115,6 +130,19 @@
   function move(e: PointerEvent) {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, local(e));
+    if (!frame) frame = requestAnimationFrame(follow);
+  }
+
+  // A frame's worth of pointer moves still waiting: apply them now, before a finger is added or
+  // lifted changes what the gesture is.
+  function flush() {
+    if (!frame) return;
+    cancelAnimationFrame(frame);
+    follow();
+  }
+
+  function follow() {
+    frame = 0;
     if (pinch && pointers.size >= 2) {
       // The board point first under the fingers' midpoint stays under it: panned, then zoomed
       // around it, clamped once at the end (clamping the pan first made it stick at an edge).
@@ -122,20 +150,23 @@
       const { from } = pinch;
       const moved = { ...from, x: from.x + mid.x - pinch.mid.x, y: from.y + mid.y - pinch.mid.y };
       view = zoomAt(moved, dist / pinch.dist, mid.x, mid.y, stage, board, REACH);
-    } else if (drag) {
-      const at = local(e);
+    } else if (drag && pointers.size === 1) {
+      const [[id, at]] = [...pointers];
       const [dx, dy] = [at.x - drag.x, at.y - drag.y];
       if (!drag.moved && Math.hypot(dx, dy) > 8) {
         drag.moved = true;
         touched = true;
-        el.setPointerCapture?.(e.pointerId);
+        moving = true;
+        el.setPointerCapture?.(id);
       }
       if (drag.moved) view = panBy(drag.from, dx, dy, stage, board, REACH);
     }
   }
 
   function up(e: PointerEvent) {
-    if (!pointers.delete(e.pointerId)) return;
+    if (!pointers.has(e.pointerId)) return;
+    flush();
+    pointers.delete(e.pointerId);
     if (drag?.moved) swallow = true;
     if (pointers.size === 1) {
       // One finger lifted from a pinch: the other carries on as a drag from here.
@@ -144,6 +175,8 @@
     } else if (pointers.size === 0) {
       drag = null;
       pinch = null;
+      rect = null;
+      moving = false;
     }
   }
 
@@ -169,11 +202,16 @@
     for (const [type, fn, options] of on) el.addEventListener(type, fn, options);
     return () => {
       for (const [type, fn, options] of on) el.removeEventListener(type, fn, options);
+      cancelAnimationFrame(frame);
+      clearTimeout(wheelEnd);
     };
   });
   function wheel(e: WheelEvent) {
     e.preventDefault();
     touched = true;
+    moving = true;
+    clearTimeout(wheelEnd);
+    wheelEnd = window.setTimeout(() => { if (!pointers.size) moving = false; }, 150);
     // Deltas in pixels; some mice (Firefox) give lines or pages.
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.height : 1;
     const [dx, dy] = [e.deltaX * unit, e.deltaY * unit];
@@ -199,6 +237,7 @@
   <div class="zoom-frame" aria-hidden="true" bind:clientWidth={frameW} bind:clientHeight={frameH}></div>
   <div
     class="zoom-board"
+    class:moving
     style:width="{board.width}px"
     style:height="{board.height}px"
     style:transform="translate({shown.x}px, {shown.y}px) scale({shown.z})"

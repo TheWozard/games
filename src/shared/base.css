@@ -425,6 +425,7 @@ body.game:has(> #root > .stage) { padding-bottom: 0; }
 }
 .zoom-stage { cursor: grab; }
 .zoom-board { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.zoom-board.moving { will-change: transform; }
 /* The part of the stage the board is centered and held in: above the home indicator. Only measured. */
 .zoom-frame { position: absolute; inset: 0 0 var(--safe-bottom); visibility: hidden; pointer-events: none; }
 /* Over the stage, controls at the bottom. Only the controls take taps: the board gets the rest. */
