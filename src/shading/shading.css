@@ -9,13 +9,21 @@
   border-radius: var(--grid-radius);
   overflow: hidden;
   user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none; /* a press may become a drag at any moment */
 }
-.shade-board .cell { fill: var(--bg); }
-.shade-board .lines { fill: none; stroke: var(--grid-line); stroke-width: var(--grid-thin); vector-effect: non-scaling-stroke; }
-.shade-board :is(text, path, circle, rect, line) { pointer-events: none; }
+.shade-board .cell {
+  fill: var(--bg);
+}
+.shade-board .lines {
+  fill: none;
+  stroke: var(--grid-line);
+  stroke-width: var(--grid-thin);
+  vector-effect: non-scaling-stroke;
+}
+.shade-board :is(text, path, circle, rect, line) {
+  pointer-events: none;
+}
 .shade-board text {
   font-size: 0.55px;
   font-weight: 600;
@@ -26,41 +34,103 @@
 }
 
 /* Notes: an X or a dot, quiet; gone once the puzzle is done. */
-.shade-board .note-x { stroke: var(--muted); stroke-width: 0.06; stroke-linecap: round; }
-.shade-board .note-dot { fill: var(--muted); }
-.shade-board.done :is(.note-x, .note-dot) { opacity: 0; transition: opacity 0.4s ease; }
+.shade-board .note-x {
+  stroke: var(--muted);
+  stroke-width: 0.06;
+  stroke-linecap: round;
+}
+.shade-board .note-dot {
+  fill: var(--muted);
+}
+.shade-board.done :is(.note-x, .note-dot) {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
 
 /* Shaded cells (Nurikabe, Hitori): full size, so neighbors join up. */
-.shade-board .shade { fill: var(--accent); }
-.shade-board .shade.bad { fill: var(--danger); }
+.shade-board .shade {
+  fill: var(--accent);
+}
+.shade-board .shade.bad {
+  fill: var(--danger);
+}
 
 /* Star Battle: regions walled, as thick as the border (which walls the board's edge). */
-.shade-board .wall { stroke: var(--line-strong); stroke-width: var(--grid-thick); stroke-linecap: square; vector-effect: non-scaling-stroke; }
-.shade-board .star { fill: var(--accent); }
-.shade-board .star.bad { fill: var(--danger); }
+.shade-board .wall {
+  stroke: var(--line-strong);
+  stroke-width: var(--grid-thick);
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+}
+.shade-board .star {
+  fill: var(--accent);
+}
+.shade-board .star.bad {
+  fill: var(--danger);
+}
 
 /* Nurikabe and Light Up numbers. */
-.shade-board .clue { fill: var(--text); }
+.shade-board .clue {
+  fill: var(--text);
+}
 
 /* Hitori: every cell's number; shaded cells dark, their numbers faded; circled ones ringed. */
-.shade-board .shade.dark { fill: var(--accent-soft); }
-.shade-board .shade.dark.bad { fill: var(--danger-soft); }
-.shade-board .digit { fill: var(--text); }
-.shade-board .digit.under { fill: var(--muted); opacity: 0.4; }
-.shade-board .ring { fill: none; stroke: var(--muted); stroke-width: 0.05; }
-.shade-board .ring.bad { stroke: var(--danger); }
-.shade-board .digit.bad { fill: var(--danger); }
+.shade-board .shade.dark {
+  fill: var(--accent-soft);
+}
+.shade-board .shade.dark.bad {
+  fill: var(--danger-soft);
+}
+.shade-board .digit {
+  fill: var(--text);
+}
+.shade-board .digit.under {
+  fill: var(--muted);
+  opacity: 0.4;
+}
+.shade-board .ring {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 0.05;
+}
+.shade-board .ring.bad {
+  stroke: var(--danger);
+}
+.shade-board .digit.bad {
+  fill: var(--danger);
+}
 
 /* Light Up: walls light gray with dark numbers, lit cells tinted, lamps yellow. */
-.shade-board .block { fill: var(--line-strong); }
-.shade-board .block-n { fill: var(--bg); }
-.shade-board .block-n.bad { fill: var(--danger); }
-.shade-board .block.bad { stroke: var(--danger); stroke-width: 0.08; }
-.shade-board .glow { fill: color-mix(in srgb, #e8c547 16%, transparent); }
-.shade-board .lamp { fill: #e8c547; }
-.shade-board .lamp.bad { fill: var(--danger); }
+.shade-board .block {
+  fill: var(--line-strong);
+}
+.shade-board .block-n {
+  fill: var(--bg);
+}
+.shade-board .block-n.bad {
+  fill: var(--danger);
+}
+.shade-board .block.bad {
+  stroke: var(--danger);
+  stroke-width: 0.08;
+}
+.shade-board .glow {
+  fill: color-mix(in srgb, #e8c547 16%, transparent);
+}
+.shade-board .lamp {
+  fill: #e8c547;
+}
+.shade-board .lamp.bad {
+  fill: var(--danger);
+}
 
 /* The picker's icons. */
-.brush .dot svg .star-icon { fill: var(--accent); }
-.brush .dot svg .lamp-icon { fill: #e8c547; }
-.brush .dot svg .shade-icon { fill: var(--accent); }
+.brush .dot svg .star-icon {
+  fill: var(--accent);
+}
+.brush .dot svg .lamp-icon {
+  fill: #e8c547;
+}
+.brush .dot svg .shade-icon {
+  fill: var(--accent);
+}

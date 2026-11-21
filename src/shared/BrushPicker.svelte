@@ -21,7 +21,12 @@
   const SHRINK = 0.18; // each circle back is this much smaller
   const SHOWS = 0.4; // the share of its width each one behind shows
 
-  const index = $derived(Math.max(0, stops.findIndex((s) => s.value === value)));
+  const index = $derived(
+    Math.max(
+      0,
+      stops.findIndex((s) => s.value === value),
+    ),
+  );
   const next = $derived(stops[(index + 1) % stops.length]);
   const stack = $derived.by(() => {
     let edge = 0; // how far the stack reaches left of the front circle's left edge

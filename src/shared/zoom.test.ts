@@ -59,7 +59,9 @@ describe('zoom', () => {
     expect(panBy(v, -10_000, 0, phone, board).x).toBe(195 - 100);
     // Too small for a quarter reach to move it (under half the stage): centered.
     const quarter = { x: 0.25, y: 0.25 };
-    expect(panBy(startView(phone, board, quarter), 10_000, 10_000, phone, board, quarter)).toEqual(v);
+    expect(panBy(startView(phone, board, quarter), 10_000, 10_000, phone, board, quarter)).toEqual(
+      v,
+    );
     // Zoomed out past the whole board: held at it.
     expect(clampView({ x: 0, y: 0, z: 0.01 }, phone, board).z).toBe(1);
   });
@@ -69,7 +71,11 @@ describe('zoom', () => {
     const big = { width: 900, height: 1400 };
     const v = startView(phone, big, none);
     expect(panBy(v, 10_000, 10_000, phone, big, none)).toEqual({ x: 0, y: 0, z: 1 });
-    expect(panBy(v, -10_000, -10_000, phone, big, none)).toEqual({ x: 390 - 900, y: 700 - 1400, z: 1 });
+    expect(panBy(v, -10_000, -10_000, phone, big, none)).toEqual({
+      x: 390 - 900,
+      y: 700 - 1400,
+      z: 1,
+    });
   });
 
   it('reaches side to side and up and down apart', () => {
@@ -94,6 +100,7 @@ describe('zoom', () => {
     expect(furthest(600)).toBe(175);
     expect(furthest(700)).toBe(175);
     expect(furthest(1400)).toBe(175);
-    for (let h = 300; h < 1000; h++) expect(Math.abs(furthest(h + 1) - furthest(h))).toBeLessThan(1);
+    for (let h = 300; h < 1000; h++)
+      expect(Math.abs(furthest(h + 1) - furthest(h))).toBeLessThan(1);
   });
 });

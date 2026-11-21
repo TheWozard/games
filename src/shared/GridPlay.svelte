@@ -23,7 +23,14 @@
 <script lang="ts" generics="G extends GridState">
   import { untrack } from 'svelte';
   import GameScreen from './GameScreen.svelte';
-  import { gridKey, gridReducer, hasConflict, type GridAction, type GridState, type Mode } from './grid';
+  import {
+    gridKey,
+    gridReducer,
+    hasConflict,
+    type GridAction,
+    type GridState,
+    type Mode,
+  } from './grid';
   import { loadJSON, saveJSON } from './storage';
   import VariantPicker, { parsePick, type Games } from './VariantPicker.svelte';
   import Eraser from '@lucide/svelte/icons/eraser';
@@ -47,7 +54,8 @@
     first?: string;
   }
 
-  let { title, storageKey, difficulties, isValid, create, layout, variants, first }: Props = $props();
+  let { title, storageKey, difficulties, isValid, create, layout, variants, first }: Props =
+    $props();
 
   // The whole game is one immutable value; every move replaces it via the reducer in grid.ts.
   let game = $state.raw(
@@ -90,19 +98,32 @@
       r + dr >= 0 && r + dr < n && c + dc >= 0 && c + dc < n && zone(i + dr * n + dc) === z;
     const [t, rt, b, l] = [!same(-1, 0), !same(0, 1), !same(1, 0), !same(0, -1)];
     const g = 'var(--zone-gap)';
-    const notch = (side1: boolean, side2: boolean, dr: number, dc: number) => !side1 && !side2 && !same(dr, dc);
+    const notch = (side1: boolean, side2: boolean, dr: number, dc: number) =>
+      !side1 && !side2 && !same(dr, dc);
     const fit = (edge: boolean) => (edge ? g : '0px');
     // Corners clockwise from top-left, in the fill's own box (already inset on bordering sides).
     const pts = [
       notch(t, l, -1, -1) ? [`0 ${g}`, `${g} ${g}`, `${g} 0`] : ['0 0'],
-      notch(t, rt, -1, 1) ? [`calc(100% - ${g}) 0`, `calc(100% - ${g}) ${g}`, `100% ${g}`] : ['100% 0'],
-      notch(b, rt, 1, 1) ? [`100% calc(100% - ${g})`, `calc(100% - ${g}) calc(100% - ${g})`, `calc(100% - ${g}) 100%`] : ['100% 100%'],
-      notch(b, l, 1, -1) ? [`${g} 100%`, `${g} calc(100% - ${g})`, `0 calc(100% - ${g})`] : ['0 100%'],
+      notch(t, rt, -1, 1)
+        ? [`calc(100% - ${g}) 0`, `calc(100% - ${g}) ${g}`, `100% ${g}`]
+        : ['100% 0'],
+      notch(b, rt, 1, 1)
+        ? [
+            `100% calc(100% - ${g})`,
+            `calc(100% - ${g}) calc(100% - ${g})`,
+            `calc(100% - ${g}) 100%`,
+          ]
+        : ['100% 100%'],
+      notch(b, l, 1, -1)
+        ? [`${g} 100%`, `${g} calc(100% - ${g})`, `0 calc(100% - ${g})`]
+        : ['0 100%'],
     ].flat();
     return `inset: ${fit(t)} ${fit(rt)} ${fit(b)} ${fit(l)}; clip-path: polygon(${pts.join(', ')})`;
   }
 
-  const remaining = $derived(digits.map((d) => shape.size - game.values.filter((v) => v === d).length));
+  const remaining = $derived(
+    digits.map((d) => shape.size - game.values.filter((v) => v === d).length),
+  );
 
   // Save after every change (the reducer returns a new object only when something changed).
   $effect(() => saveJSON(storageKey, game));
@@ -127,8 +148,9 @@
     const key = gridKey(e);
     if (!key) return;
     e.preventDefault();
-    if ('digit' in key) { if (key.digit <= shape.size) pickDigit(key.digit); }
-    else setMode(key.mode === 'notes' && mode === 'notes' ? 'set' : key.mode);
+    if ('digit' in key) {
+      if (key.digit <= shape.size) pickDigit(key.digit);
+    } else setMode(key.mode === 'notes' && mode === 'notes' ? 'set' : key.mode);
   }
 
   // ---- Strokes ----
@@ -220,13 +242,22 @@
 
 <GameScreen
   {title}
-  subtitle={[variants?.games[variants.current].label, difficulties[game.difficulty]?.label].filter(Boolean).join(' · ')}
+  subtitle={[variants?.games[variants.current].label, difficulties[game.difficulty]?.label]
+    .filter(Boolean)
+    .join(' · ')}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={variants ? [] : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  options={variants
+    ? []
+    : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
   current={game.difficulty}
   picker={variants ? variantPicker : undefined}
-  onopennew={() => { if (variants) { pick = `${variants.current}:${game.difficulty}`; pickerOpens++; } }}
+  onopennew={() => {
+    if (variants) {
+      pick = `${variants.current}:${game.difficulty}`;
+      pickerOpens++;
+    }
+  }}
   onstart={start}
   finished={game.done}
   onnext={() => (game = create(game.difficulty))}
@@ -241,7 +272,10 @@
       onpointerup={up}
       onpointercancel={cancel}
       onlostpointercapture={cancel}
-      style:--n={shape.size} style:--note-cols={shape.size <= 4 ? 2 : 3} style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))} aria-label="{title} board"
+      style:--n={shape.size}
+      style:--note-cols={shape.size <= 4 ? 2 : 3}
+      style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))}
+      aria-label="{title} board"
     >
       {#each shown.values as v, i (i)}
         {@const r = Math.floor(i / shape.size)}
@@ -251,20 +285,23 @@
         {@const label = shape.label?.(i)}
         <button
           type="button"
-          class={['cell', {
-            // Not along the board's own edge: its border draws that, and a wall's square end would
-            // poke out past the rounded corner.
-            'wall-r': c < shape.size - 1 && shape.wallRight?.(i),
-            'wall-b': r < shape.size - 1 && shape.wallBottom?.(i),
-            [`zone-${shape.zone?.(i)}`]: shape.zone !== undefined,
-            given,
-            'corner-tl': i === 0,
-            'corner-tr': i === shape.size - 1,
-            'corner-bl': i === shape.size * (shape.size - 1),
-            'corner-br': i === shape.size * shape.size - 1,
-            same: mode !== 'erase' && v === digit,
-            conflict: !given && (hasConflict(shown.values, shape.peers, i) || shape.error?.(i)),
-          }]}
+          class={[
+            'cell',
+            {
+              // Not along the board's own edge: its border draws that, and a wall's square end would
+              // poke out past the rounded corner.
+              'wall-r': c < shape.size - 1 && shape.wallRight?.(i),
+              'wall-b': r < shape.size - 1 && shape.wallBottom?.(i),
+              [`zone-${shape.zone?.(i)}`]: shape.zone !== undefined,
+              given,
+              'corner-tl': i === 0,
+              'corner-tr': i === shape.size - 1,
+              'corner-bl': i === shape.size * (shape.size - 1),
+              'corner-br': i === shape.size * shape.size - 1,
+              same: mode !== 'erase' && v === digit,
+              conflict: !given && (hasConflict(shown.values, shape.peers, i) || shape.error?.(i)),
+            },
+          ]}
           aria-label="{label ? `${label}, ` : ''}row {r + 1}, column {c + 1}: {v || 'empty'}"
           data-cell={i}
           onclick={(e) => keyTap(e, i)}
@@ -273,7 +310,9 @@
           {#if label}<span class="label">{label}</span>{/if}
           <span class="value">{v || ''}</span>
           <span class="notes">
-            {#each digits as d (d)}<span class={{ hit: mode !== 'erase' && d === digit }}>{mask & (1 << d) ? d : ''}</span>{/each}
+            {#each digits as d (d)}<span class={{ hit: mode !== 'erase' && d === digit }}>
+                {mask & (1 << d) ? d : ''}
+              </span>{/each}
           </span>
         </button>
       {/each}
@@ -282,13 +321,23 @@
 
   <div class="tools grid-tools">
     {#each [['erase', 'Erase', Eraser], ['notes', 'Notes', NotebookPen], ['set', 'Set', Pencil]] as const as [m, name, Icon] (m)}
-      <button type="button" class="btn" aria-pressed={mode === m} aria-label={name} title={name} onclick={() => setMode(m)}>
+      <button
+        type="button"
+        class="btn"
+        aria-pressed={mode === m}
+        aria-label={name}
+        title={name}
+        onclick={() => setMode(m)}
+      >
         <Icon size={22} aria-hidden="true" />
       </button>
     {/each}
   </div>
 
-  <div class={['pad', { 'notes-mode': mode === 'notes' || (mode === 'erase' && writing === 'notes') }]} style:--n={shape.size}>
+  <div
+    class={['pad', { 'notes-mode': mode === 'notes' || (mode === 'erase' && writing === 'notes') }]}
+    style:--n={shape.size}
+  >
     {#each digits as d, k (d)}
       <button
         type="button"

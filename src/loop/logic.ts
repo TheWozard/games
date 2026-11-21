@@ -22,7 +22,10 @@ export const DIFFICULTIES = {
 const KEEP_WITH_RULES = 0.1;
 
 export const RULES = {
-  squares: { label: 'Squares', info: 'Solid squares end up on one side of the loop, hollow squares on the other.' },
+  squares: {
+    label: 'Squares',
+    info: 'Solid squares end up on one side of the loop, hollow squares on the other.',
+  },
   rings: { label: 'Rings', info: 'The loop passes through every ringed dot.' },
 } as const;
 
@@ -31,7 +34,8 @@ export type Rules = Record<Rule, boolean>;
 export const NO_RULES: Rules = { squares: false, rings: false };
 
 export const isRules = (value: unknown): value is Rules =>
-  typeof value === 'object' && value !== null &&
+  typeof value === 'object' &&
+  value !== null &&
   (Object.keys(RULES) as Rule[]).every((k) => typeof (value as Rules)[k] === 'boolean');
 
 export type Difficulty = keyof typeof DIFFICULTIES;
@@ -60,7 +64,8 @@ export interface Grid {
 
 export const edgeCount = ({ rows, cols }: Grid) => (rows + 1) * cols + rows * (cols + 1);
 export const hEdge = ({ cols }: Grid, r: number, c: number) => r * cols + c;
-export const vEdge = ({ rows, cols }: Grid, r: number, c: number) => (rows + 1) * cols + r * (cols + 1) + c;
+export const vEdge = ({ rows, cols }: Grid, r: number, c: number) =>
+  (rows + 1) * cols + r * (cols + 1) + c;
 
 /** The two dots an edge joins, as [row, col] pairs. */
 export function edgeEnds(g: Grid, e: number): [[number, number], [number, number]] {
@@ -68,16 +73,27 @@ export function edgeEnds(g: Grid, e: number): [[number, number], [number, number
   if (e < hCount) {
     const r = Math.floor(e / g.cols);
     const c = e % g.cols;
-    return [[r, c], [r, c + 1]];
+    return [
+      [r, c],
+      [r, c + 1],
+    ];
   }
   const k = e - hCount;
   const r = Math.floor(k / (g.cols + 1));
   const c = k % (g.cols + 1);
-  return [[r, c], [r + 1, c]];
+  return [
+    [r, c],
+    [r + 1, c],
+  ];
 }
 
 /** The four edges around a cell: top, bottom, left, right. */
-export const cellEdges = (g: Grid, r: number, c: number) => [hEdge(g, r, c), hEdge(g, r + 1, c), vEdge(g, r, c), vEdge(g, r, c + 1)];
+export const cellEdges = (g: Grid, r: number, c: number) => [
+  hEdge(g, r, c),
+  hEdge(g, r + 1, c),
+  vEdge(g, r, c),
+  vEdge(g, r, c + 1),
+];
 
 /** The edges meeting at a dot (2 to 4 of them). */
 export function dotEdges(g: Grid, r: number, c: number): number[] {
@@ -90,7 +106,11 @@ export function dotEdges(g: Grid, r: number, c: number): number[] {
 }
 
 /** The edge between two neighboring dots, or -1. */
-export function edgeBetween(g: Grid, [r1, c1]: [number, number], [r2, c2]: [number, number]): number {
+export function edgeBetween(
+  g: Grid,
+  [r1, c1]: [number, number],
+  [r2, c2]: [number, number],
+): number {
   if (r1 === r2 && Math.abs(c1 - c2) === 1) return hEdge(g, r1, Math.min(c1, c2));
   if (c1 === c2 && Math.abs(r1 - r2) === 1) return vEdge(g, Math.min(r1, r2), c1);
   return -1;
@@ -124,7 +144,11 @@ export function insideCells(g: Grid, on: readonly boolean[]): boolean[] {
 }
 
 /** Whether no light square shares a side of the loop with a dark one. */
-export function squaresSorted(g: Grid, squares: readonly (Square | null)[], on: readonly boolean[]): boolean {
+export function squaresSorted(
+  g: Grid,
+  squares: readonly (Square | null)[],
+  on: readonly boolean[],
+): boolean {
   const inside = insideCells(g, on);
   const side: (boolean | undefined)[] = [undefined, undefined];
   for (let i = 0; i < squares.length; i++) {
@@ -141,7 +165,11 @@ const OFF = 0;
 const UNKNOWN = -1;
 
 /** Whether `on` (true per edge) is exactly one closed loop matching every clue. */
-export function isSolved(g: Grid, { clues, squares, rings }: Clues, on: readonly boolean[]): boolean {
+export function isSolved(
+  g: Grid,
+  { clues, squares, rings }: Clues,
+  on: readonly boolean[],
+): boolean {
   for (let r = 0; r < g.rows; r++) {
     for (let c = 0; c < g.cols; c++) {
       const clue = clues[r * g.cols + c];
@@ -188,11 +216,19 @@ function blob(g: Grid, random: Random): boolean[] {
   const { rows, cols } = g;
   const n = rows * cols;
   const inside = new Array<boolean>(n).fill(false);
-  const at = (r: number, c: number) => r >= 0 && r < rows && c >= 0 && c < cols && inside[r * cols + c];
+  const at = (r: number, c: number) =>
+    r >= 0 && r < rows && c >= 0 && c < cols && inside[r * cols + c];
   const near = (i: number) => {
     const r = Math.floor(i / cols);
     const c = i % cols;
-    return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(([y, x]) => y >= 0 && y < rows && x >= 0 && x < cols).map(([y, x]) => y * cols + x);
+    return [
+      [r - 1, c],
+      [r + 1, c],
+      [r, c - 1],
+      [r, c + 1],
+    ]
+      .filter(([y, x]) => y >= 0 && y < rows && x >= 0 && x < cols)
+      .map(([y, x]) => y * cols + x);
   };
   // No dot may have its four surrounding cells in a checkerboard (the loop would touch itself).
   const pinchFree = () => {
@@ -234,7 +270,10 @@ function blob(g: Grid, random: Random): boolean[] {
   inside[Math.floor(random() * n)] = true;
   let size = 1;
   for (let tries = 0; size < target && tries < n * 30; tries++) {
-    const edge = shuffle(inside.flatMap((x, i) => (x ? near(i).filter((j) => !inside[j]) : [])), random);
+    const edge = shuffle(
+      inside.flatMap((x, i) => (x ? near(i).filter((j) => !inside[j]) : [])),
+      random,
+    );
     if (edge.length === 0) break;
     const j = edge[0];
     inside[j] = true;
@@ -257,41 +296,67 @@ export const wait = (difficulty: Difficulty): Wait => (difficulty === 'hard' ? '
 
 export const isSlow = (difficulty: Difficulty): boolean => wait(difficulty) !== 'quick';
 
-export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
+export function generate(
+  difficulty: Difficulty,
+  rules: Rules = NO_RULES,
+  random: Random = Math.random,
+): Puzzle {
   const { rows, cols, squares: squareShare, rings: ringShare } = DIFFICULTIES[difficulty];
-  const keep = Math.max(0, DIFFICULTIES[difficulty].keep - (rules.squares || rules.rings ? KEEP_WITH_RULES : 0));
+  const keep = Math.max(
+    0,
+    DIFFICULTIES[difficulty].keep - (rules.squares || rules.rings ? KEEP_WITH_RULES : 0),
+  );
   const g = { rows, cols };
   for (;;) {
     const inside = blob(g, random);
     const solution = new Array<boolean>(edgeCount(g)).fill(false);
-    const at = (r: number, c: number) => r >= 0 && r < rows && c >= 0 && c < cols && inside[r * cols + c];
-    for (let r = 0; r <= rows; r++) for (let c = 0; c < cols; c++) solution[hEdge(g, r, c)] = at(r - 1, c) !== at(r, c);
-    for (let r = 0; r < rows; r++) for (let c = 0; c <= cols; c++) solution[vEdge(g, r, c)] = at(r, c - 1) !== at(r, c);
+    const at = (r: number, c: number) =>
+      r >= 0 && r < rows && c >= 0 && c < cols && inside[r * cols + c];
+    for (let r = 0; r <= rows; r++)
+      for (let c = 0; c < cols; c++) solution[hEdge(g, r, c)] = at(r - 1, c) !== at(r, c);
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c <= cols; c++) solution[vEdge(g, r, c)] = at(r, c - 1) !== at(r, c);
 
     // Squares: light inside and dark outside, or the other way round; at least one of each.
     const lightInside = random() < 0.5;
     const squares = new Array<Square | null>(rows * cols).fill(null);
     const want = rules.squares ? Math.max(2, Math.round(rows * cols * squareShare)) : 0;
-    const pickIn = shuffle([...inside.keys()].filter((i) => inside[i]), random);
-    const pickOut = shuffle([...inside.keys()].filter((i) => !inside[i]), random);
+    const pickIn = shuffle(
+      [...inside.keys()].filter((i) => inside[i]),
+      random,
+    );
+    const pickOut = shuffle(
+      [...inside.keys()].filter((i) => !inside[i]),
+      random,
+    );
     if (want > 0) {
-      const inCount = Math.max(1, Math.min(pickIn.length, Math.round(want * pickIn.length / (rows * cols))));
+      const inCount = Math.max(
+        1,
+        Math.min(pickIn.length, Math.round((want * pickIn.length) / (rows * cols))),
+      );
       for (const i of pickIn.slice(0, inCount)) squares[i] = lightInside ? LIGHT : DARK;
-      for (const i of pickOut.slice(0, Math.max(1, want - inCount))) squares[i] = lightInside ? DARK : LIGHT;
+      for (const i of pickOut.slice(0, Math.max(1, want - inCount)))
+        squares[i] = lightInside ? DARK : LIGHT;
     }
 
     // Rings on a few of the dots the loop passes through.
     const rings = new Array<boolean>((rows + 1) * (cols + 1)).fill(false);
     const onLoop: number[] = [];
     for (let r = 0; r <= rows; r++) {
-      for (let c = 0; c <= cols; c++) if (dotEdges(g, r, c).some((e) => solution[e])) onLoop.push(dotIndex(g, r, c));
+      for (let c = 0; c <= cols; c++)
+        if (dotEdges(g, r, c).some((e) => solution[e])) onLoop.push(dotIndex(g, r, c));
     }
     const ringCount = rules.rings ? Math.max(1, Math.round(onLoop.length * ringShare)) : 0;
     for (const d of shuffle(onLoop, random).slice(0, ringCount)) rings[d] = true;
 
     const clues: (number | null)[] = [];
     for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) clues.push(squares[r * cols + c] === null ? cellEdges(g, r, c).filter((e) => solution[e]).length : null);
+      for (let c = 0; c < cols; c++)
+        clues.push(
+          squares[r * cols + c] === null
+            ? cellEdges(g, r, c).filter((e) => solution[e]).length
+            : null,
+        );
     }
     const puzzle = { clues, squares, rings };
     if (solve(g, puzzle, 2, SOLVE_BUDGET)?.length !== 1) continue;
@@ -317,14 +382,20 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
  * runs past `budget` steps. Propagates clue counts, dot degrees (0 or 2) and "no early loop",
  * then guesses an edge that extends an open path.
  */
-export function solve(g: Grid, puzzle: Clues, limit: number, budget = Infinity): boolean[][] | null {
+export function solve(
+  g: Grid,
+  puzzle: Clues,
+  limit: number,
+  budget = Infinity,
+): boolean[][] | null {
   const { clues, squares, rings } = puzzle;
   const E = edgeCount(g);
   const n = g.rows * g.cols;
   // The two cells each edge separates (n stands for everything outside the grid).
   const sides = Array.from({ length: E }, (_, e) => {
     const [[r1, c1], [r2]] = edgeEnds(g, e);
-    const cell = (r: number, c: number) => (r >= 0 && r < g.rows && c >= 0 && c < g.cols ? r * g.cols + c : n);
+    const cell = (r: number, c: number) =>
+      r >= 0 && r < g.rows && c >= 0 && c < g.cols ? r * g.cols + c : n;
     return r1 === r2 ? [cell(r1 - 1, c1), cell(r1, c1)] : [cell(r1, c1 - 1), cell(r1, c1)];
   });
   const squareCells = [...squares.keys()].filter((i) => squares[i] !== null);
@@ -338,13 +409,15 @@ export function solve(g: Grid, puzzle: Clues, limit: number, budget = Infinity):
   const dots: number[][] = [];
   for (let r = 0; r <= g.rows; r++) for (let c = 0; c <= g.cols; c++) dots.push(dotEdges(g, r, c));
   const ringed = dots.filter((_, d) => rings[d]);
-  const ends = Array.from({ length: E }, (_, e) => edgeEnds(g, e).map(([r, c]) => r * (g.cols + 1) + c));
+  const ends = Array.from({ length: E }, (_, e) =>
+    edgeEnds(g, e).map(([r, c]) => r * (g.cols + 1) + c),
+  );
   const found: boolean[][] = [];
   let steps = 0;
 
   /** Applies the local rules until nothing changes; false on a contradiction. */
   const propagate = (s: number[]): boolean => {
-    for (let changed = true; changed; ) {
+    for (let changed = true; changed;) {
       changed = false;
       const set = (e: number, v: number) => {
         if (s[e] === UNKNOWN) {
@@ -406,7 +479,9 @@ export function solve(g: Grid, puzzle: Clues, limit: number, budget = Infinity):
           flip[ra] = pa ^ pb ^ differ;
           return true;
         };
-        for (let e = 0; e < E; e++) if (s[e] !== UNKNOWN && !relate(sides[e][0], sides[e][1], s[e] === ON ? 1 : 0)) return false;
+        for (let e = 0; e < E; e++)
+          if (s[e] !== UNKNOWN && !relate(sides[e][0], sides[e][1], s[e] === ON ? 1 : 0))
+            return false;
         for (let k = 1; k < squareCells.length; k++) {
           const a = squareCells[0];
           const b = squareCells[k];
@@ -430,7 +505,14 @@ export function solve(g: Grid, puzzle: Clues, limit: number, budget = Infinity):
           const trial = s.slice();
           trial[e] = ON;
           for (let k = 0; k < E; k++) if (trial[k] === UNKNOWN) trial[k] = OFF;
-          if (!isSolved(g, puzzle, trial.map((v) => v === ON))) set(e, OFF);
+          if (
+            !isSolved(
+              g,
+              puzzle,
+              trial.map((v) => v === ON),
+            )
+          )
+            set(e, OFF);
         }
       }
     }

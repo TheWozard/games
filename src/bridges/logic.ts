@@ -21,9 +21,15 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export const RULES = {
-  colors: { label: 'Colors', info: 'Bridges join red to red and blue to blue; plain islands join any.' },
+  colors: {
+    label: 'Colors',
+    info: 'Bridges join red to red and blue to blue; plain islands join any.',
+  },
   blocks: { label: 'Blocks', info: 'No bridge may pass over a block.' },
-  diagonals: { label: 'Diagonals', info: 'Bridges can also run diagonally, even between islands that touch at a corner.' },
+  diagonals: {
+    label: 'Diagonals',
+    info: 'Bridges can also run diagonally, even between islands that touch at a corner.',
+  },
 } as const;
 
 export type Rule = keyof typeof RULES;
@@ -31,7 +37,8 @@ export type Rules = Record<Rule, boolean>;
 export const NO_RULES: Rules = { colors: false, blocks: false, diagonals: false };
 
 export const isRules = (value: unknown): value is Rules =>
-  typeof value === 'object' && value !== null &&
+  typeof value === 'object' &&
+  value !== null &&
   (Object.keys(RULES) as Rule[]).every((k) => typeof (value as Rules)[k] === 'boolean');
 
 /** Island colors under the colors rule. Gray joins any color. */
@@ -69,7 +76,12 @@ type Random = () => number;
 const pick = <T>(a: readonly T[], random: Random): T => a[Math.floor(random() * a.length)];
 
 /** Directions a bridge can run, each once (right, down, then the two diagonals going down). */
-const FORWARD = [[0, 1], [1, 0], [1, 1], [1, -1]] as const;
+const FORWARD = [
+  [0, 1],
+  [1, 0],
+  [1, 1],
+  [1, -1],
+] as const;
 
 type P = { x: number; y: number };
 const orient = (a: P, b: P, c: P) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -81,7 +93,12 @@ export const segmentsCross = (p: P, q: P, r: P, s: P) =>
  * Every possible bridge: each island paired with the nearest island in each forward direction, if
  * no block is in the way and their colors allow it; plus which possible bridges cross each other.
  */
-export function edgesOf(islands: readonly Island[], cols: number, rows: number, terrain: Terrain = OPEN): { edges: Edge[]; crosses: number[][] } {
+export function edgesOf(
+  islands: readonly Island[],
+  cols: number,
+  rows: number,
+  terrain: Terrain = OPEN,
+): { edges: Edge[]; crosses: number[][] } {
   const at = new Map(islands.map((s, k) => [s.r * cols + s.c, k]));
   const blocks = new Set(terrain.blocks);
   const edges: Edge[] = [];
@@ -95,7 +112,8 @@ export function edgesOf(islands: readonly Island[], cols: number, rows: number, 
         const b = at.get(r * cols + c);
         if (b !== undefined) {
           // Straight neighbors need a gap for the bridge; diagonal ones may touch at a corner.
-          if ((cells.length > 0 || (dr !== 0 && dc !== 0)) && colorsMatch(s, islands[b])) edges.push({ a, b, dr, dc, cells });
+          if ((cells.length > 0 || (dr !== 0 && dc !== 0)) && colorsMatch(s, islands[b]))
+            edges.push({ a, b, dr, dc, cells });
           break;
         }
         cells.push(r * cols + c);
@@ -104,14 +122,27 @@ export function edgesOf(islands: readonly Island[], cols: number, rows: number, 
   });
   const ends = edges.map((e) => [islands[e.a], islands[e.b]].map((s) => ({ x: s.c, y: s.r })));
   const crosses = edges.map((_, k) =>
-    edges.flatMap((_, j) => (j !== k && segmentsCross(ends[k][0], ends[k][1], ends[j][0], ends[j][1]) ? [j] : [])));
+    edges.flatMap((_, j) =>
+      j !== k && segmentsCross(ends[k][0], ends[k][1], ends[j][0], ends[j][1]) ? [j] : [],
+    ),
+  );
   return { edges, crosses };
 }
 
 // ---- Generation ----
 
-const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]] as const;
-const DIAGONAL_DIRS = [[1, 1], [1, -1], [-1, 1], [-1, -1]] as const;
+const DIRS = [
+  [0, 1],
+  [1, 0],
+  [0, -1],
+  [-1, 0],
+] as const;
+const DIAGONAL_DIRS = [
+  [1, 1],
+  [1, -1],
+  [-1, 1],
+  [-1, -1],
+] as const;
 
 export interface Puzzle {
   islands: Island[];
@@ -121,7 +152,11 @@ export interface Puzzle {
 
 const SEARCH_BUDGET = 20000;
 
-export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
+export function generate(
+  difficulty: Difficulty,
+  rules: Rules = NO_RULES,
+  random: Random = Math.random,
+): Puzzle {
   const { cols, rows, islands: count } = DIFFICULTIES[difficulty];
   // Diagonal bridges give each island more neighbors, so fewer islands keep it about as hard (and
   // keep ambiguous layouts rare enough to generate quickly).
@@ -131,7 +166,9 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
     if (!grown) continue;
     const { islands, links, used } = grown;
     if (rules.colors && !paint(islands, links, random)) continue;
-    const blocks = rules.blocks ? placeBlocks(islands, links, used, cols, rows, rules.diagonals, random) : [];
+    const blocks = rules.blocks
+      ? placeBlocks(islands, links, used, cols, rows, rules.diagonals, random)
+      : [];
     const { edges, crosses } = edgesOf(islands, cols, rows, { blocks, diagonals: rules.diagonals });
     const answer = edges.map((e) => links.get(pair(e.a, e.b)) ?? 0);
     // When another answer also fits, nudge ours toward it on one pair (add a bridge it has, or drop
@@ -145,7 +182,9 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
       const moves = edges.flatMap((e, k) => {
         const { a, b } = e;
         if (other[k] > answer[k]) {
-          return islands[a].n < 8 && islands[b].n < 8 && !crosses[k].some((j) => answer[j] > 0) ? [{ k, by: 1 }] : [];
+          return islands[a].n < 8 && islands[b].n < 8 && !crosses[k].some((j) => answer[j] > 0)
+            ? [{ k, by: 1 }]
+            : [];
         }
         if (other[k] < answer[k] && islands[a].n > 1 && islands[b].n > 1) {
           const less = answer.slice();
@@ -200,12 +239,24 @@ function paint(islands: Island[], links: Map<string, number>, random: Random): b
  * Blocks on empty spots, mostly where they rule out a bridge the answer doesn't use (so they matter),
  * about one for every four islands.
  */
-function placeBlocks(islands: Island[], links: Map<string, number>, used: Set<number>, cols: number, rows: number, diagonals: boolean, random: Random): number[] {
+function placeBlocks(
+  islands: Island[],
+  links: Map<string, number>,
+  used: Set<number>,
+  cols: number,
+  rows: number,
+  diagonals: boolean,
+  random: Random,
+): number[] {
   const want = Math.max(2, Math.round(islands.length / 4));
   const { edges } = edgesOf(islands, cols, rows, { blocks: [], diagonals });
-  const useful = edges.filter((e) => !links.has(pair(e.a, e.b))).flatMap((e) => e.cells).filter((x) => !used.has(x));
+  const useful = edges
+    .filter((e) => !links.has(pair(e.a, e.b)))
+    .flatMap((e) => e.cells)
+    .filter((x) => !used.has(x));
   const blocks = new Set<number>();
-  for (let tries = 0; blocks.size < want && tries < want * 10 && useful.length > 0; tries++) blocks.add(pick(useful, random));
+  for (let tries = 0; blocks.size < want && tries < want * 10 && useful.length > 0; tries++)
+    blocks.add(pick(useful, random));
   // Top up with any empty spots.
   const islandCells = new Set(islands.map((s) => s.r * cols + s.c));
   for (let tries = 0; blocks.size < want && tries < want * 20; tries++) {
@@ -219,8 +270,13 @@ function placeBlocks(islands: Island[], links: Map<string, number>, used: Set<nu
  * A random connected network of about `target` islands, or null if it came out too small. Gives
  * the islands (numbered from the network), its bridges (pair → count) and the cells they pass.
  */
-function grow(cols: number, rows: number, target: number, diagonals: boolean, random: Random):
-  { islands: Island[]; links: Map<string, number>; used: Set<number> } | null {
+function grow(
+  cols: number,
+  rows: number,
+  target: number,
+  diagonals: boolean,
+  random: Random,
+): { islands: Island[]; links: Map<string, number>; used: Set<number> } | null {
   const ISLAND = -1;
   // Per cell: 0 empty, ISLAND, or 1 for a bridge passing through.
   const grid = new Array<number>(cols * rows).fill(0);
@@ -235,8 +291,13 @@ function grow(cols: number, rows: number, target: number, diagonals: boolean, ra
   const nearIsland = (r: number, c: number, from: number) =>
     dirs.some(([dr, dc]) => {
       const x = (r + dr) * cols + c + dc;
-      return inside(r + dr, c + dc) && grid[x] === ISLAND && x !== islands[from].r * cols + islands[from].c;
-    }) || DIRS.some(([dr, dc]) => inside(r + dr, c + dc) && grid[(r + dr) * cols + c + dc] === ISLAND);
+      return (
+        inside(r + dr, c + dc) &&
+        grid[x] === ISLAND &&
+        x !== islands[from].r * cols + islands[from].c
+      );
+    }) ||
+    DIRS.some(([dr, dc]) => inside(r + dr, c + dc) && grid[(r + dr) * cols + c + dc] === ISLAND);
   const crossesBuilt = (p: P, q: P) => built.some(([r, s]) => segmentsCross(p, q, r, s));
 
   const addIsland = (r: number, c: number) => {
@@ -246,7 +307,10 @@ function grow(cols: number, rows: number, target: number, diagonals: boolean, ra
   const addBridge = (a: number, b: number, path: number[], count: number) => {
     for (const x of path) grid[x] = 1;
     links.set(pair(a, b), count);
-    built.push([{ x: islands[a].c, y: islands[a].r }, { x: islands[b].c, y: islands[b].r }]);
+    built.push([
+      { x: islands[a].c, y: islands[a].r },
+      { x: islands[b].c, y: islands[b].r },
+    ]);
     islands[a].n += count;
     islands[b].n += count;
   };
@@ -264,7 +328,12 @@ function grow(cols: number, rows: number, target: number, diagonals: boolean, ra
       const r = islands[a].r + dr * step;
       const c = islands[a].c + dc * step;
       if (!inside(r, c) || grid[r * cols + c] !== 0) break;
-      if ((step >= 2 || (dr !== 0 && dc !== 0)) && !nearIsland(r, c, a) && !crossesBuilt({ x: islands[a].c, y: islands[a].r }, { x: c, y: r })) spots.push(step);
+      if (
+        (step >= 2 || (dr !== 0 && dc !== 0)) &&
+        !nearIsland(r, c, a) &&
+        !crossesBuilt({ x: islands[a].c, y: islands[a].r }, { x: c, y: r })
+      )
+        spots.push(step);
       path.push(r * cols + c);
     }
     if (spots.length === 0) continue;
@@ -287,7 +356,9 @@ function grow(cols: number, rows: number, target: number, diagonals: boolean, ra
     addBridge(e.a, e.b, e.cells, 1);
   }
   const used = new Set<number>();
-  grid.forEach((v, x) => { if (v !== 0) used.add(x); });
+  grid.forEach((v, x) => {
+    if (v !== 0) used.add(x);
+  });
   return { islands, links, used };
 }
 
@@ -314,7 +385,7 @@ export function solve(
 
   /** Tightens [lo, hi] per edge; false on a contradiction. */
   const propagate = (lo: number[], hi: number[]): boolean => {
-    for (let changed = true; changed; ) {
+    for (let changed = true; changed;) {
       changed = false;
       for (let i = 0; i < islands.length; i++) {
         const n = islands[i].n;
@@ -428,7 +499,8 @@ export function isSolved(
     });
     if (!counts.every((n, i) => n === islands[i].n)) return false;
   }
-  if (bridges.some((v, k) => v > 2 || (v > 0 && crosses[k].some((x) => bridges[x] > 0)))) return false;
+  if (bridges.some((v, k) => v > 2 || (v > 0 && crosses[k].some((x) => bridges[x] > 0))))
+    return false;
   const seen = new Set([0]);
   const queue = [0];
   for (let q = 0; q < queue.length; q++) {

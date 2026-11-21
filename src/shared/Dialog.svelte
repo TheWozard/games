@@ -7,7 +7,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { open, locked = false, onclose, class: className, label, children }: {
+  let {
+    open,
+    locked = false,
+    onclose,
+    class: className,
+    label,
+    children,
+  }: {
     open: boolean;
     locked?: boolean;
     onclose: (value: string) => void;
@@ -34,15 +41,18 @@
 </script>
 
 <!-- The keyboard way out is Escape, built into the dialog. -->
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
   bind:this={dialog}
   tabindex="-1"
   class={className}
   aria-label={label}
   onclose={() => onclose(dialog.returnValue)}
-  oncancel={(e) => { if (locked) e.preventDefault(); }}
-  onclick={(e) => { if (e.target === dialog && !locked) dialog.close(''); }}
+  oncancel={(e) => {
+    if (locked) e.preventDefault();
+  }}
+  onclick={(e) => {
+    if (e.target === dialog && !locked) dialog.close('');
+  }}
 >
   <form method="dialog">{@render children()}</form>
 </dialog>

@@ -6,8 +6,31 @@
   import { attachPan } from '../shared/pan';
   import { PALETTE, PALETTE_NAMES } from '../shared/palette';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { CROSS, EMPTY, isGame, newGame, paletteOf, reducer, shading, STORAGE_KEY, type Action } from './game';
-  import { colOf, DIFFICULTIES, fits, isDifficulty, NO_RULES, rowOf, RULES, solveLine, type Difficulty, type Rule, type Rules, type Run } from './logic';
+  import {
+    CROSS,
+    EMPTY,
+    isGame,
+    newGame,
+    paletteOf,
+    reducer,
+    shading,
+    STORAGE_KEY,
+    type Action,
+  } from './game';
+  import {
+    colOf,
+    DIFFICULTIES,
+    fits,
+    isDifficulty,
+    NO_RULES,
+    rowOf,
+    RULES,
+    solveLine,
+    type Difficulty,
+    type Rule,
+    type Rules,
+    type Run,
+  } from './logic';
 
   /** The smallest a cell gets, in pixels, so it stays easy to hit; a board that's then too wide pans. */
   const MIN_CELL = 30;
@@ -27,7 +50,10 @@
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [
+      DIFFICULTIES[game.difficulty].label,
+      ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label),
+    ].join(' · '),
   );
 
   // What a tap places: a color (always 1 without the colors rule), or CROSS. The picker at the
@@ -48,14 +74,21 @@
   // The New Game dialog's picks, a difficulty (with its grid size) and the optional rules, starting
   // from the current game's each time it opens.
   const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.size}×${d.size}` }]),
+    Object.entries(DIFFICULTIES).map(([k, d]) => [
+      k,
+      { label: d.label, detail: `${d.size}×${d.size}` },
+    ]),
   ) as Record<Difficulty, { label: string; detail: string }>;
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
+    difficulty: 'easy',
+    rules: { ...NO_RULES },
+  });
   function opennew() {
     choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) deal(newGame(choice.difficulty, { ...choice.rules }));
+    if (value === 'start' && isDifficulty(choice.difficulty))
+      deal(newGame(choice.difficulty, { ...choice.rules }));
   }
 
   function deal(next: typeof game) {
@@ -66,7 +99,9 @@
   // ---- Layout, in cell units: row clues on the left, column clues on top. ----
 
   const runWidth = (run: Run) => (run.length !== null && run.length >= 10 ? CLUE_W_WIDE : CLUE_W);
-  const left = $derived(Math.max(1, ...game.rows.map((clue) => clue.reduce((w, run) => w + runWidth(run), 0))) + 0.2);
+  const left = $derived(
+    Math.max(1, ...game.rows.map((clue) => clue.reduce((w, run) => w + runWidth(run), 0))) + 0.2,
+  );
   const top = $derived(Math.max(1, ...game.cols.map((clue) => clue.length)) * CLUE_H + 0.2);
   const n = $derived(game.size);
   const block = $derived(DIFFICULTIES[game.difficulty].block);
@@ -94,17 +129,21 @@
   const rowLayout = $derived(
     game.rows.map((clue) => {
       let x = left - 0.12;
-      return clue.toReversed().map((run) => {
-        const w = runWidth(run);
-        x -= w;
-        return { run, x: x + w / 2, w };
-      }).toReversed();
+      return clue
+        .toReversed()
+        .map((run) => {
+          const w = runWidth(run);
+          x -= w;
+          return { run, x: x + w / 2, w };
+        })
+        .toReversed();
     }),
   );
 
   // Colored puzzles are drawn in the game's palette, picked at random for each one.
   const palette = $derived(paletteOf(game));
-  const colorOf = (color: number) => (game.colors > 1 ? PALETTE[palette[color - 1]] : 'var(--accent)');
+  const colorOf = (color: number) =>
+    game.colors > 1 ? PALETTE[palette[color - 1]] : 'var(--accent)';
   // Clue numbers are in their run's color; plain ones in the text color (hidden ones muted, by CSS).
   const clueColor = (run: Run) => (game.colors > 1 ? PALETTE[palette[run.color - 1]] : undefined);
 
@@ -129,22 +168,25 @@
   let area = $state<HTMLDivElement>();
 
   const crossValue = (from: number) => (from === CROSS ? EMPTY : CROSS);
-  const tapValue = (from: number) => (brush === CROSS ? crossValue(from) : from === brush || from === CROSS ? EMPTY : brush);
+  const tapValue = (from: number) =>
+    brush === CROSS ? crossValue(from) : from === brush || from === CROSS ? EMPTY : brush;
 
   function strokeCells(s: Stroke): number[] {
     const r0 = Math.floor(s.start / n);
     const c0 = s.start % n;
     const r1 = Math.floor(s.end / n);
     const c1 = s.end % n;
-    const line = s.axis === 'row'
-      ? range(c0, c1).map((c) => r0 * n + c)
-      : s.axis === 'col'
-        ? range(r0, r1).map((r) => r * n + c0)
-        : [s.start];
+    const line =
+      s.axis === 'row'
+        ? range(c0, c1).map((c) => r0 * n + c)
+        : s.axis === 'col'
+          ? range(r0, r1).map((r) => r * n + c0)
+          : [s.start];
     return line.filter((i) => game.cells[i] === s.from);
   }
 
-  const range = (a: number, b: number) => Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => (a <= b ? a + k : a - k));
+  const range = (a: number, b: number) =>
+    Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => (a <= b ? a + k : a - k));
 
   /** The cell under a pointer, or null outside the grid. */
   function cellAt(e: PointerEvent): number | null {
@@ -164,7 +206,14 @@
     svg?.setPointerCapture(e.pointerId);
     const from = game.cells[i];
     const cross = e.button === 2;
-    stroke = { pointer: e.pointerId, start: i, end: i, from, value: cross ? crossValue(from) : tapValue(from), axis: null };
+    stroke = {
+      pointer: e.pointerId,
+      start: i,
+      end: i,
+      from,
+      value: cross ? crossValue(from) : tapValue(from),
+      axis: null,
+    };
   }
 
   function move(e: PointerEvent) {
@@ -173,13 +222,15 @@
     if (i === null || i === stroke.end) return;
     const dr = Math.floor(i / n) - Math.floor(stroke.start / n);
     const dc = (i % n) - (stroke.start % n);
-    const axis = stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
+    const axis =
+      stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
     // Keep to the stroke's line: the nearest cell on it to the pointer.
-    const end = axis === 'row'
-      ? Math.floor(stroke.start / n) * n + (i % n)
-      : axis === 'col'
-        ? Math.floor(i / n) * n + (stroke.start % n)
-        : stroke.start;
+    const end =
+      axis === 'row'
+        ? Math.floor(stroke.start / n) * n + (i % n)
+        : axis === 'col'
+          ? Math.floor(i / n) * n + (stroke.start % n)
+          : stroke.start;
     stroke = { ...stroke, axis, end };
   }
 
@@ -208,7 +259,12 @@
   function fitOf(line: number[], clue: Run[]): Fit {
     if (fits(shading(line), clue)) return 'met';
     const all = (1 << (game.colors + 1)) - 1;
-    return solveLine(line.map((v) => (v === CROSS ? 1 : v === EMPTY ? all : 1 << v)), clue) ? null : 'bad';
+    return solveLine(
+      line.map((v) => (v === CROSS ? 1 : v === EMPTY ? all : 1 << v)),
+      clue,
+    )
+      ? null
+      : 'bad';
   }
   const rowFit = $derived(game.rows.map((clue, r) => fitOf(rowOf(shown, n, r), clue)));
   const colFit = $derived(game.cols.map((clue, c) => fitOf(colOf(shown, n, c), clue)));
@@ -219,8 +275,10 @@
     const edges: { x1: number; y1: number; x2: number; y2: number }[] = [];
     for (let at = block; at < n; at += block) {
       for (let t = 0; t < n; t++) {
-        if (!(shown[t * n + at - 1] > 0 && shown[t * n + at] > 0)) edges.push({ x1: at, y1: t, x2: at, y2: t + 1 });
-        if (!(shown[(at - 1) * n + t] > 0 && shown[at * n + t] > 0)) edges.push({ x1: t, y1: at, x2: t + 1, y2: at });
+        if (!(shown[t * n + at - 1] > 0 && shown[t * n + at] > 0))
+          edges.push({ x1: at, y1: t, x2: at, y2: t + 1 });
+        if (!(shown[(at - 1) * n + t] > 0 && shown[at * n + t] > 0))
+          edges.push({ x1: t, y1: at, x2: t + 1, y2: at });
       }
     }
     return edges;
@@ -256,7 +314,12 @@
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
-  <div class="board-area nonogram-area" bind:this={area} bind:clientWidth={areaW} bind:clientHeight={areaH}>
+  <div
+    class="board-area nonogram-area"
+    bind:this={area}
+    bind:clientWidth={areaW}
+    bind:clientHeight={areaH}
+  >
     <svg
       bind:this={svg}
       class={['nonogram', { done: game.done, pannable: maxScroll > 0, panning }]}
@@ -281,10 +344,24 @@
         {#each game.cols as clue, c (c)}
           <g class={['clue', colFit[c]]}>
             {#if colFit[c] === 'bad'}
-              <rect class="over" x={left + c + 0.08} y={top - 0.1 - clue.length * CLUE_H - 0.04} width="0.84" height={clue.length * CLUE_H + 0.04} rx="0.14" />
+              <rect
+                class="over"
+                x={left + c + 0.08}
+                y={top - 0.1 - clue.length * CLUE_H - 0.04}
+                width="0.84"
+                height={clue.length * CLUE_H + 0.04}
+                rx="0.14"
+              />
             {/if}
             {#each clue as run, k (k)}
-              <text x={left + c + 0.5} y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+              <text
+                x={left + c + 0.5}
+                y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H}
+                style:fill={clueColor(run)}
+                class={{ colored: game.colors > 1, mystery: run.length === null }}
+              >
+                {run.length ?? '?'}
+              </text>
             {/each}
           </g>
         {/each}
@@ -296,16 +373,32 @@
         </clipPath>
         <g clip-path="url(#nonogram-cells)">
           <rect class="cell empty" x={left} y={top} width={n} height={n} />
-          <path class="lines" d={Array.from({ length: n - 1 }, (_, k) => `M${left + k + 1} ${top}v${n}M${left} ${top + k + 1}h${n}`).join('')} />
+          <path
+            class="lines"
+            d={Array.from(
+              { length: n - 1 },
+              (_, k) => `M${left + k + 1} ${top}v${n}M${left} ${top + k + 1}h${n}`,
+            ).join('')}
+          />
           {#each shown as v, i (i)}
             {@const x = left + (i % n)}
             {@const y = top + Math.floor(i / n)}
             {#if v > 0}
               <!-- Full size, so shaded neighbors cover the line between them and read as one shape; a hair
                    over, so no seam shows where two meet. -->
-              <rect class="cell" x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" fill={colorOf(v)} />
+              <rect
+                class="cell"
+                x={x - 0.01}
+                y={y - 0.01}
+                width="1.02"
+                height="1.02"
+                fill={colorOf(v)}
+              />
             {:else if v === CROSS && !game.done}
-              <path class="cross" d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34" />
+              <path
+                class="cross"
+                d="M{x + 0.33} {y + 0.33}l0.34 0.34M{x + 0.67} {y + 0.33}l-0.34 0.34"
+              />
             {/if}
           {/each}
         </g>
@@ -331,10 +424,24 @@
           <g class={['clue', rowFit[r]]}>
             {#if rowFit[r] === 'bad'}
               {@const from = items.length ? items[0].x - items[0].w / 2 : left - 1}
-              <rect class="over" x={from - 0.04} y={top + r + 0.08} width={left - 0.08 - from} height="0.84" rx="0.14" />
+              <rect
+                class="over"
+                x={from - 0.04}
+                y={top + r + 0.08}
+                width={left - 0.08 - from}
+                height="0.84"
+                rx="0.14"
+              />
             {/if}
             {#each items as { run, x }, k (k)}
-              <text {x} y={top + r + 0.5} style:fill={clueColor(run)} class={{ colored: game.colors > 1, mystery: run.length === null }}>{run.length ?? '?'}</text>
+              <text
+                {x}
+                y={top + r + 0.5}
+                style:fill={clueColor(run)}
+                class={{ colored: game.colors > 1, mystery: run.length === null }}
+              >
+                {run.length ?? '?'}
+              </text>
             {/each}
           </g>
         {/each}
@@ -345,7 +452,14 @@
   <BrushPicker stops={brushStops} bind:value={brush}>
     {#snippet icon(b)}
       {#if b === CROSS}
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M4.5 4.5l7 7M11.5 4.5l-7 7"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
       {/if}
     {/snippet}
   </BrushPicker>

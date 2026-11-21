@@ -46,15 +46,27 @@
   }
 
   let {
-    open, onclose, title = 'New Game', busy = $bindable(false), options = [], current, optionsTitle = 'Difficulty', picker,
-    canPlay = true, onstart, wait = 'quick',
+    open,
+    onclose,
+    title = 'New Game',
+    busy = $bindable(false),
+    options = [],
+    current,
+    optionsTitle = 'Difficulty',
+    picker,
+    canPlay = true,
+    onstart,
+    wait = 'quick',
   }: Props = $props();
 
   let picked = $state('');
   // Each time it opens, start on the current setting.
   $effect.pre(() => {
     if (!open) return;
-    untrack(() => (picked = options.some((o) => o.value === current) ? current! : (options[0]?.value ?? '')));
+    untrack(
+      () =>
+        (picked = options.some((o) => o.value === current) ? current! : (options[0]?.value ?? '')),
+    );
   });
 
   function play(e: MouseEvent) {
@@ -63,7 +75,7 @@
     const made = onstart(picker ? 'start' : picked);
     if (!(made instanceof Promise)) return onclose();
     busy = true;
-    made.finally(() => {
+    void made.finally(() => {
       busy = false;
       onclose();
     });
@@ -82,7 +94,12 @@
     </PickGroup>
   {/if}
   <!-- The form's first submit button, so Enter plays; it starts the game itself (see play). -->
-  <button class={['btn primary new-start', wait]} aria-busy={busy} disabled={!canPlay} onclick={play}>
+  <button
+    class={['btn primary new-start', wait]}
+    aria-busy={busy}
+    disabled={!canPlay}
+    onclick={play}
+  >
     Play
     {#if busy}
       <span class="spinner" aria-hidden="true"></span>

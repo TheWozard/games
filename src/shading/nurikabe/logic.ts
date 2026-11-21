@@ -31,7 +31,12 @@ export interface Puzzle {
 // ---- Solver ----
 
 /** Every island the clue at `at` could be: connected shapes of its size, holding no other clue or touching one. */
-function shapesOf(n: number, clues: (number | null)[], at: number, budget: { left: number }): number[][] | null {
+function shapesOf(
+  n: number,
+  clues: (number | null)[],
+  at: number,
+  budget: { left: number },
+): number[][] | null {
   const size = clues[at]!;
   const banned = new Uint8Array(n * n);
   clues.forEach((v, i) => {
@@ -49,7 +54,10 @@ function shapesOf(n: number, clues: (number | null)[], at: number, budget: { lef
   const grow = (): boolean => {
     if (--budget.left < 0) return false;
     if (cells.length === size) {
-      const key = cells.slice().sort((a, b) => a - b).join(',');
+      const key = cells
+        .slice()
+        .sort((a, b) => a - b)
+        .join(',');
       if (!seen.has(key)) {
         seen.add(key);
         out.push(cells.slice());
@@ -79,7 +87,11 @@ function shapesOf(n: number, clues: (number | null)[], at: number, budget: { lef
  * one at a time, the one with fewest shapes still fitting first; a cell no island can reach any more
  * is sea, and four such cells in a block end that branch.
  */
-export function solutions(p: Pick<Puzzle, 'size' | 'clues'>, limit = 2, budget = 300_000): boolean[][] | null {
+export function solutions(
+  p: Pick<Puzzle, 'size' | 'clues'>,
+  limit = 2,
+  budget = 300_000,
+): boolean[][] | null {
   const n = p.size;
   const room = { left: budget };
   const clueCells = p.clues.flatMap((v, i) => (v === null ? [] : [i]));
@@ -205,10 +217,14 @@ function answer(n: number, biggest: number, share: number, random: Random): bool
   };
   for (;;) {
     const pools = new Set<number>();
-    for (const b of blocks(n)) if (block4(n, b).every((c) => !land[c])) for (const c of block4(n, b)) pools.add(c);
+    for (const b of blocks(n))
+      if (block4(n, b).every((c) => !land[c])) for (const c of block4(n, b)) pools.add(c);
     const enough = land.filter(Boolean).length >= share * n * n;
     if (!pools.size && enough) return land;
-    const pick = shuffle(pools.size ? [...pools] : land.flatMap((l, i) => (l ? [] : [i])), random).find(canLand);
+    const pick = shuffle(
+      pools.size ? [...pools] : land.flatMap((l, i) => (l ? [] : [i])),
+      random,
+    ).find(canLand);
     if (pick === undefined) return pools.size ? null : land;
     land[pick] = true;
   }
@@ -235,7 +251,10 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
       if (found.length === 1) return { size: n, clues, solution: land.map((l) => !l) };
       const other = found.find((sea) => sea.some((v, i) => v === land[i]))!;
       let grew = false;
-      for (const x of shuffle(other.flatMap((sea, i) => (!sea && !land[i] ? [i] : [])), random)) {
+      for (const x of shuffle(
+        other.flatMap((sea, i) => (!sea && !land[i] ? [i] : [])),
+        random,
+      )) {
         const next = sides(n, x).filter((j) => land[j]);
         const touched = new Set(next.map((j) => islandOf(n, land, j)[0]));
         if (touched.size > 1) continue; // it would join two islands
@@ -262,7 +281,8 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
 export function conflicts(p: Pick<Puzzle, 'size'>, shaded: boolean[]): boolean[] {
   const n = p.size;
   const bad = new Array<boolean>(n * n).fill(false);
-  for (const b of blocks(n)) if (block4(n, b).every((c) => shaded[c])) for (const c of block4(n, b)) bad[c] = true;
+  for (const b of blocks(n))
+    if (block4(n, b).every((c) => shaded[c])) for (const c of block4(n, b)) bad[c] = true;
   return bad;
 }
 
@@ -270,8 +290,14 @@ export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzl
   const p = value as Puzzle | null;
   const n = DIFFICULTIES[difficulty].size;
   return (
-    typeof p === 'object' && p !== null && p.size === n &&
-    Array.isArray(p.clues) && p.clues.length === n * n && p.clues.every((v) => v === null || (Number.isInteger(v) && v >= 1)) &&
-    Array.isArray(p.solution) && p.solution.length === n * n && p.solution.every((s) => typeof s === 'boolean')
+    typeof p === 'object' &&
+    p !== null &&
+    p.size === n &&
+    Array.isArray(p.clues) &&
+    p.clues.length === n * n &&
+    p.clues.every((v) => v === null || (Number.isInteger(v) && v >= 1)) &&
+    Array.isArray(p.solution) &&
+    p.solution.length === n * n &&
+    p.solution.every((s) => typeof s === 'boolean')
   );
 }

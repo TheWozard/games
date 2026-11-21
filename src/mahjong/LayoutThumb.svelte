@@ -41,6 +41,12 @@
 </svg>
 
 <style>
-  .mj-thumb { --thumb: var(--text); width: 84px; height: 48px; }
-  :global(.btn.toggle[aria-pressed='true']) .mj-thumb { --thumb: var(--accent); }
+  .mj-thumb {
+    --thumb: var(--text);
+    width: 84px;
+    height: 48px;
+  }
+  :global(.btn.toggle[aria-pressed='true']) .mj-thumb {
+    --thumb: var(--accent);
+  }
 </style>

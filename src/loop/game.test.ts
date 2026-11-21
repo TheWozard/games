@@ -52,8 +52,21 @@ describe('reducer', () => {
   it('is done when the loop is drawn, and round-trips through JSON', () => {
     const { rows, cols } = DIFFICULTIES.medium;
     const { clues, squares, rings, solution } = generate('medium');
-    let g: Game = { difficulty: 'medium', rules: { squares: false, rings: false }, rows, cols, clues, squares, rings, marks: solution.map(() => EMPTY), history: [], done: false };
-    solution.forEach((on, e) => { if (on) g = reducer(g, { type: 'cycle', edge: e }); });
+    let g: Game = {
+      difficulty: 'medium',
+      rules: { squares: false, rings: false },
+      rows,
+      cols,
+      clues,
+      squares,
+      rings,
+      marks: solution.map(() => EMPTY),
+      history: [],
+      done: false,
+    };
+    solution.forEach((on, e) => {
+      if (on) g = reducer(g, { type: 'cycle', edge: e });
+    });
     expect(g.done).toBe(true);
     expect(reducer(g, { type: 'cycle', edge: 0 })).toBe(g);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);

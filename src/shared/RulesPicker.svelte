@@ -45,7 +45,9 @@
         aria-expanded={explained === key}
         aria-controls="rule-{key}"
         onclick={() => (explained = explained === key ? null : key)}
-      >i</button>
+      >
+        i
+      </button>
     </div>
     {#if explained === key}<p class="rule-text" id="rule-{key}">{info}</p>{/if}
   {/each}

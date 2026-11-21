@@ -9,11 +9,22 @@
 
   import type { Wait } from './wait';
 
-  let { show, onclick, wait = 'quick', busy = false }: { show: boolean; onclick: () => void; wait?: Wait; busy?: boolean } = $props();
+  let {
+    show,
+    onclick,
+    wait = 'quick',
+    busy = false,
+  }: { show: boolean; onclick: () => void; wait?: Wait; busy?: boolean } = $props();
 </script>
 
 {#if show}
-  <button type="button" class={['btn primary next-fab', wait]} aria-busy={busy} {onclick} transition:fly={{ y: 24, duration: 200 }}>
+  <button
+    type="button"
+    class={['btn primary next-fab', wait]}
+    aria-busy={busy}
+    {onclick}
+    transition:fly={{ y: 24, duration: 200 }}
+  >
     Next
     {#if busy}
       <span class="spinner" aria-hidden="true"></span>

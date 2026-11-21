@@ -1,8 +1,21 @@
-.tangle-count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tangle-count svg { width: 0.9em; height: 0.9em; }
+.tangle-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tangle-count svg {
+  width: 0.9em;
+  height: 0.9em;
+}
 
 /* Five starts don't fit one row on a phone: three, then two. */
-.pick.starts { grid-auto-flow: row; grid-template-columns: repeat(3, 1fr); }
+.pick.starts {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, 1fr);
+}
 
 /* The whole free space is the board: no card behind it, so dots can go anywhere on screen. */
 .untangle-board {
@@ -10,7 +23,6 @@
   height: 100cqh;
   overflow: visible;
   user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none; /* dragging a dot must not scroll the page */
 }
@@ -19,29 +31,66 @@
    lines are the accent; crossed ones a muted red, quiet enough that the board brightens as it's
    untangled. Each sits on a casing in the background color: where lines cross, the one drawn
    later cuts a small gap in the other. */
-.untangle-board .edge { --strand: var(--accent); stroke-linecap: round; }
-.untangle-board .edge.crossed { --strand: color-mix(in srgb, var(--danger) 45%, var(--bg)); }
-.untangle-board .edge .casing { stroke: var(--bg); stroke-width: 1.9; }
-.untangle-board .edge .strand { stroke: var(--strand); stroke-width: 0.8; transition: stroke 0.25s ease; }
+.untangle-board .edge {
+  --strand: var(--accent);
+  stroke-linecap: round;
+}
+.untangle-board .edge.crossed {
+  --strand: color-mix(in srgb, var(--danger) 45%, var(--bg));
+}
+.untangle-board .edge .casing {
+  stroke: var(--bg);
+  stroke-width: 1.9;
+}
+.untangle-board .edge .strand {
+  stroke: var(--strand);
+  stroke-width: 0.8;
+  transition: stroke 0.25s ease;
+}
 /* The held dot's lines: on top, a little wider, and a crossed one in full red. */
-.untangle-board .edge.active .strand { stroke-width: 1.1; }
-.untangle-board .edge.active.crossed { --strand: var(--danger); }
+.untangle-board .edge.active .strand {
+  stroke-width: 1.1;
+}
+.untangle-board .edge.active.crossed {
+  --strand: var(--danger);
+}
 
-.untangle-board .dot { cursor: grab; outline: none; }
-.untangle-board.dragging .dot { cursor: grabbing; }
-.untangle-board .dot .hit { fill: transparent; }
+.untangle-board .dot {
+  cursor: grab;
+  outline: none;
+}
+.untangle-board.dragging .dot {
+  cursor: grabbing;
+}
+.untangle-board .dot .hit {
+  fill: transparent;
+}
 .untangle-board .dot .mark {
   fill: var(--text);
   stroke: var(--bg);
   stroke-width: 0.9;
   transition: r 0.12s ease;
 }
-.untangle-board .dot.near .mark { fill: var(--accent); }
-.untangle-board .dot.held .mark { fill: var(--accent); stroke: var(--text); }
+.untangle-board .dot.near .mark {
+  fill: var(--accent);
+}
+.untangle-board .dot.held .mark {
+  fill: var(--accent);
+  stroke: var(--text);
+}
 /* A dot sitting on a line it isn't part of: counts as a crossing. */
-.untangle-board .dot.touching .mark { stroke: var(--danger); stroke-width: 1.1; }
+.untangle-board .dot.touching .mark {
+  stroke: var(--danger);
+  stroke-width: 1.1;
+}
 
 /* Untangled: everything settles into the calm accent color. */
-.untangle-board.done .edge { --strand: var(--accent); }
-.untangle-board.done .dot { cursor: default; }
-.untangle-board.done .dot .mark { fill: var(--accent); }
+.untangle-board.done .edge {
+  --strand: var(--accent);
+}
+.untangle-board.done .dot {
+  cursor: default;
+}
+.untangle-board.done .dot .mark {
+  fill: var(--accent);
+}

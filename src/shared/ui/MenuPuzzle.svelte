@@ -4,19 +4,19 @@
   other entries, the menu stays open.
 -->
 <script lang="ts">
-  import Copy from "@lucide/svelte/icons/copy";
-  import { toast } from "../toast";
-  import MenuSection from "./MenuSection.svelte";
+  import Copy from '@lucide/svelte/icons/copy';
+  import { toast } from '../toast';
+  import MenuSection from './MenuSection.svelte';
 
   /** `oncopy` runs once it's copied (the dev gallery logs it). */
   let { puzzle, oncopy }: { puzzle: string; oncopy?: () => void } = $props();
 
-  const failed = () => toast("Couldn't copy", { tone: "error" });
+  const failed = () => toast("Couldn't copy", { tone: 'error' });
 
   function copy() {
     if (!navigator.clipboard) return failed();
     navigator.clipboard.writeText(puzzle).then(() => {
-      toast("Copied");
+      toast('Copied');
       oncopy?.();
     }, failed);
   }

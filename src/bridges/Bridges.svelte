@@ -2,9 +2,26 @@
   import GameScreen from '../shared/GameScreen.svelte';
   import RulesPicker from '../shared/RulesPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { buildable, counts, edgesFor, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import {
+    buildable,
+    counts,
+    edgesFor,
+    isGame,
+    newGame,
+    reducer,
+    STORAGE_KEY,
+    type Action,
+  } from './game';
   import { center, dragEdge, islandAt, swipedEdges, type Point } from './gesture';
-  import { DIFFICULTIES, isDifficulty, NO_RULES, RULES, type Difficulty, type Rule, type Rules } from './logic';
+  import {
+    DIFFICULTIES,
+    isDifficulty,
+    NO_RULES,
+    RULES,
+    type Difficulty,
+    type Rule,
+    type Rules,
+  } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
@@ -12,24 +29,34 @@
   const edges = $derived(edgesFor(game).edges);
   const have = $derived(counts(game));
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [
+      DIFFICULTIES[game.difficulty].label,
+      ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label),
+    ].join(' · '),
   );
   const at = (i: number) => ({ x: game.islands[i].c + 0.5, y: game.islands[i].r + 0.5 });
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.cols}×${d.rows}` }]),
+    Object.entries(DIFFICULTIES).map(([k, d]) => [
+      k,
+      { label: d.label, detail: `${d.cols}×${d.rows}` },
+    ]),
   ) as Record<Difficulty, { label: string; detail: string }>;
 
   // The New dialog's picks, starting from the current game's settings.
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
+    difficulty: 'easy',
+    rules: { ...NO_RULES },
+  });
   function askNew() {
     choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
 
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty))
+      game = newGame(choice.difficulty, choice.rules);
   }
 
   // ---- Gestures ----
@@ -67,9 +94,10 @@
       if (Math.hypot(p.x - press.start.x, p.y - press.start.y) < START) return;
       svg.setPointerCapture?.(e.pointerId);
       swallowClick = true;
-      gesture = press.from !== null
-        ? { kind: 'build', from: press.from, to: p, edge: -1 }
-        : { kind: 'swipe', last: press.start, trail: [press.start], cut: new Set() };
+      gesture =
+        press.from !== null
+          ? { kind: 'build', from: press.from, to: p, edge: -1 }
+          : { kind: 'swipe', last: press.start, trail: [press.start], cut: new Set() };
     }
     if (gesture.kind === 'build') {
       const edge = dragEdge(game, gesture.from, p);
@@ -87,7 +115,8 @@
 
   function pointerUp(e: PointerEvent) {
     if (!press || e.pointerId !== press.id) return;
-    if (gesture?.kind === 'build' && gesture.edge >= 0) dispatch({ type: 'build', edge: gesture.edge });
+    if (gesture?.kind === 'build' && gesture.edge >= 0)
+      dispatch({ type: 'build', edge: gesture.edge });
     press = null;
     gesture = null;
   }
@@ -188,7 +217,11 @@
 
       {#each game.islands as s, i (i)}
         <g
-          class={['island', s.color !== undefined && `color-${s.color}`, { full: have[i] === s.n, over: have[i] > s.n }]}
+          class={[
+            'island',
+            s.color !== undefined && `color-${s.color}`,
+            { full: have[i] === s.n, over: have[i] > s.n },
+          ]}
           role="img"
           aria-label="Island {s.n}, {have[i]} bridges"
         >

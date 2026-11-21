@@ -20,7 +20,12 @@ describe('reducer', () => {
     const g = newGame(3);
     const stuck = g.table.tableau.findIndex((c, col) => {
       const top = c.up.at(-1)!;
-      return top % 13 !== 0 && !g.table.tableau.some((d, k) => k !== col && d.up.length && Math.floor(d.up.at(-1)! % 13) === (top % 13) + 1);
+      return (
+        top % 13 !== 0 &&
+        !g.table.tableau.some(
+          (d, k) => k !== col && d.up.length && Math.floor(d.up.at(-1)! % 13) === (top % 13) + 1,
+        )
+      );
     });
     if (stuck >= 0) {
       const index = g.table.tableau[stuck].up.length - 1;
@@ -30,7 +35,8 @@ describe('reducer', () => {
 
   it('finishes by itself and is done when everything is up', () => {
     const tableau: Table['tableau'] = Array.from({ length: 7 }, () => ({ down: [], up: [] }));
-    for (let s = 0; s < 4; s++) tableau[s].up = Array.from({ length: 12 }, (_, k) => card(13 - k, s)); // K..2
+    for (let s = 0; s < 4; s++)
+      tableau[s].up = Array.from({ length: 12 }, (_, k) => card(13 - k, s)); // K..2
     const table: Table = { stock: [], waste: [], foundations: [0, 0, 0, 0], tableau };
     tableau[4].up = [card(1, 0)];
     tableau[5].up = [card(1, 1)];

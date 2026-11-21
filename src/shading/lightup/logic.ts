@@ -34,7 +34,12 @@ export function sight(p: Pick<Puzzle, 'size' | 'walls'>, i: number): number[] {
   const r = Math.floor(i / n);
   const c = i % n;
   const out: number[] = [];
-  for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+  for (const [dr, dc] of [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ]) {
     for (let rr = r + dr, cc = c + dc; rr >= 0 && rr < n && cc >= 0 && cc < n; rr += dr, cc += dc) {
       if (p.walls[rr * n + cc] !== null) break;
       out.push(rr * n + cc);
@@ -64,7 +69,11 @@ const LAMP = 1;
 const EMPTY = 2;
 
 /** Up to `limit` answers (lamp cells), or null if `budget` steps run out first. */
-export function solutions(p: Pick<Puzzle, 'size' | 'walls'>, limit = 2, budget = 100_000): boolean[][] | null {
+export function solutions(
+  p: Pick<Puzzle, 'size' | 'walls'>,
+  limit = 2,
+  budget = 100_000,
+): boolean[][] | null {
   const n = p.size;
   const white = p.walls.map((w) => w === null);
   const seen = p.walls.map((_, i) => (white[i] ? sight(p, i) : []));
@@ -76,7 +85,7 @@ export function solutions(p: Pick<Puzzle, 'size' | 'walls'>, limit = 2, budget =
 
   /** Settles everything the state forces; false on a contradiction. */
   const settle = (state: Uint8Array): boolean => {
-    for (let changed = true; changed; ) {
+    for (let changed = true; changed;) {
       changed = false;
       for (const w of numbered) {
         const need = p.walls[w]!;
@@ -88,7 +97,8 @@ export function solutions(p: Pick<Puzzle, 'size' | 'walls'>, limit = 2, budget =
         }
         if (lamps > need || lamps + open < need) return false;
         if (open && (lamps === need || lamps + open === need)) {
-          for (const j of besides[w]) if (state[j] === UNKNOWN) state[j] = lamps === need ? EMPTY : LAMP;
+          for (const j of besides[w])
+            if (state[j] === UNKNOWN) state[j] = lamps === need ? EMPTY : LAMP;
           changed = true;
         }
       }
@@ -134,7 +144,8 @@ export function solutions(p: Pick<Puzzle, 'size' | 'walls'>, limit = 2, budget =
       // All lit, so every cell left unknown is seen by a lamp and can't hold one: it's empty. The
       // numbers must then be met by the lamps already placed.
       const lamps = Array.from(state, (s) => s === LAMP);
-      if (numbered.every((w) => besides[w].filter((j) => lamps[j]).length === p.walls[w])) found.push(lamps);
+      if (numbered.every((w) => besides[w].filter((j) => lamps[j]).length === p.walls[w]))
+        found.push(lamps);
       return;
     }
     for (let k = 0; k < best.length; k++) {
@@ -176,16 +187,24 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
     // Lamps, one at a time on a cell still dark, until all are lit.
     const lamps = new Array<boolean>(n * n).fill(false);
     let on = lit({ size: n, walls }, lamps);
-    for (const i of shuffle(walls.flatMap((w, k) => (w === null ? [k] : [])), random)) {
+    for (const i of shuffle(
+      walls.flatMap((w, k) => (w === null ? [k] : [])),
+      random,
+    )) {
       if (on[i]) continue;
       lamps[i] = true;
       on = lit({ size: n, walls }, lamps);
     }
     // Every wall's count, then take counts away while the answer stays the only one.
-    const counted = walls.map((w, i) => (w === null ? null : sides(n, i).filter((j) => lamps[j]).length));
+    const counted = walls.map((w, i) =>
+      w === null ? null : sides(n, i).filter((j) => lamps[j]).length,
+    );
     const p = { size: n, walls: counted };
     if (!isUnique(p)) continue;
-    const order = shuffle(counted.flatMap((w, i) => (w === null ? [] : [i])), random);
+    const order = shuffle(
+      counted.flatMap((w, i) => (w === null ? [] : [i])),
+      random,
+    );
     const keepCount = Math.round(order.length * keep);
     for (const i of order.slice(keepCount)) {
       const was = p.walls[i];
@@ -211,9 +230,14 @@ export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzl
   const p = value as Puzzle | null;
   const n = DIFFICULTIES[difficulty].size;
   return (
-    typeof p === 'object' && p !== null && p.size === n &&
-    Array.isArray(p.walls) && p.walls.length === n * n &&
+    typeof p === 'object' &&
+    p !== null &&
+    p.size === n &&
+    Array.isArray(p.walls) &&
+    p.walls.length === n * n &&
     p.walls.every((w) => w === null || w === WALL || (Number.isInteger(w) && w >= 0 && w <= 4)) &&
-    Array.isArray(p.solution) && p.solution.length === n * n && p.solution.every((s) => typeof s === 'boolean')
+    Array.isArray(p.solution) &&
+    p.solution.length === n * n &&
+    p.solution.every((s) => typeof s === 'boolean')
   );
 }

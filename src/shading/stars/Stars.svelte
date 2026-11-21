@@ -24,7 +24,11 @@
   difficulties={DIFFICULTIES}
   create={(d) => generate(isDifficulty(d) ? d : 'easy')}
   isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
-  conflicts={(p, marks) => conflicts(p, marks.map((m) => m === MAIN))}
+  conflicts={(p, marks) =>
+    conflicts(
+      p,
+      marks.map((m) => m === MAIN),
+    )}
   names={['Star', 'X']}
   drags={['none', 'free']}
   {variants}
@@ -32,9 +36,18 @@
 >
   {#snippet icon(kind)}
     {#if kind === MAIN}
-      <svg viewBox="0 0 1 1" aria-hidden="true"><path class="star-icon" d={starPath(0, 0, 0.48)} /></svg>
+      <svg viewBox="0 0 1 1" aria-hidden="true">
+        <path class="star-icon" d={starPath(0, 0, 0.48)} />
+      </svg>
     {:else}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d="M4.5 4.5l7 7M11.5 4.5l-7 7"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </svg>
     {/if}
   {/snippet}
 
@@ -43,8 +56,20 @@
     {#each puzzle.regions as g, i (i)}
       {@const x = i % n}
       {@const y = Math.floor(i / n)}
-      {#if x < n - 1 && puzzle.regions[i + 1] !== g}<line class="wall" x1={x + 1} y1={y} x2={x + 1} y2={y + 1} />{/if}
-      {#if y < n - 1 && puzzle.regions[i + n] !== g}<line class="wall" x1={x} y1={y + 1} x2={x + 1} y2={y + 1} />{/if}
+      {#if x < n - 1 && puzzle.regions[i + 1] !== g}<line
+          class="wall"
+          x1={x + 1}
+          y1={y}
+          x2={x + 1}
+          y2={y + 1}
+        />{/if}
+      {#if y < n - 1 && puzzle.regions[i + n] !== g}<line
+          class="wall"
+          x1={x}
+          y1={y + 1}
+          x2={x + 1}
+          y2={y + 1}
+        />{/if}
     {/each}
     {#each marks as m, i (i)}
       {#if m === MAIN}

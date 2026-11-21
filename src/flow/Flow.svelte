@@ -6,15 +6,36 @@
   import { generateInBackground } from './background';
   import { gameOf, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
-    bridgeWay, connected, DIFFICULTIES, dirOf, dotColor, DIRS, extend, isBridge, isDifficulty, isHole, isSlow, NO_RULES, RULES, wait,
-    settle, startStroke, type Difficulty, type Path, type Rule, type Rules,
+    bridgeWay,
+    connected,
+    DIFFICULTIES,
+    dirOf,
+    dotColor,
+    DIRS,
+    extend,
+    isBridge,
+    isDifficulty,
+    isHole,
+    isSlow,
+    NO_RULES,
+    RULES,
+    wait,
+    settle,
+    startStroke,
+    type Difficulty,
+    type Path,
+    type Rule,
+    type Rules,
   } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [
+      DIFFICULTIES[game.difficulty].label,
+      ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label),
+    ].join(' · '),
   );
   const board = $derived(game.board);
   const n = $derived(game.size);
@@ -22,7 +43,11 @@
   /** For each square, the color filling it (or -1; bridges stay untinted, as two colors cross there). */
   const fill = $derived.by(() => {
     const out = new Array<number>(n * n).fill(-1);
-    game.paths.forEach((p, k) => p.forEach((cell) => { if (!isBridge(cell, board)) out[cell] = k; }));
+    game.paths.forEach((p, k) =>
+      p.forEach((cell) => {
+        if (!isBridge(cell, board)) out[cell] = k;
+      }),
+    );
     return out;
   });
 
@@ -81,16 +106,24 @@
   /** Paths crossing each bridge left to right, redrawn over the one going down. */
   const overpasses = $derived(
     board.bridges.flatMap((b) => {
-      const k = game.paths.findIndex((p) => p.includes(b) && bridgeWay(p, p.indexOf(b), board) === 'across');
+      const k = game.paths.findIndex(
+        (p) => p.includes(b) && bridgeWay(p, p.indexOf(b), board) === 'across',
+      );
       return k === -1 ? [] : [{ b, k }];
     }),
   );
 
   const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.size}×${d.size} · ${d.colors} colors` }]),
+    Object.entries(DIFFICULTIES).map(([k, d]) => [
+      k,
+      { label: d.label, detail: `${d.size}×${d.size} · ${d.colors} colors` },
+    ]),
   ) as Record<Difficulty, { label: string; detail: string }>;
   // The New Game picks, starting from the current game's; Play starts them.
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
+    difficulty: 'easy',
+    rules: { ...NO_RULES },
+  });
 
   let drawing = $state(false);
 
@@ -111,7 +144,8 @@
   }
 
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) return make(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty))
+      return make(choice.difficulty, choice.rules);
   }
 
   // ---- Drawing ----
@@ -153,9 +187,10 @@
     let paths = game.paths;
     let at = stroke.at;
     while (at.r !== target.r || at.c !== target.c) {
-      const next = Math.abs(target.r - at.r) > Math.abs(target.c - at.c)
-        ? { r: at.r + Math.sign(target.r - at.r), c: at.c }
-        : { r: at.r, c: at.c + Math.sign(target.c - at.c) };
+      const next =
+        Math.abs(target.r - at.r) > Math.abs(target.c - at.c)
+          ? { r: at.r + Math.sign(target.r - at.r), c: at.c }
+          : { r: at.r, c: at.c + Math.sign(target.c - at.c) };
       const cell = cellOf(next);
       if (cell === null) break;
       const moved = extend(game.dots, paths, stroke.color, cell, board);
@@ -177,7 +212,8 @@
     // left with nothing but its dot leaves no path behind (and, if nothing else changed, no undo step).
     const settled = settle(game.dots, game.paths, color, board);
     if (settled !== game.paths) dispatch({ type: 'draw', paths: settled });
-    if (game.paths[color].length === 1) dispatch({ type: 'draw', paths: game.paths.map((p, k) => (k === color ? [] : p)) });
+    if (game.paths[color].length === 1)
+      dispatch({ type: 'draw', paths: game.paths.map((p, k) => (k === color ? [] : p)) });
     dispatch({ type: 'commit', before });
   }
 </script>
@@ -210,7 +246,15 @@
       onpointercancel={pointerUp}
     >
       {#each fill as k, cell (cell)}
-        <rect class="square" x={cell % n} y={Math.floor(cell / n)} width="1" height="1" fill={k === -1 ? undefined : PALETTE[k]} fill-opacity={k === -1 ? undefined : 0.16} />
+        <rect
+          class="square"
+          x={cell % n}
+          y={Math.floor(cell / n)}
+          width="1"
+          height="1"
+          fill={k === -1 ? undefined : PALETTE[k]}
+          fill-opacity={k === -1 ? undefined : 0.16}
+        />
       {/each}
       {#each { length: n - 1 } as _, i (i)}
         <line class="grid" x1={i + 1} y1="0" x2={i + 1} y2={n} />
@@ -218,18 +262,36 @@
       {/each}
       <!-- Wrapping: the outer edge is dashed wherever a path can wrap to the opposite side. -->
       {#each wrapEdges as { d, color } (d)}
-        <path class={['wrap-edge', { dot: color !== -1 }]} {d} style:stroke={color === -1 ? undefined : PALETTE[color]} />
+        <path
+          class={['wrap-edge', { dot: color !== -1 }]}
+          {d}
+          style:stroke={color === -1 ? undefined : PALETTE[color]}
+        />
       {/each}
       <!-- Holes are hatched, inside their usual grid lines, so they read as missing squares. -->
       {#if board.holes.length}
         <defs>
-          <pattern id="flow-hatch" width="0.2" height="0.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern
+            id="flow-hatch"
+            width="0.2"
+            height="0.2"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
             <line class="hatch" x1="0.1" y1="0" x2="0.1" y2="0.2" />
           </pattern>
         </defs>
       {/if}
       {#each board.holes as cell (cell)}
-        <rect class="hole-hatch" x={(cell % n) + 0.08} y={Math.floor(cell / n) + 0.08} width="0.84" height="0.84" rx="0.12" fill="url(#flow-hatch)" />
+        <rect
+          class="hole-hatch"
+          x={(cell % n) + 0.08}
+          y={Math.floor(cell / n) + 0.08}
+          width="0.84"
+          height="0.84"
+          rx="0.12"
+          fill="url(#flow-hatch)"
+        />
       {/each}
       {#each game.paths as path, k (k)}
         {#if path.length > 1}
@@ -252,7 +314,7 @@
 
       {#each board.walls as [a, b] (`${a}-${b}`)}
         {@const vertical = b - a === 1}
-        {@const x = vertical ? (b % n) : (a % n)}
+        {@const x = vertical ? b % n : a % n}
         {@const y = vertical ? Math.floor(a / n) : Math.floor(b / n)}
         <line class="wall" x1={x} y1={y} x2={vertical ? x : x + 1} y2={vertical ? y + 1 : y} />
       {/each}
@@ -260,7 +322,13 @@
       {#each game.dots as pair, k (k)}
         {#each pair as cell (cell)}
           {@const p = center(cell)}
-          <circle class={['dot', { joined: connected(game.dots, game.paths, k) }]} cx={p.x} cy={p.y} r="0.32" fill={PALETTE[k]} />
+          <circle
+            class={['dot', { joined: connected(game.dots, game.paths, k) }]}
+            cx={p.x}
+            cy={p.y}
+            r="0.32"
+            fill={PALETTE[k]}
+          />
         {/each}
       {/each}
     </svg>

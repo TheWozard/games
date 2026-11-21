@@ -1,8 +1,18 @@
 // Flow game state and moves, as a pure reducer. A drag updates the paths live ('draw') and is
 // recorded as one move when it ends ('commit').
 import {
-  DIFFICULTIES, generate, isDifficulty, isRules, isSolved, NO_RULES, plainBoard,
-  type Board, type Difficulty, type Path, type Puzzle, type Rules,
+  DIFFICULTIES,
+  generate,
+  isDifficulty,
+  isRules,
+  isSolved,
+  NO_RULES,
+  plainBoard,
+  type Board,
+  type Difficulty,
+  type Path,
+  type Puzzle,
+  type Rules,
 } from './logic';
 
 export const STORAGE_KEY = 'games.flow.v1';
@@ -27,13 +37,23 @@ export type Action =
 /** A game of a puzzle made for these settings (here, or in the background: see background.ts). */
 export function gameOf(difficulty: Difficulty, rules: Rules, { dots, board }: Puzzle): Game {
   const { size } = DIFFICULTIES[difficulty];
-  return { difficulty, rules: { ...rules }, size, board, dots, paths: dots.map(() => []), history: [], done: false };
+  return {
+    difficulty,
+    rules: { ...rules },
+    size,
+    board,
+    dots,
+    paths: dots.map(() => []),
+    history: [],
+    done: false,
+  };
 }
 
 export const newGame = (difficulty: Difficulty, rules: Rules = NO_RULES): Game =>
   gameOf(difficulty, rules, generate(difficulty, rules));
 
-const cells = (value: unknown, n: number) => Array.isArray(value) && value.every((x) => Number.isInteger(x) && x >= 0 && x < n);
+const cells = (value: unknown, n: number) =>
+  Array.isArray(value) && value.every((x) => Number.isInteger(x) && x >= 0 && x < n);
 
 /** Validates a save. Saves from before the rules carry on on a plain board. */
 export function isGame(value: unknown): value is Game {
@@ -45,10 +65,17 @@ export function isGame(value: unknown): value is Game {
   const b = g.board;
   const n = size * size;
   return (
-    isRules(g.rules) && g.size === size &&
-    b.size === size && typeof b.wrap === 'boolean' && cells(b.holes, n) && cells(b.bridges, n) &&
-    Array.isArray(b.walls) && b.walls.every((w) => cells(w, n) && w.length === 2) &&
-    Array.isArray(g.dots) && Array.isArray(g.paths) && g.paths.length === g.dots.length &&
+    isRules(g.rules) &&
+    g.size === size &&
+    b.size === size &&
+    typeof b.wrap === 'boolean' &&
+    cells(b.holes, n) &&
+    cells(b.bridges, n) &&
+    Array.isArray(b.walls) &&
+    b.walls.every((w) => cells(w, n) && w.length === 2) &&
+    Array.isArray(g.dots) &&
+    Array.isArray(g.paths) &&
+    g.paths.length === g.dots.length &&
     Array.isArray(g.history)
   );
 }
@@ -59,7 +86,11 @@ export function reducer(g: Game, action: Action): Game {
       return g.done ? g : { ...g, paths: action.paths };
     case 'commit': {
       if (g.done || JSON.stringify(action.before) === JSON.stringify(g.paths)) return g;
-      return { ...g, history: [...g.history, action.before].slice(-HISTORY_LIMIT), done: isSolved(g.dots, g.paths, g.board) };
+      return {
+        ...g,
+        history: [...g.history, action.before].slice(-HISTORY_LIMIT),
+        done: isSolved(g.dots, g.paths, g.board),
+      };
     }
     case 'undo': {
       const last = g.history.at(-1);

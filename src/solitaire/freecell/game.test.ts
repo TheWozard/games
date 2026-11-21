@@ -24,13 +24,16 @@ describe('reducer', () => {
     g = reducer(g, { type: 'undo' });
     expect(g.table).toBe(before);
     expect(reducer(g, { type: 'undo' })).toBe(g);
-    expect(reducer(g, { type: 'move', source: { from: 'cell', i: 0 }, target: { to: 'foundation' } })).toBe(g); // empty cell
+    expect(
+      reducer(g, { type: 'move', source: { from: 'cell', i: 0 }, target: { to: 'foundation' } }),
+    ).toBe(g); // empty cell
   });
 
   it('plays a whole game to a win with the solver’s moves, then ignores moves', () => {
     let g = newGame('harder');
     expect(g.table.cells).toHaveLength(3);
-    for (const [source, target] of solve(g.table)!) g = reducer(g, { type: 'move', source, target });
+    for (const [source, target] of solve(g.table)!)
+      g = reducer(g, { type: 'move', source, target });
     expect(g.done).toBe(true);
     expect(g.table.foundations).toEqual([13, 13, 13, 13]);
     expect(reducer(g, { type: 'undo' })).toBe(g);

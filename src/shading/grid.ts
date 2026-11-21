@@ -29,7 +29,8 @@ export function around(n: number, i: number): number[] {
   const out: number[] = [];
   for (let dr = -1; dr <= 1; dr++) {
     for (let dc = -1; dc <= 1; dc++) {
-      if ((dr || dc) && r + dr >= 0 && r + dr < n && c + dc >= 0 && c + dc < n) out.push(i + dr * n + dc);
+      if ((dr || dc) && r + dr >= 0 && r + dr < n && c + dc >= 0 && c + dc < n)
+        out.push(i + dr * n + dc);
     }
   }
   return out;

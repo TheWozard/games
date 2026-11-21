@@ -70,7 +70,11 @@
     untrack(() => {
       if (!touched || last.width === 0 || last.height === 0) view = startView(now, board, REACH);
       else {
-        const moved = { ...view, x: view.x + (now.width - last.width) / 2, y: view.y + (now.height - last.height) / 2 };
+        const moved = {
+          ...view,
+          x: view.x + (now.width - last.width) / 2,
+          y: view.y + (now.height - last.height) / 2,
+        };
         view = clampView(moved, now, board, REACH);
       }
       last = now;
@@ -78,6 +82,7 @@
   });
 
   let el: HTMLElement;
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping, never drawn
   const pointers = new Map<number, { x: number; y: number }>();
   // One finger: where it started and the view then. Two: their distance and midpoint at the start.
   let drag: { x: number; y: number; from: View; moved: boolean } | null = null;
@@ -102,7 +107,10 @@
   }
   function two() {
     const [a, b] = [...pointers.values()];
-    return { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+    return {
+      dist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+      mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+    };
   }
   function startDrag(at: { x: number; y: number }, moved: boolean) {
     drag = { ...at, from: shown, moved };
@@ -211,7 +219,9 @@
     touched = true;
     moving = true;
     clearTimeout(wheelEnd);
-    wheelEnd = window.setTimeout(() => { if (!pointers.size) moving = false; }, 150);
+    wheelEnd = window.setTimeout(() => {
+      if (!pointers.size) moving = false;
+    }, 150);
     // Deltas in pixels; some mice (Firefox) give lines or pages.
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.height : 1;
     const [dx, dy] = [e.deltaX * unit, e.deltaY * unit];
@@ -228,13 +238,13 @@
   const shown = $derived(clampView(view, stage, board, REACH));
 </script>
 
-<div
-  class="zoom-stage"
-  bind:this={el}
-  bind:clientWidth={width}
-  bind:clientHeight={height}
->
-  <div class="zoom-frame" aria-hidden="true" bind:clientWidth={frameW} bind:clientHeight={frameH}></div>
+<div class="zoom-stage" bind:this={el} bind:clientWidth={width} bind:clientHeight={height}>
+  <div
+    class="zoom-frame"
+    aria-hidden="true"
+    bind:clientWidth={frameW}
+    bind:clientHeight={frameH}
+  ></div>
   <div
     class="zoom-board"
     class:moving

@@ -45,8 +45,19 @@
   }
 
   let {
-    title, storageKey, difficulties, create, isPuzzle, fixed = () => false, conflicts, names, drags = ['line', 'line'], icon, cells,
-    variants, first,
+    title,
+    storageKey,
+    difficulties,
+    create,
+    isPuzzle,
+    fixed = () => false,
+    conflicts,
+    names,
+    drags = ['line', 'line'],
+    icon,
+    cells,
+    variants,
+    first,
   }: Props = $props();
 
   const isDifficulty = (d: unknown) => typeof d === 'string' && Object.hasOwn(difficulties, d);
@@ -56,7 +67,8 @@
     untrack(() =>
       first !== undefined && isDifficulty(first)
         ? make(first)
-        : (loadJSON(storageKey, (v) => isGame<P>(v, isDifficulty, isPuzzle)) ?? make(Object.keys(difficulties)[0])),
+        : (loadJSON(storageKey, (v) => isGame<P>(v, isDifficulty, isPuzzle)) ??
+          make(Object.keys(difficulties)[0])),
     ),
   );
   const isFixed = (i: number) => fixed(game.puzzle, i);
@@ -104,17 +116,19 @@
   let stroke = $state.raw<Stroke | null>(null);
   let svg = $state<SVGSVGElement>();
 
-  const range = (a: number, b: number) => Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => (a <= b ? a + k : a - k));
+  const range = (a: number, b: number) =>
+    Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => (a <= b ? a + k : a - k));
 
   function strokeCells(s: Stroke): number[] {
     if (s.drag === 'free') return s.path.filter((i) => !isFixed(i) && game.marks[i] === s.from);
     const r0 = Math.floor(s.start / n);
     const c0 = s.start % n;
-    const line = s.axis === 'row'
-      ? range(c0, s.end % n).map((c) => r0 * n + c)
-      : s.axis === 'col'
-        ? range(r0, Math.floor(s.end / n)).map((r) => r * n + c0)
-        : [s.start];
+    const line =
+      s.axis === 'row'
+        ? range(c0, s.end % n).map((c) => r0 * n + c)
+        : s.axis === 'col'
+          ? range(r0, Math.floor(s.end / n)).map((r) => r * n + c0)
+          : [s.start];
     return line.filter((i) => !isFixed(i) && game.marks[i] === s.from);
   }
 
@@ -137,7 +151,16 @@
     const from = game.marks[i];
     const place = e.button === 2 ? NOTE : brush;
     const drag = drags[place === MAIN ? 0 : 1];
-    stroke = { pointer: e.pointerId, start: i, end: i, from, value: from === place ? EMPTY : place, drag, axis: null, path: [i] };
+    stroke = {
+      pointer: e.pointerId,
+      start: i,
+      end: i,
+      from,
+      value: from === place ? EMPTY : place,
+      drag,
+      axis: null,
+      path: [i],
+    };
   }
 
   function move(e: PointerEvent) {
@@ -159,12 +182,14 @@
     }
     const dr = Math.floor(i / n) - Math.floor(stroke.start / n);
     const dc = (i % n) - (stroke.start % n);
-    const axis = stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
-    const end = axis === 'row'
-      ? Math.floor(stroke.start / n) * n + (i % n)
-      : axis === 'col'
-        ? Math.floor(i / n) * n + (stroke.start % n)
-        : stroke.start;
+    const axis =
+      stroke.axis ?? (dr === 0 && dc === 0 ? null : Math.abs(dc) >= Math.abs(dr) ? 'row' : 'col');
+    const end =
+      axis === 'row'
+        ? Math.floor(stroke.start / n) * n + (i % n)
+        : axis === 'col'
+          ? Math.floor(i / n) * n + (stroke.start % n)
+          : stroke.start;
     stroke = { ...stroke, axis, end };
   }
 
@@ -195,11 +220,16 @@
 
 <GameScreen
   {title}
-  subtitle={[variants.games[variants.current].label, difficulties[game.difficulty]?.label].filter(Boolean).join(' · ')}
+  subtitle={[variants.games[variants.current].label, difficulties[game.difficulty]?.label]
+    .filter(Boolean)
+    .join(' · ')}
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
   picker={variantPicker}
-  onopennew={() => { pick = `${variants.current}:${game.difficulty}`; pickerOpens++; }}
+  onopennew={() => {
+    pick = `${variants.current}:${game.difficulty}`;
+    pickerOpens++;
+  }}
   onstart={start}
   finished={game.done}
   onnext={() => (game = make(game.difficulty))}
@@ -221,7 +251,10 @@
       <!-- The cells, then the thin lines between them (a fixed 1px whatever the board's size, like
            Sudoku's), then the game's own marks over both. The outer border is the svg's (shading.css). -->
       <rect class="cell" x="0" y="0" width={n} height={n} />
-      <path class="lines" d={Array.from({ length: n - 1 }, (_, k) => `M${k + 1} 0V${n}M0 ${k + 1}H${n}`).join('')} />
+      <path
+        class="lines"
+        d={Array.from({ length: n - 1 }, (_, k) => `M${k + 1} 0V${n}M0 ${k + 1}H${n}`).join('')}
+      />
       {@render cells({ puzzle: game.puzzle, marks: shown, bad, done: game.done })}
     </svg>
   </div>

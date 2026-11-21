@@ -1,5 +1,17 @@
 // Bridges game state and moves, as a pure reducer.
-import { DIFFICULTIES, edgesOf, generate, isDifficulty, isRules, isSolved, NO_RULES, type Difficulty, type Edge, type Island, type Rules } from './logic';
+import {
+  DIFFICULTIES,
+  edgesOf,
+  generate,
+  isDifficulty,
+  isRules,
+  isSolved,
+  NO_RULES,
+  type Difficulty,
+  type Edge,
+  type Island,
+  type Rules,
+} from './logic';
 
 export const STORAGE_KEY = 'games.bridges.v1';
 const HISTORY_LIMIT = 500;
@@ -26,7 +38,18 @@ export type Action =
 export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
   const { cols, rows } = DIFFICULTIES[difficulty];
   const { islands, blocks, solution } = generate(difficulty, rules);
-  return { difficulty, rules: { ...rules }, cols, rows, islands, blocks, bridges: solution.map(() => 0), solution, history: [], done: false };
+  return {
+    difficulty,
+    rules: { ...rules },
+    cols,
+    rows,
+    islands,
+    blocks,
+    bridges: solution.map(() => 0),
+    solution,
+    history: [],
+    done: false,
+  };
 }
 
 /** Possible bridges for a game's islands (cached: islands never change during a game). */
@@ -43,13 +66,16 @@ export function edgesFor(g: Pick<Game, 'islands' | 'cols' | 'rows' | 'blocks' | 
 /** Validates a save. Saves from before the optional rules play with none. */
 export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
-  if (!isDifficulty(g?.difficulty) || !Array.isArray(g.islands) || !Array.isArray(g.history)) return false;
+  if (!isDifficulty(g?.difficulty) || !Array.isArray(g.islands) || !Array.isArray(g.history))
+    return false;
   const { cols, rows } = DIFFICULTIES[g.difficulty];
   if (g.cols !== cols || g.rows !== rows) return false;
   g.rules ??= { ...NO_RULES };
   g.blocks ??= [];
-  if (!isRules(g.rules) || !g.blocks.every((x) => Number.isInteger(x) && x >= 0 && x < cols * rows)) return false;
-  const edges = edgesOf(g.islands, cols, rows, { blocks: g.blocks, diagonals: g.rules.diagonals }).edges.length;
+  if (!isRules(g.rules) || !g.blocks.every((x) => Number.isInteger(x) && x >= 0 && x < cols * rows))
+    return false;
+  const edges = edgesOf(g.islands, cols, rows, { blocks: g.blocks, diagonals: g.rules.diagonals })
+    .edges.length;
   return g.bridges?.length === edges && g.solution?.length === edges;
 }
 
@@ -65,7 +91,8 @@ export const counts = (g: Game): number[] => {
 };
 
 /** Whether bridges on `edge` would cross one already built. */
-export const blocked = (g: Game, edge: number) => edgesFor(g).crosses[edge].some((x) => g.bridges[x] > 0);
+export const blocked = (g: Game, edge: number) =>
+  edgesFor(g).crosses[edge].some((x) => g.bridges[x] > 0);
 
 /** Whether a drag along `edge` would add a bridge: fewer than two, and not crossing another. */
 export const buildable = (g: Game, edge: number) =>
@@ -92,7 +119,9 @@ export function reducer(g: Game, action: Action): Game {
     case 'remove':
       return g.bridges[action.edge] > 0 ? put(g, action.edge, g.bridges[action.edge] - 1) : g;
     case 'cycle':
-      return buildable(g, action.edge) ? put(g, action.edge, g.bridges[action.edge] + 1) : put(g, action.edge, 0);
+      return buildable(g, action.edge)
+        ? put(g, action.edge, g.bridges[action.edge] + 1)
+        : put(g, action.edge, 0);
     case 'undo': {
       const last = g.history.at(-1);
       if (g.done || !last) return g;

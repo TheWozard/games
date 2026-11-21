@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cluesOf, DIFFICULTIES, firstLook, fits, generate, isSolved, NO_RULES, pattern, runsOf, solve, solveLine,
-  type Difficulty, type Rules, type Run,
+  cluesOf,
+  DIFFICULTIES,
+  firstLook,
+  fits,
+  generate,
+  isSolved,
+  NO_RULES,
+  pattern,
+  runsOf,
+  solve,
+  solveLine,
+  type Difficulty,
+  type Rules,
+  type Run,
 } from './logic';
 
 const plain = (...lengths: number[]): Run[] => lengths.map((length) => ({ color: 1, length }));
@@ -29,12 +41,24 @@ function arrangements(n: number, colors: number, clue: Run[], masks: number[]): 
 describe('clues', () => {
   it('reads runs, with colors touching', () => {
     expect(runsOf([1, 1, 0, 1, 0, 0, 1, 1, 1])).toEqual(plain(2, 1, 3));
-    expect(runsOf([1, 2, 2, 0, 1])).toEqual([{ color: 1, length: 1 }, { color: 2, length: 2 }, { color: 1, length: 1 }]);
+    expect(runsOf([1, 2, 2, 0, 1])).toEqual([
+      { color: 1, length: 1 },
+      { color: 2, length: 2 },
+      { color: 1, length: 1 },
+    ]);
     expect(runsOf([0, 0])).toEqual([]);
   });
 
   it('matches hidden lengths to any length', () => {
-    expect(fits([1, 1, 0, 1], [{ color: 1, length: null }, { color: 1, length: 1 }])).toBe(true);
+    expect(
+      fits(
+        [1, 1, 0, 1],
+        [
+          { color: 1, length: null },
+          { color: 1, length: 1 },
+        ],
+      ),
+    ).toBe(true);
     expect(fits([1, 1, 0, 1], [{ color: 1, length: null }])).toBe(false);
     expect(fits([1, 1, 0, 1], plain(1, 2))).toBe(false);
   });
@@ -54,12 +78,14 @@ describe('solveLine', () => {
 
   it('agrees with brute force, with colors and hidden lengths', () => {
     let seed = 7;
-    const random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let run = 0; run < 400; run++) {
       const n = 3 + Math.floor(random() * 6);
       const colors = 1 + Math.floor(random() * 3);
       const all = (1 << (colors + 1)) - 1;
-      const truth = Array.from({ length: n }, () => (random() < 0.5 ? 0 : 1 + Math.floor(random() * colors)));
+      const truth = Array.from({ length: n }, () =>
+        random() < 0.5 ? 0 : 1 + Math.floor(random() * colors),
+      );
       const clue = runsOf(truth).map((r) => (random() < 0.3 ? { ...r, length: null } : r));
       // Some cells already narrowed (always still allowing the truth).
       const masks = truth.map((v) => (random() < 0.3 ? (1 << v) | (random() < 0.5 ? 1 : 0) : all));
@@ -83,7 +109,12 @@ describe('solve', () => {
 });
 
 describe('generate', () => {
-  const settings: Rules[] = [NO_RULES, { colors: true, mystery: false }, { colors: false, mystery: true }, { colors: true, mystery: true }];
+  const settings: Rules[] = [
+    NO_RULES,
+    { colors: true, mystery: false },
+    { colors: false, mystery: true },
+    { colors: true, mystery: true },
+  ];
 
   for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
     it(`makes ${difficulty} puzzles the line solver finishes, within the difficulty's band`, () => {
@@ -113,13 +144,19 @@ describe('generate', () => {
   }
 
   it('hides some numbers with mystery on', () => {
-    const hidden = Array.from({ length: 5 }, () => generate('medium', { colors: false, mystery: true }))
-      .map((p) => [...p.rows, ...p.cols].flat().filter((r) => r.length === null).length);
+    const hidden = Array.from({ length: 5 }, () =>
+      generate('medium', { colors: false, mystery: true }),
+    ).map((p) => [...p.rows, ...p.cols].flat().filter((r) => r.length === null).length);
     expect(Math.max(...hidden)).toBeGreaterThan(0);
   });
 
   it('uses every color across a few colored puzzles', () => {
-    const used = new Set(Array.from({ length: 5 }, () => generate('hard', { colors: true, mystery: false }).solution).flat());
+    const used = new Set(
+      Array.from(
+        { length: 5 },
+        () => generate('hard', { colors: true, mystery: false }).solution,
+      ).flat(),
+    );
     expect([...used].sort()).toEqual([0, 1, 2, 3]);
   });
 

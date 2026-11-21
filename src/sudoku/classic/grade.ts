@@ -29,7 +29,10 @@ export interface Geometry {
 }
 
 /** The 3×3 boxes, as a region number (0–8) per cell. */
-export const BOXES: readonly number[] = Array.from({ length: 81 }, (_, i) => Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3));
+export const BOXES: readonly number[] = Array.from(
+  { length: 81 },
+  (_, i) => Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3),
+);
 
 const geometries = new WeakMap<readonly number[], Geometry>();
 
@@ -42,7 +45,11 @@ export function geometry(regions: readonly number[] = BOXES): Geometry {
       ...Array.from({ length: 9 }, (_, c) => Array.from({ length: 9 }, (_, r) => r * 9 + c)),
       ...Array.from({ length: 9 }, (_, k) => [...Array(81).keys()].filter((i) => regions[i] === k)),
     ];
-    const unitsOf = Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), 9 + (i % 9), 18 + regions[i]]);
+    const unitsOf = Array.from({ length: 81 }, (_, i) => [
+      Math.floor(i / 9),
+      9 + (i % 9),
+      18 + regions[i],
+    ]);
     const peers = Array.from({ length: 81 }, (_, i) => {
       const out = new Set<number>();
       for (const u of unitsOf[i]) for (const j of units[u]) if (j !== i) out.add(j);
@@ -61,7 +68,11 @@ export function geometry(regions: readonly number[] = BOXES): Geometry {
 
 const ALL = 0x3fe; // bits 1..9
 
-const bitCount = (m: number) => { let n = 0; for (; m; n++) m &= m - 1; return n; };
+const bitCount = (m: number) => {
+  let n = 0;
+  for (; m; n++) m &= m - 1;
+  return n;
+};
 const lowBit = (m: number) => 31 - Math.clz32(m & -m);
 
 /** Every k-bit subset of the set bits of `mask`. */
@@ -70,7 +81,10 @@ function subsets(mask: number, k: number): number[] {
   for (let m = mask; m; m &= m - 1) bits.push(m & -m);
   const out: number[] = [];
   const pick = (from: number, acc: number, left: number) => {
-    if (!left) { out.push(acc); return; }
+    if (!left) {
+      out.push(acc);
+      return;
+    }
     for (let i = from; i <= bits.length - left; i++) pick(i + 1, acc | bits[i], left - 1);
   };
   pick(0, 0, k);
@@ -82,7 +96,10 @@ class Board {
   readonly cand: number[];
   empty = 0;
 
-  constructor(puzzle: readonly number[], readonly g: Geometry) {
+  constructor(
+    puzzle: readonly number[],
+    readonly g: Geometry,
+  ) {
     this.values = puzzle.slice();
     this.cand = new Array<number>(81);
     for (let i = 0; i < 81; i++) {
@@ -116,7 +133,10 @@ class Board {
     let did = false;
     for (; at; at &= at - 1) {
       const i = cells[lowBit(at)];
-      if (this.cand[i] & digits) { this.cand[i] &= ~digits; did = true; }
+      if (this.cand[i] & digits) {
+        this.cand[i] &= ~digits;
+        did = true;
+      }
     }
     return did;
   }
@@ -127,7 +147,10 @@ class Board {
 function nakedSingle(b: Board): boolean {
   for (let i = 0; i < 81; i++) {
     const m = b.cand[i];
-    if (m && !(m & (m - 1))) { b.place(i, lowBit(m)); return true; }
+    if (m && !(m & (m - 1))) {
+      b.place(i, lowBit(m));
+      return true;
+    }
   }
   return false;
 }
@@ -136,7 +159,10 @@ function hiddenSingle(b: Board): boolean {
   for (let u = 0; u < 27; u++) {
     for (let d = 1; d <= 9; d++) {
       const m = b.where(u, d);
-      if (m && !(m & (m - 1))) { b.place(b.g.units[u][lowBit(m)], d); return true; }
+      if (m && !(m & (m - 1))) {
+        b.place(b.g.units[u][lowBit(m)], d);
+        return true;
+      }
     }
   }
   return false;
@@ -159,7 +185,9 @@ function lockedCandidates(b: Board): boolean {
       for (const w of unitsOf[at[0]]) {
         if (w === u || !at.every((i) => unitsOf[i].includes(w))) continue;
         let others = 0;
-        units[w].forEach((i, k) => { if (!at.includes(i)) others |= 1 << k; });
+        units[w].forEach((i, k) => {
+          if (!at.includes(i)) others |= 1 << k;
+        });
         if (b.remove(w, others, 1 << d)) return true;
       }
     }
@@ -233,7 +261,8 @@ function fish(b: Board, n: number): boolean {
         for (let s = set; s; s &= s - 1) across |= spots[lowBit(s)];
         if (bitCount(across) !== n) continue;
         let did = false;
-        for (let a = across; a; a &= a - 1) did = b.remove(cover + lowBit(a), ~set & 0x1ff, 1 << d) || did;
+        for (let a = across; a; a &= a - 1)
+          did = b.remove(cover + lowBit(a), ~set & 0x1ff, 1 << d) || did;
         if (did) return true;
       }
     }
@@ -260,7 +289,10 @@ function xyWing(b: Board): boolean {
         if (!z || (wa & pm) === (wc & pm)) continue;
         let did = false;
         for (const i of peers[wings[a]]) {
-          if (i !== pivot && isPeer[wings[c]][i] && b.cand[i] & z) { b.cand[i] &= ~z; did = true; }
+          if (i !== pivot && isPeer[wings[c]][i] && b.cand[i] & z) {
+            b.cand[i] &= ~z;
+            did = true;
+          }
         }
         if (did) return true;
       }
@@ -308,5 +340,8 @@ export function solve(
 }
 
 /** The tier of the hardest technique needed to solve `puzzle`, using tiers up to `upTo`; 0 if they can't. */
-export const grade = (puzzle: readonly number[], upTo = MAX_TIER, regions: readonly number[] = BOXES): number =>
-  solve(puzzle, upTo, regions)?.tier ?? 0;
+export const grade = (
+  puzzle: readonly number[],
+  upTo = MAX_TIER,
+  regions: readonly number[] = BOXES,
+): number => solve(puzzle, upTo, regions)?.tier ?? 0;

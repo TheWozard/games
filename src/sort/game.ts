@@ -4,8 +4,18 @@
 // `tubes`). A layer comes into view once it's on top of its tube, or once it's poured. Only layers
 // that show are poured: a hidden layer stays put even if it matches the run above it.
 import {
-  capacityOf, DIFFICULTIES, generate, isDifficulty, isRules, isSorted, NO_RULES, pour, pourAmount,
-  type Difficulty, type Rules, type Tubes,
+  capacityOf,
+  DIFFICULTIES,
+  generate,
+  isDifficulty,
+  isRules,
+  isSorted,
+  NO_RULES,
+  pour,
+  pourAmount,
+  type Difficulty,
+  type Rules,
+  type Tubes,
 } from './logic';
 
 export const STORAGE_KEY = 'games.sort.v1';
@@ -26,11 +36,20 @@ export type Action =
   | { type: 'undo' };
 
 /** Every layer but each tube's top one hidden, with the mystery rule; none without. */
-const startHidden = (tubes: Tubes, mystery: boolean) => tubes.map((t) => t.map((_, k) => mystery && k < t.length - 1));
+const startHidden = (tubes: Tubes, mystery: boolean) =>
+  tubes.map((t) => t.map((_, k) => mystery && k < t.length - 1));
 
 export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
   const tubes = generate(difficulty, capacityOf(rules));
-  return { difficulty, rules: { ...rules }, tubes, hidden: startHidden(tubes, rules.mystery), selected: null, history: [], done: false };
+  return {
+    difficulty,
+    rules: { ...rules },
+    tubes,
+    hidden: startHidden(tubes, rules.mystery),
+    selected: null,
+    history: [],
+    done: false,
+  };
 }
 
 /**
@@ -39,23 +58,28 @@ export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
  */
 export function isGame(value: unknown): value is Game {
   const g = value as (Partial<Game> & { history?: unknown[] }) | null;
-  if (!isDifficulty(g?.difficulty) || !Array.isArray(g.tubes) || !Array.isArray(g.history)) return false;
+  if (!isDifficulty(g?.difficulty) || !Array.isArray(g.tubes) || !Array.isArray(g.history))
+    return false;
   g.rules ??= { ...NO_RULES };
   if (!isRules(g.rules)) return false;
   const plain = (tubes: Tubes) => tubes.map((t) => t.map(() => false));
   g.hidden ??= plain(g.tubes);
-  g.history = g.history.map((h) => (Array.isArray(h) ? { tubes: h as Tubes, hidden: plain(h as Tubes) } : h)) as Game['history'];
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- h is unknown
+  g.history = g.history.map((h) =>
+    Array.isArray(h) ? { tubes: h as Tubes, hidden: plain(h as Tubes) } : h,
+  ) as Game['history'];
   const { colors, spare } = DIFFICULTIES[g.difficulty];
   const capacity = capacityOf(g.rules);
   return (
-    g.tubes.length === colors + spare && g.tubes.every((t) => Array.isArray(t) && t.length <= capacity) &&
-    g.hidden.length === g.tubes.length && g.hidden.every((h, i) => Array.isArray(h) && h.length === g.tubes![i].length) &&
+    g.tubes.length === colors + spare &&
+    g.tubes.every((t) => Array.isArray(t) && t.length <= capacity) &&
+    g.hidden.length === g.tubes.length &&
+    g.hidden.every((h, i) => Array.isArray(h) && h.length === g.tubes![i].length) &&
     g.history.every((h) => Array.isArray(h?.tubes) && Array.isArray(h?.hidden))
   );
 }
 
 export const capacity = (g: Game) => capacityOf(g.rules);
-
 
 /** Hidden flags after pouring `n` layers from `from` to `to`: the poured layers and each tube's new top show. */
 function pourHidden(hidden: boolean[][], from: number, to: number, n: number): boolean[][] {
@@ -82,16 +106,28 @@ export function reducer(g: Game, action: Action): Game {
       const tubes = pour(g.tubes, g.selected, t, cap, g.hidden);
       const done = isSorted(tubes, cap);
       // Sorted: everything shows.
-      const hidden = done ? tubes.map((x) => x.map(() => false)) : pourHidden(g.hidden, g.selected, t, n);
+      const hidden = done
+        ? tubes.map((x) => x.map(() => false))
+        : pourHidden(g.hidden, g.selected, t, n);
       return {
-        ...g, tubes, hidden, selected: null, done,
+        ...g,
+        tubes,
+        hidden,
+        selected: null,
+        done,
         history: [...g.history, { tubes: g.tubes, hidden: g.hidden }].slice(-HISTORY_LIMIT),
       };
     }
     case 'undo': {
       const last = g.history.at(-1);
       if (g.done || !last) return g;
-      return { ...g, tubes: last.tubes, hidden: last.hidden, selected: null, history: g.history.slice(0, -1) };
+      return {
+        ...g,
+        tubes: last.tubes,
+        hidden: last.hidden,
+        selected: null,
+        history: g.history.slice(0, -1),
+      };
     }
   }
 }

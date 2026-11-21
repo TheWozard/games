@@ -15,4 +15,6 @@
   let { primary = false, small = false, class: className, children, ...rest }: Props = $props();
 </script>
 
-<button type="button" class={['btn', { primary, small }, className]} {...rest}>{@render children()}</button>
+<button type="button" class={['btn', { primary, small }, className]} {...rest}>
+  {@render children()}
+</button>

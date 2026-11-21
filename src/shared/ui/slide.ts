@@ -35,7 +35,12 @@ export const slidePick: Attachment<HTMLElement> = (row) => {
   }
 
   const changes = new MutationObserver(place);
-  changes.observe(row, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-pressed'] });
+  changes.observe(row, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['aria-pressed'],
+  });
   const sizes = new ResizeObserver(place);
   sizes.observe(row);
   place();

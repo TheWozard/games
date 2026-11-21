@@ -8,7 +8,11 @@
   import type { Snippet } from 'svelte';
   import { slidePick } from './slide';
 
-  let { title, class: className, children }: { title: string; class?: string; children: Snippet } = $props();
+  let {
+    title,
+    class: className,
+    children,
+  }: { title: string; class?: string; children: Snippet } = $props();
 </script>
 
 <h3 class="pick-title">{title}</h3>

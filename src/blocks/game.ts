@@ -3,8 +3,19 @@
 // played in order: each variant remembers which level is next, and wraps round to the first after
 // the last. Any level can also be picked, and play carries on in order from there.
 import {
-  decode, isDifficulty, isLayout, isSolved, isVariant, LEVELS, range, shape, slide, VARIANTS,
-  type Block, type Difficulty, type Variant,
+  decode,
+  isDifficulty,
+  isLayout,
+  isSolved,
+  isVariant,
+  LEVELS,
+  range,
+  shape,
+  slide,
+  VARIANTS,
+  type Block,
+  type Difficulty,
+  type Variant,
 } from './logic';
 import { PUZZLES } from './puzzles';
 
@@ -21,16 +32,24 @@ export interface Level {
 }
 
 /** Per variant, every level in order: Easy, then Medium, then Hard. */
-export const LEVEL_LIST: Record<Variant, Level[]> = Object.fromEntries(VARIANT_KEYS.map((v) => [
-  v,
-  LEVEL_KEYS.flatMap((difficulty) => PUZZLES[v][difficulty].map(([fewest, code]) => ({ difficulty, fewest, code }))),
-])) as Record<Variant, Level[]>;
+export const LEVEL_LIST: Record<Variant, Level[]> = Object.fromEntries(
+  VARIANT_KEYS.map((v) => [
+    v,
+    LEVEL_KEYS.flatMap((difficulty) =>
+      PUZZLES[v][difficulty].map(([fewest, code]) => ({ difficulty, fewest, code })),
+    ),
+  ]),
+) as Record<Variant, Level[]>;
 
 /** Per variant and difficulty, the index of its first level. */
-const FIRST_OF = Object.fromEntries(VARIANT_KEYS.map((v) => [
-  v,
-  Object.fromEntries(LEVEL_KEYS.map((d) => [d, LEVEL_LIST[v].findIndex((l) => l.difficulty === d)])),
-])) as Record<Variant, Record<Difficulty, number>>;
+const FIRST_OF = Object.fromEntries(
+  VARIANT_KEYS.map((v) => [
+    v,
+    Object.fromEntries(
+      LEVEL_KEYS.map((d) => [d, LEVEL_LIST[v].findIndex((l) => l.difficulty === d)]),
+    ),
+  ]),
+) as Record<Variant, Record<Difficulty, number>>;
 
 /** Per variant, the level to play next (an index into LEVEL_LIST). */
 export type Progress = Record<Variant, number>;
@@ -46,13 +65,12 @@ export interface Game {
   upNext: Progress;
 }
 
-export type Action =
-  | { type: 'slide'; index: number; to: number }
-  | { type: 'undo' };
+export type Action = { type: 'slide'; index: number; to: number } | { type: 'undo' };
 
 export const FIRST: Progress = Object.fromEntries(VARIANT_KEYS.map((v) => [v, 0])) as Progress;
 
-export const difficultyOf = (g: Pick<Game, 'variant' | 'level'>): Difficulty => LEVEL_LIST[g.variant][g.level].difficulty;
+export const difficultyOf = (g: Pick<Game, 'variant' | 'level'>): Difficulty =>
+  LEVEL_LIST[g.variant][g.level].difficulty;
 
 /** A level of a variant: the next one, or the one numbered `pick`. That variant moves on to the level after it. */
 export function newGame(variant: Variant, upNext: Progress = FIRST, pick = upNext[variant]): Game {
@@ -72,13 +90,16 @@ export function newGame(variant: Variant, upNext: Progress = FIRST, pick = upNex
 }
 
 const isProgress = (value: unknown): value is Progress =>
-  typeof value === 'object' && value !== null &&
+  typeof value === 'object' &&
+  value !== null &&
   VARIANT_KEYS.every((v) => Number.isInteger((value as Record<string, unknown>)[v]));
 
 /** What's next per difficulty, as saves had it before each variant was one list. */
 type OldProgress = Record<Difficulty, number>;
 const isOldProgress = (value: unknown): value is OldProgress =>
-  typeof value === 'object' && value !== null && LEVEL_KEYS.every((d) => Number.isInteger((value as Record<string, unknown>)[d]));
+  typeof value === 'object' &&
+  value !== null &&
+  LEVEL_KEYS.every((d) => Number.isInteger((value as Record<string, unknown>)[d]));
 
 /**
  * The level after the furthest one played in any difficulty. Lists were longer then, so a count
@@ -100,27 +121,44 @@ function fromOld(variant: Variant, old: OldProgress): number {
  *   difficulty): the same puzzle, as the level it is now, and the level after the furthest played.
  */
 export function isGame(value: unknown): value is Game {
-  const g = value as (Partial<Game> & { difficulty?: unknown; number?: unknown; upNext?: unknown }) | null;
+  const g = value as
+    (Partial<Game> & { difficulty?: unknown; number?: unknown; upNext?: unknown }) | null;
   if (typeof g !== 'object' || g === null) return false;
   if (g.variant === undefined && isOldProgress(g.upNext)) {
     g.variant = 'classic';
     const classic = g.upNext;
-    (g as { upNext: unknown }).upNext = Object.fromEntries(VARIANT_KEYS.map((v) => [v, v === 'classic' ? classic : { easy: 0, medium: 0, hard: 0 }]));
+    (g as { upNext: unknown }).upNext = Object.fromEntries(
+      VARIANT_KEYS.map((v) => [v, v === 'classic' ? classic : { easy: 0, medium: 0, hard: 0 }]),
+    );
   }
-  if (g.level === undefined && isVariant(g.variant) && isDifficulty(g.difficulty) && Number.isInteger(g.number)) {
+  if (
+    g.level === undefined &&
+    isVariant(g.variant) &&
+    isDifficulty(g.difficulty) &&
+    Number.isInteger(g.number)
+  ) {
     const up = g.upNext as Record<string, unknown> | undefined;
     if (!up || !VARIANT_KEYS.every((v) => isOldProgress(up[v]))) return false;
-    g.upNext = Object.fromEntries(VARIANT_KEYS.map((v) => [v, fromOld(v, up[v] as OldProgress)])) as Progress;
-    g.level = FIRST_OF[g.variant][g.difficulty] + ((g.number as number) % PUZZLES[g.variant][g.difficulty].length);
+    g.upNext = Object.fromEntries(
+      VARIANT_KEYS.map((v) => [v, fromOld(v, up[v] as OldProgress)]),
+    ) as Progress;
+    g.level =
+      FIRST_OF[g.variant][g.difficulty] +
+      ((g.number as number) % PUZZLES[g.variant][g.difficulty].length);
     delete g.difficulty;
     delete g.number;
   }
   return (
     isVariant(g.variant) &&
-    Number.isInteger(g.level) && g.level! >= 0 && g.level! < LEVEL_LIST[g.variant].length &&
-    typeof g.fewest === 'number' && typeof g.moves === 'number' &&
-    Array.isArray(g.blocks) && isLayout(g.blocks, shape(g.variant)) &&
-    Array.isArray(g.history) && g.history.every((b) => Array.isArray(b) && b.length === g.blocks!.length) &&
+    Number.isInteger(g.level) &&
+    g.level! >= 0 &&
+    g.level! < LEVEL_LIST[g.variant].length &&
+    typeof g.fewest === 'number' &&
+    typeof g.moves === 'number' &&
+    Array.isArray(g.blocks) &&
+    isLayout(g.blocks, shape(g.variant)) &&
+    Array.isArray(g.history) &&
+    g.history.every((b) => Array.isArray(b) && b.length === g.blocks!.length) &&
     isProgress(g.upNext)
   );
 }

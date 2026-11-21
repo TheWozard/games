@@ -1,5 +1,16 @@
 // Solitaire game state and moves, as a pure reducer (apart from dealing, which uses Math.random).
-import { bestTarget, draw, finish, finishable, isWon, move, winnableDeal, type Draw, type Source, type Table } from './logic';
+import {
+  bestTarget,
+  draw,
+  finish,
+  finishable,
+  isWon,
+  move,
+  winnableDeal,
+  type Draw,
+  type Source,
+  type Table,
+} from './logic';
 
 export const STORAGE_KEY = 'games.solitaire.v1';
 const HISTORY_LIMIT = 400;
@@ -25,8 +36,17 @@ export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   const t = g?.table;
   if ((g?.draw !== 1 && g?.draw !== 3) || !t || !Array.isArray(g.history)) return false;
-  if (!Array.isArray(t.stock) || !Array.isArray(t.waste) || t.foundations?.length !== 4 || t.tableau?.length !== 7) return false;
-  const cards = t.stock.length + t.waste.length + t.foundations.reduce((a, n) => a + n, 0) +
+  if (
+    !Array.isArray(t.stock) ||
+    !Array.isArray(t.waste) ||
+    t.foundations?.length !== 4 ||
+    t.tableau?.length !== 7
+  )
+    return false;
+  const cards =
+    t.stock.length +
+    t.waste.length +
+    t.foundations.reduce((a, n) => a + n, 0) +
     t.tableau.reduce((a, c) => a + c.down.length + c.up.length, 0);
   return cards === 52;
 }

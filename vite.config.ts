@@ -13,7 +13,9 @@ const root = resolve(import.meta.dirname, 'src');
 const pages = Object.fromEntries([
   ['index', resolve(root, 'index.html')],
   ...readdirSync(root, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name !== 'dev' && existsSync(resolve(root, d.name, 'index.html')))
+    .filter(
+      (d) => d.isDirectory() && d.name !== 'dev' && existsSync(resolve(root, d.name, 'index.html')),
+    )
     .map((d) => [d.name, resolve(root, d.name, 'index.html')]),
 ]);
 

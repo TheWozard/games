@@ -41,8 +41,18 @@
   }
 
   let {
-    title, subtitle, status, onundo, canUndo = false, onopennew, finished, onnext, nextWait = 'quick',
-    wide = false, children, ...newOptions
+    title,
+    subtitle,
+    status,
+    onundo,
+    canUndo = false,
+    onopennew,
+    finished,
+    onnext,
+    nextWait = 'quick',
+    wide = false,
+    children,
+    ...newOptions
   }: Props = $props();
 
   let askingNew = $state(false);
@@ -54,7 +64,7 @@
     const made = onnext();
     if (made instanceof Promise) {
       nexting = true;
-      made.finally(() => (nexting = false));
+      void made.finally(() => (nexting = false));
     }
   }
 
@@ -78,7 +88,13 @@
   <BackButton />
   <h1>{title} <small>{subtitle}</small></h1>
   {@render status?.()}
-  {#if onundo}<IconButton icon={Undo2} strokeWidth={2.2} label="Undo" disabled={!canUndo} onclick={onundo} />{/if}
+  {#if onundo}<IconButton
+      icon={Undo2}
+      strokeWidth={2.2}
+      label="Undo"
+      disabled={!canUndo}
+      onclick={onundo}
+    />{/if}
   <IconButton icon={Plus} label="New Game" onclick={askNew} />
 </header>
 
@@ -88,4 +104,9 @@
 
 <NextButton show={finished} onclick={next} wait={nextWait} busy={nexting} />
 
-<NewDialog open={askingNew} bind:busy={starting} onclose={() => (askingNew = false)} {...newOptions} />
+<NewDialog
+  open={askingNew}
+  bind:busy={starting}
+  onclose={() => (askingNew = false)}
+  {...newOptions}
+/>

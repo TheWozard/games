@@ -8,7 +8,13 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { title, count = 0, actions, chips, children }: {
+  let {
+    title,
+    count = 0,
+    actions,
+    chips,
+    children,
+  }: {
     title: string;
     /** How many are on, shown beside the heading (left out at 0). */
     count?: number;
@@ -19,7 +25,9 @@
 </script>
 
 <div class="pick-head">
-  <h3 class="pick-title">{title}{#if count}<span class="pick-count">{count}</span>{/if}</h3>
+  <h3 class="pick-title">
+    {title}{#if count}<span class="pick-count">{count}</span>{/if}
+  </h3>
   {@render actions?.()}
 </div>
 <div class="pick pick-list">

@@ -22,7 +22,8 @@ export const DEFAULTS = Object.fromEntries(
   Object.entries(CHOICES).map(([key, choices]) => [key, choices[0]]),
 ) as Settings;
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /** The saved settings, each one a default unless it holds one of its choices. */
 export function readSettings(saved: unknown): Settings {
@@ -30,7 +31,8 @@ export function readSettings(saved: unknown): Settings {
   if (!isRecord(saved)) return settings;
   for (const key of Object.keys(CHOICES) as Setting[]) {
     const value = saved[key];
-    if ((CHOICES[key] as readonly unknown[]).includes(value)) (settings as Record<Setting, unknown>)[key] = value;
+    if ((CHOICES[key] as readonly unknown[]).includes(value))
+      (settings as Record<Setting, unknown>)[key] = value;
   }
   return settings;
 }

@@ -9,7 +9,8 @@ let host: HTMLElement | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
 let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
-const supportsPopover = () => typeof HTMLElement !== 'undefined' && 'showPopover' in HTMLElement.prototype;
+const supportsPopover = () =>
+  typeof HTMLElement !== 'undefined' && 'showPopover' in HTMLElement.prototype;
 
 function element(): HTMLElement {
   if (host?.isConnected) return host;
@@ -30,7 +31,10 @@ export interface ToastOptions {
   tone?: 'normal' | 'error';
 }
 
-export function toast(message: string, { duration = 2500, tone = 'normal' }: ToastOptions = {}): void {
+export function toast(
+  message: string,
+  { duration = 2500, tone = 'normal' }: ToastOptions = {},
+): void {
   const el = element();
   clearTimeout(hideTimer);
   clearTimeout(closeTimer);

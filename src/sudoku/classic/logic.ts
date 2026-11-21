@@ -27,7 +27,8 @@ export const boxOf = (i: number) => Math.floor(rowOf(i) / 3) * 3 + Math.floor(co
 export const PEERS: readonly (readonly number[])[] = Array.from({ length: 81 }, (_, i) => {
   const peers: number[] = [];
   for (let j = 0; j < 81; j++) {
-    if (j !== i && (rowOf(j) === rowOf(i) || colOf(j) === colOf(i) || boxOf(j) === boxOf(i))) peers.push(j);
+    if (j !== i && (rowOf(j) === rowOf(i) || colOf(j) === colOf(i) || boxOf(j) === boxOf(i)))
+      peers.push(j);
   }
   return peers;
 });
@@ -143,7 +144,10 @@ export function dig(
 export const MAX_TRIES = 200;
 
 /** A puzzle that needs the difficulty's own tier, not just easier ones: dug from new grids until one does. */
-export function generate(difficulty: Difficulty, random: () => number = Math.random): { puzzle: Grid; solution: Grid } {
+export function generate(
+  difficulty: Difficulty,
+  random: () => number = Math.random,
+): { puzzle: Grid; solution: Grid } {
   for (let tries = 1; ; tries++) {
     const solution = solvedGrid(random);
     const { puzzle, needs } = dig(solution, difficulty, random);

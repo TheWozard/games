@@ -1,5 +1,16 @@
 // Gradient game state and moves, as a pure reducer.
-import { corners, fixedTiles, isPattern, isSize, PATTERNS, shuffled, SIZES, type Lab, type Pattern, type Size } from './logic';
+import {
+  corners,
+  fixedTiles,
+  isPattern,
+  isSize,
+  PATTERNS,
+  shuffled,
+  SIZES,
+  type Lab,
+  type Pattern,
+  type Size,
+} from './logic';
 
 export const STORAGE_KEY = 'games.gradient.v1';
 const HISTORY_LIMIT = 500;
@@ -21,9 +32,7 @@ export interface Game extends Settings {
 }
 
 export type Action =
-  | { type: 'tap'; pos: number }
-  | { type: 'swap'; from: number; to: number }
-  | { type: 'undo' };
+  { type: 'tap'; pos: number } | { type: 'swap'; from: number; to: number } | { type: 'undo' };
 
 export const DEFAULT: Settings = { size: 'small', pattern: 'checker' };
 
@@ -53,9 +62,13 @@ export function isGame(value: unknown): value is Game {
   const { cols, rows } = SIZES[g.size];
   const n = cols * rows;
   return (
-    g.cols === cols && g.rows === rows &&
-    g.corners?.length === 4 && g.fixed?.length === n && g.order?.length === n &&
-    new Set(g.order).size === n && Array.isArray(g.history)
+    g.cols === cols &&
+    g.rows === rows &&
+    g.corners?.length === 4 &&
+    g.fixed?.length === n &&
+    g.order?.length === n &&
+    new Set(g.order).size === n &&
+    Array.isArray(g.history)
   );
 }
 
@@ -67,7 +80,9 @@ function swap(g: Game, from: number, to: number, record = true): Game {
     ...g,
     order,
     selected: null,
-    history: record ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT) : g.history,
+    history: record
+      ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT)
+      : g.history,
     done,
   };
 }
@@ -123,7 +138,8 @@ const OLD_LEVELS: Record<string, Settings> = {
 export function fromSaved(value: unknown): Game | null {
   if (isGame(value)) return value;
   const old = value as { difficulty?: unknown } | null;
-  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty)) return null;
+  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty))
+    return null;
   const { difficulty, ...rest } = old as { difficulty: string };
   const upgraded = { ...rest, ...OLD_LEVELS[difficulty] };
   return isGame(upgraded) ? upgraded : null;

@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { BOXES, geometry, grade } from '../classic/grade';
 import { countSolutions } from '../classic/logic';
-import { connected, DIFFICULTIES, fill, generate, hasStraightRegion, randomRegions, type Difficulty } from './logic';
+import {
+  connected,
+  DIFFICULTIES,
+  fill,
+  generate,
+  hasStraightRegion,
+  randomRegions,
+  type Difficulty,
+} from './logic';
 
 /** Every row, column and region holds 1–9 once. */
 function fits(grid: readonly number[], regions: readonly number[]): boolean {
-  return geometry(regions).units.every((u) => new Set(u.map((i) => grid[i])).size === 9 && u.every((i) => grid[i] >= 1 && grid[i] <= 9));
+  return geometry(regions).units.every(
+    (u) =>
+      new Set(u.map((i) => grid[i])).size === 9 && u.every((i) => grid[i] >= 1 && grid[i] <= 9),
+  );
 }
 
 describe('randomRegions', () => {
@@ -50,7 +61,9 @@ describe('generate', () => {
         const { regions, puzzle, solution } = generate(difficulty);
         expect(hasStraightRegion(regions)).toBe(false);
         expect(fits(solution, regions)).toBe(true);
-        puzzle.forEach((v, i) => { if (v) expect(v).toBe(solution[i]); });
+        puzzle.forEach((v, i) => {
+          if (v) expect(v).toBe(solution[i]);
+        });
         expect(puzzle.filter(Boolean).length).toBeGreaterThanOrEqual(clues);
         expect(countSolutions(puzzle.slice(), 2, geometry(regions).peers)).toBe(1);
         expect(grade(puzzle, 3, regions)).toBe(tier);

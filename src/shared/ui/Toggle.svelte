@@ -7,7 +7,13 @@
   import Check from '@lucide/svelte/icons/check';
   import type { Snippet } from 'svelte';
 
-  let { label, detail, on, onclick, aside }: {
+  let {
+    label,
+    detail,
+    on,
+    onclick,
+    aside,
+  }: {
     label: string;
     detail?: string;
     on: boolean;

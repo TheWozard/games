@@ -41,7 +41,8 @@ interface Parsed {
 /** A KMahjongg layout (v1.0, a fixed 32 × 16 × 5 board, or v1.1, which gives its size). */
 function parse(text: string): Parsed {
   const lines = text.split(/\r?\n/);
-  if (!lines[0].startsWith('kmahjongg-layout-v1')) throw new Error(`not a KMahjongg layout: ${lines[0]}`);
+  if (!lines[0].startsWith('kmahjongg-layout-v1'))
+    throw new Error(`not a KMahjongg layout: ${lines[0]}`);
   let [w, h, d] = [32, 16, 5];
   let name = '';
   let by = '';
@@ -71,9 +72,12 @@ function parse(text: string): Parsed {
 }
 
 /** Each tile as three base-36 digits, x y z (all under 36). Decoded by `decode` in archive.ts. */
-const encode = (slots: Slot[]) => slots.map(({ x, y, z }) => [x, y, z].map((n) => n.toString(36)).join('')).join('');
+const encode = (slots: Slot[]) =>
+  slots.map(({ x, y, z }) => [x, y, z].map((n) => n.toString(36)).join('')).join('');
 
-const listing = JSON.parse(await get(`https://api.github.com/repos/ffalt/mahseum/git/trees/${COMMIT}?recursive=1`)) as { tree: { path: string }[] };
+const listing = JSON.parse(
+  await get(`https://api.github.com/repos/ffalt/mahseum/git/trees/${COMMIT}?recursive=1`),
+) as { tree: { path: string }[] };
 
 const kept: string[] = [];
 const skipped: string[] = [];
@@ -83,7 +87,10 @@ for (const source of SOURCES) {
     .filter((p) => p.startsWith(`public/boards/${source.folder}/`) && p.endsWith('.layout'))
     .sort();
   for (const path of paths) {
-    const file = path.split('/').pop()!.replace(/\.layout$/, '');
+    const file = path
+      .split('/')
+      .pop()!
+      .replace(/\.layout$/, '');
     const id = `${source.folder}/${file}`;
     const { name, by, slots } = parse(await get(raw(path)));
     const problems = layoutProblems(slots);
@@ -92,7 +99,9 @@ for (const source of SOURCES) {
     if (w > MAX_W) problems.push(`${w / 2} tiles across`);
     if (h > MAX_H) problems.push(`${h / 2} tiles down`);
     if (problems.length) {
-      skipped.push(`${id} (${name}): ${[...new Set(problems.map((p) => p.replace(/ at \(.*\)$/, '')))].join('; ')}`);
+      skipped.push(
+        `${id} (${name}): ${[...new Set(problems.map((p) => p.replace(/ at \(.*\)$/, '')))].join('; ')}`,
+      );
       continue;
     }
     kept.push(

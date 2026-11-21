@@ -4,12 +4,13 @@
   /* The viewBox has a quarter-cell margin all round, so edge islands aren't cut off. */
   aspect-ratio: calc(var(--cols) + 0.5) / calc(var(--rows) + 0.5);
   user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none; /* drags and swipes on the board must not scroll the page */
 }
 
-.bridges-board .dot { fill: var(--line); }
+.bridges-board .dot {
+  fill: var(--line);
+}
 
 .bridges-board .preview {
   stroke: var(--accent);
@@ -18,7 +19,9 @@
   stroke-dasharray: 0.2 0.14;
   pointer-events: none;
 }
-.bridges-board .preview.loose { opacity: 0.4; }
+.bridges-board .preview.loose {
+  opacity: 0.4;
+}
 
 .bridges-board .trail {
   fill: none;
@@ -43,8 +46,13 @@
   outline: none;
 }
 
-.bridges-board .island { cursor: grab; outline: none; }
-.bridges-board .hit-island { fill: transparent; }
+.bridges-board .island {
+  cursor: grab;
+  outline: none;
+}
+.bridges-board .hit-island {
+  fill: transparent;
+}
 
 .bridges-board .ring {
   --ring: var(--line-strong);
@@ -65,14 +73,33 @@
 }
 
 /* Colors rule: red and blue rings only join their own color; plain islands join any. */
-.bridges-board .island.color-1 .ring { --ring: #e5534b; stroke-width: 0.1; }
-.bridges-board .island.color-2 .ring { --ring: #4f8ef7; stroke-width: 0.1; }
+.bridges-board .island.color-1 .ring {
+  --ring: #e5534b;
+  stroke-width: 0.1;
+}
+.bridges-board .island.color-2 .ring {
+  --ring: #4f8ef7;
+  stroke-width: 0.1;
+}
 
 /* Blocks: no bridge may pass. */
-.bridges-board .block { fill: var(--line); stroke: var(--muted); stroke-width: 0.04; pointer-events: none; }
+.bridges-board .block {
+  fill: var(--line);
+  stroke: var(--muted);
+  stroke-width: 0.04;
+  pointer-events: none;
+}
 
 /* Full: the island dims (mixed toward the background, still opaque, so bridges don't show through).
    Too many: a red ring and fill. */
-.bridges-board .island.full .ring { stroke: color-mix(in srgb, var(--ring) 35%, var(--surface)); }
-.bridges-board .island.full text { fill: color-mix(in srgb, var(--text) 40%, var(--surface)); }
-.bridges-board .island.over .ring { stroke: var(--danger); fill: var(--danger-soft); stroke-width: 0.1; }
+.bridges-board .island.full .ring {
+  stroke: color-mix(in srgb, var(--ring) 35%, var(--surface));
+}
+.bridges-board .island.full text {
+  fill: color-mix(in srgb, var(--text) 40%, var(--surface));
+}
+.bridges-board .island.over .ring {
+  stroke: var(--danger);
+  fill: var(--danger-soft);
+  stroke-width: 0.1;
+}

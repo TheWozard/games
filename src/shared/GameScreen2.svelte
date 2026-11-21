@@ -91,8 +91,26 @@
   }
 
   let {
-    title, subtitle, status, onundo, canUndo = false, menu, settings, dev, puzzle, onopennew, finished, onnext,
-    nextWait = 'quick', controls, board, boardKey, stageWidth = $bindable(0), stageHeight = $bindable(0), children, ...newOptions
+    title,
+    subtitle,
+    status,
+    onundo,
+    canUndo = false,
+    menu,
+    settings,
+    dev,
+    puzzle,
+    onopennew,
+    finished,
+    onnext,
+    nextWait = 'quick',
+    controls,
+    board,
+    boardKey,
+    stageWidth = $bindable(0),
+    stageHeight = $bindable(0),
+    children,
+    ...newOptions
   }: Props = $props();
 
   let menuOpen = $state(false);
@@ -104,7 +122,7 @@
   function next() {
     if (nexting || starting) return;
     nexting = true;
-    onnext().finally(() => (nexting = false));
+    void onnext().finally(() => (nexting = false));
   }
 
   function closeMenu(value: string) {
@@ -134,13 +152,27 @@
   <BackButton />
   <h1>{title} <small>{subtitle}</small></h1>
   {@render status?.()}
-  {#if onundo}<IconButton icon={Undo2} strokeWidth={2.2} label="Undo" disabled={!canUndo} onclick={onundo} />{/if}
-  <IconButton icon={MenuIcon} label="Menu" aria-haspopup="dialog" aria-expanded={menuOpen} onclick={() => (menuOpen = true)} />
+  {#if onundo}<IconButton
+      icon={Undo2}
+      strokeWidth={2.2}
+      label="Undo"
+      disabled={!canUndo}
+      onclick={onundo}
+    />{/if}
+  <IconButton
+    icon={MenuIcon}
+    label="Menu"
+    aria-haspopup="dialog"
+    aria-expanded={menuOpen}
+    onclick={() => (menuOpen = true)}
+  />
 </header>
 
 <main class="stage">
   {#if board}
-    <ZoomStage {board} key={boardKey} bind:width={stageWidth} bind:height={stageHeight}>{@render children()}</ZoomStage>
+    <ZoomStage {board} key={boardKey} bind:width={stageWidth} bind:height={stageHeight}>
+      {@render children()}
+    </ZoomStage>
   {:else}
     {@render children()}
   {/if}
@@ -177,4 +209,10 @@
   </Dialog>
 {/if}
 
-<NewDialog title="Customize" open={askingNew} bind:busy={starting} onclose={() => (askingNew = false)} {...newOptions} />
+<NewDialog
+  title="Customize"
+  open={askingNew}
+  bind:busy={starting}
+  onclose={() => (askingNew = false)}
+  {...newOptions}
+/>

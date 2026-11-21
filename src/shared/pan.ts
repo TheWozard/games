@@ -16,7 +16,10 @@ export interface PanOptions {
   startsPan?: (e: PointerEvent) => boolean;
 }
 
-export function attachPan(board: HTMLElement | SVGElement, { max, get, set, onPanning, startsPan }: PanOptions): () => void {
+export function attachPan(
+  board: HTMLElement | SVGElement,
+  { max, get, set, onPanning, startsPan }: PanOptions,
+): () => void {
   // An SVG board (Nonogram) gets the same pointer and wheel events; typed as one for the listeners.
   const el = board as HTMLElement;
   const clamp = (x: number) => Math.min(Math.max(0, x), max());
@@ -25,7 +28,8 @@ export function attachPan(board: HTMLElement | SVGElement, { max, get, set, onPa
 
   const down = (e: PointerEvent) => {
     justPanned = false;
-    if (max() > 0 && e.isPrimary && (startsPan?.(e) ?? true)) pan = { id: e.pointerId, x0: e.clientX, start: get(), moved: false };
+    if (max() > 0 && e.isPrimary && (startsPan?.(e) ?? true))
+      pan = { id: e.pointerId, x0: e.clientX, start: get(), moved: false };
   };
   const move = (e: PointerEvent) => {
     if (!pan || e.pointerId !== pan.id) return;

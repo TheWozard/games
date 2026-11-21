@@ -86,21 +86,31 @@ export function solutions(
       for (let c = 0; c < n && ok; c++) if (m & (1 << c) && colCount[c] >= k) ok = false;
       if (!ok) continue;
       if (regions) {
-        for (let c = 0; c < n && ok; c++) if (m & (1 << c) && regCount[regions[r * n + c]] >= k) ok = false;
+        for (let c = 0; c < n && ok; c++)
+          if (m & (1 << c) && regCount[regions[r * n + c]] >= k) ok = false;
         if (!ok) continue;
       }
-      for (let c = 0; c < n; c++) if (m & (1 << c)) { colCount[c]++; if (regions) regCount[regions[r * n + c]]++; }
+      for (let c = 0; c < n; c++)
+        if (m & (1 << c)) {
+          colCount[c]++;
+          if (regions) regCount[regions[r * n + c]]++;
+        }
       // Each column can still take at most one star every other row; each region only has its
       // cells further down.
       let fine = true;
       for (let c = 0; c < n && fine; c++) if (k - colCount[c] > Math.ceil(left / 2)) fine = false;
-      if (fine && regions) for (let g = 0; g < n && fine; g++) if (k - regCount[g] > regLeft[r + 1][g]) fine = false;
+      if (fine && regions)
+        for (let g = 0; g < n && fine; g++) if (k - regCount[g] > regLeft[r + 1][g]) fine = false;
       if (fine) {
         rows.push(m);
         walk(r + 1, m);
         rows.pop();
       }
-      for (let c = 0; c < n; c++) if (m & (1 << c)) { colCount[c]--; if (regions) regCount[regions[r * n + c]]--; }
+      for (let c = 0; c < n; c++)
+        if (m & (1 << c)) {
+          colCount[c]--;
+          if (regions) regCount[regions[r * n + c]]--;
+        }
       if (found.length >= limit || out) return;
     }
   };
@@ -139,7 +149,10 @@ function growRegions(n: number, k: number, stars: number[], random: Random): num
           if (from.has(j) || region[j] >= 0) continue;
           from.set(j, queue[q]);
           if (isStar.has(j)) {
-            if (left.includes(j)) { b = j; break; }
+            if (left.includes(j)) {
+              b = j;
+              break;
+            }
             continue; // another region's star: not through it
           }
           queue.push(j);
@@ -154,7 +167,8 @@ function growRegions(n: number, k: number, stars: number[], random: Random): num
   // Grow: a random free cell beside a region joins it.
   for (;;) {
     const edge: number[] = [];
-    for (let i = 0; i < n * n; i++) if (region[i] < 0 && sides(n, i).some((j) => region[j] >= 0)) edge.push(i);
+    for (let i = 0; i < n * n; i++)
+      if (region[i] < 0 && sides(n, i).some((j) => region[j] >= 0)) edge.push(i);
     if (!edge.length) break;
     const i = edge[Math.floor(random() * edge.length)];
     const near = sides(n, i).filter((j) => region[j] >= 0);
@@ -177,12 +191,21 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
       const found = solutions(n, k, regions);
       if (!found) break;
       if (found.length === 1) return { size: n, stars: k, regions, solution };
-      const other = toCells(n, found.find((rows) => toCells(n, rows).some((s, i) => s !== solution[i]))!);
-      const moves = shuffle(other.flatMap((s, i) => (s && !solution[i] ? [i] : [])), random);
+      const other = toCells(
+        n,
+        found.find((rows) => toCells(n, rows).some((s, i) => s !== solution[i]))!,
+      );
+      const moves = shuffle(
+        other.flatMap((s, i) => (s && !solution[i] ? [i] : [])),
+        random,
+      );
       let moved = false;
       for (const x of moves) {
         const g = regions[x];
-        const into = shuffle(sides(n, x).filter((j) => regions[j] !== g), random);
+        const into = shuffle(
+          sides(n, x).filter((j) => regions[j] !== g),
+          random,
+        );
         // The region it leaves must stay in one piece, and keep a cell.
         if (!into.length || !connected(n, (i) => i !== x && regions[i] === g)) continue;
         if (!regions.some((v, i) => i !== x && v === g)) continue;
@@ -198,7 +221,10 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
 // ---- Checks ----
 
 /** Stars that break a rule: touching another star, or one too many in their row, column or region. */
-export function conflicts(p: Pick<Puzzle, 'size' | 'stars' | 'regions'>, stars: boolean[]): boolean[] {
+export function conflicts(
+  p: Pick<Puzzle, 'size' | 'stars' | 'regions'>,
+  stars: boolean[],
+): boolean[] {
   const n = p.size;
   const row = new Array<number>(n).fill(0);
   const col = new Array<number>(n).fill(0);
@@ -209,8 +235,13 @@ export function conflicts(p: Pick<Puzzle, 'size' | 'stars' | 'regions'>, stars: 
     col[i % n]++;
     reg[p.regions[i]]++;
   });
-  return stars.map((s, i) =>
-    s && (row[Math.floor(i / n)] > p.stars || col[i % n] > p.stars || reg[p.regions[i]] > p.stars || around(n, i).some((j) => stars[j])),
+  return stars.map(
+    (s, i) =>
+      s &&
+      (row[Math.floor(i / n)] > p.stars ||
+        col[i % n] > p.stars ||
+        reg[p.regions[i]] > p.stars ||
+        around(n, i).some((j) => stars[j])),
   );
 }
 
@@ -218,8 +249,15 @@ export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzl
   const p = value as Puzzle | null;
   const { size: n, stars: k } = DIFFICULTIES[difficulty];
   return (
-    typeof p === 'object' && p !== null && p.size === n && p.stars === k &&
-    Array.isArray(p.regions) && p.regions.length === n * n && p.regions.every((g) => Number.isInteger(g) && g >= 0 && g < n) &&
-    Array.isArray(p.solution) && p.solution.length === n * n && p.solution.every((s) => typeof s === 'boolean')
+    typeof p === 'object' &&
+    p !== null &&
+    p.size === n &&
+    p.stars === k &&
+    Array.isArray(p.regions) &&
+    p.regions.length === n * n &&
+    p.regions.every((g) => Number.isInteger(g) && g >= 0 && g < n) &&
+    Array.isArray(p.solution) &&
+    p.solution.length === n * n &&
+    p.solution.every((s) => typeof s === 'boolean')
   );
 }

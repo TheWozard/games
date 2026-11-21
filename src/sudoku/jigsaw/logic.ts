@@ -7,7 +7,14 @@
 // (about half fill). Then the grid is dug out like Classic's, rated by the same techniques, until
 // a dig needs the difficulty's own tier.
 import { BOXES, geometry, type Geometry } from '../classic/grade';
-import { dig, DIFFICULTIES, MAX_TRIES, shuffle, type Difficulty, type Grid } from '../classic/logic';
+import {
+  dig,
+  DIFFICULTIES,
+  MAX_TRIES,
+  shuffle,
+  type Difficulty,
+  type Grid,
+} from '../classic/logic';
 
 export { DIFFICULTIES, isDifficulty, type Difficulty } from '../classic/logic';
 
@@ -55,7 +62,9 @@ export function randomRegions(random: Random = Math.random): number[] {
     if (!across.length) continue;
     const B = regions[pick(across, random)];
     // A cell of B that borders A (other than through a) goes the other way.
-    const back = regions.flatMap((r, c) => (r === B && orthogonal(c).some((j) => j !== a && regions[j] === A) ? [c] : []));
+    const back = regions.flatMap((r, c) =>
+      r === B && orthogonal(c).some((j) => j !== a && regions[j] === A) ? [c] : [],
+    );
     if (!back.length) continue;
     const c = pick(back, random);
     regions[a] = B;
@@ -67,7 +76,11 @@ export function randomRegions(random: Random = Math.random): number[] {
 }
 
 const ALL = 0x3fe; // bits 1..9
-const bitCount = (m: number) => { let n = 0; for (; m; n++) m &= m - 1; return n; };
+const bitCount = (m: number) => {
+  let n = 0;
+  for (; m; n++) m &= m - 1;
+  return n;
+};
 const lowBit = (m: number) => 31 - Math.clz32(m & -m);
 
 /**
@@ -84,7 +97,7 @@ export function fill(g: Geometry, random: Random, budget: number): Grid | null {
   };
   const search = (values: number[], cand: number[]): Grid | null => {
     if (++guesses > budget) return null;
-    for (let changed = true; changed; ) {
+    for (let changed = true; changed;) {
       changed = false;
       for (let i = 0; i < 81; i++) {
         if (values[i]) continue;
@@ -100,8 +113,14 @@ export function fill(g: Geometry, random: Random, budget: number): Grid | null {
           let at = -1;
           let n = 0;
           for (const i of unit) {
-            if (values[i] === d) { n = -1; break; }
-            if (cand[i] & (1 << d)) { at = i; n++; }
+            if (values[i] === d) {
+              n = -1;
+              break;
+            }
+            if (cand[i] & (1 << d)) {
+              at = i;
+              n++;
+            }
           }
           if (n === 0) return null;
           if (n === 1) {
@@ -135,7 +154,11 @@ export function fill(g: Geometry, random: Random, budget: number): Grid | null {
 export function hasStraightRegion(regions: readonly number[]): boolean {
   for (let k = 0; k < 9; k++) {
     const cells = regions.flatMap((r, i) => (r === k ? [i] : []));
-    if (cells.every((i) => Math.floor(i / 9) === Math.floor(cells[0] / 9)) || cells.every((i) => i % 9 === cells[0] % 9)) return true;
+    if (
+      cells.every((i) => Math.floor(i / 9) === Math.floor(cells[0] / 9)) ||
+      cells.every((i) => i % 9 === cells[0] % 9)
+    )
+      return true;
   }
   return false;
 }
@@ -152,14 +175,15 @@ export interface Puzzle {
 }
 
 export function generate(difficulty: Difficulty, random: Random = Math.random): Puzzle {
-  for (let tries = 1; ; ) {
+  for (let tries = 1; ;) {
     const regions = randomRegions(random);
     if (hasStraightRegion(regions)) continue;
     const solution = fill(geometry(regions), random, FILL_BUDGET);
     if (!solution) continue;
     for (let k = 0; k < DIGS; k++, tries++) {
       const { puzzle, needs } = dig(solution, difficulty, random, regions);
-      if (needs === DIFFICULTIES[difficulty].tier || tries >= MAX_TRIES) return { regions, puzzle, solution };
+      if (needs === DIFFICULTIES[difficulty].tier || tries >= MAX_TRIES)
+        return { regions, puzzle, solution };
     }
   }
 }

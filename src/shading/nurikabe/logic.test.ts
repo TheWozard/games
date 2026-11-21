@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { nurikabeValid, seeded, subsets } from '../rules.test-helpers';
-import { conflicts, DIFFICULTIES, generate, isPuzzle, isUnique, solutions, type Difficulty } from './logic';
+import {
+  conflicts,
+  DIFFICULTIES,
+  generate,
+  isPuzzle,
+  isUnique,
+  solutions,
+  type Difficulty,
+} from './logic';
 
 describe('solutions', () => {
   it('finds exactly the answers brute force does, on small boards', () => {
@@ -8,9 +16,13 @@ describe('solutions', () => {
     let checked = 0;
     for (let run = 0; run < 60; run++) {
       const n = 4;
-      const clues = Array.from({ length: n * n }, () => (random() < 0.2 ? 1 + Math.floor(random() * 4) : null));
+      const clues = Array.from({ length: n * n }, () =>
+        random() < 0.2 ? 1 + Math.floor(random() * 4) : null,
+      );
       if (clues.every((v) => v === null)) continue;
-      const want = [...subsets(n, (i) => clues[i] === null)].filter((sea) => nurikabeValid(n, clues, sea));
+      const want = [...subsets(n, (i) => clues[i] === null)].filter((sea) =>
+        nurikabeValid(n, clues, sea),
+      );
       const got = solutions({ size: n, clues }, 1000)!;
       expect(got.length).toBe(want.length);
       for (const sea of got) expect(nurikabeValid(n, clues, sea)).toBe(true);

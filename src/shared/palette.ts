@@ -18,5 +18,16 @@ export const PALETTE = [
 
 /** What each of PALETTE's colors is called, for screen readers. */
 export const PALETTE_NAMES = [
-  'Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange', 'Teal', 'Pink', 'Lime', 'Brown', 'White', 'Indigo',
+  'Red',
+  'Blue',
+  'Yellow',
+  'Green',
+  'Purple',
+  'Orange',
+  'Teal',
+  'Pink',
+  'Lime',
+  'Brown',
+  'White',
+  'Indigo',
 ] as const;

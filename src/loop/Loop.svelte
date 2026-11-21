@@ -5,37 +5,67 @@
   import { generateInBackground } from './background';
   import { CROSS, gameOf, isGame, LINE, newGame, reducer, STORAGE_KEY, type Action } from './game';
   import {
-    cellEdges, DARK, DIFFICULTIES, dotEdges, dotIndex, edgeEnds, isDifficulty, isSlow, NO_RULES, RULES, wait,
-    type Difficulty, type Rule, type Rules,
+    cellEdges,
+    DARK,
+    DIFFICULTIES,
+    dotEdges,
+    dotIndex,
+    edgeEnds,
+    isDifficulty,
+    isSlow,
+    NO_RULES,
+    RULES,
+    wait,
+    type Difficulty,
+    type Rule,
+    type Rules,
   } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [
+      DIFFICULTIES[game.difficulty].label,
+      ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label),
+    ].join(' · '),
   );
   const edges = $derived(game.marks.map((_, e) => edgeEnds(game, e)));
 
   // Clue cells: how many of their sides are lines so far.
   const around = $derived(
-    game.clues.map((_, i) => cellEdges(game, Math.floor(i / game.cols), i % game.cols).filter((e) => game.marks[e] === LINE).length),
+    game.clues.map(
+      (_, i) =>
+        cellEdges(game, Math.floor(i / game.cols), i % game.cols).filter(
+          (e) => game.marks[e] === LINE,
+        ).length,
+    ),
   );
   // Lines meeting at each dot: more than two would branch; a ring is met at exactly two.
   const degree = $derived(
-    Array.from({ length: (game.rows + 1) * (game.cols + 1) }, (_, d) =>
-      dotEdges(game, Math.floor(d / (game.cols + 1)), d % (game.cols + 1)).filter((e) => game.marks[e] === LINE).length,
+    Array.from(
+      { length: (game.rows + 1) * (game.cols + 1) },
+      (_, d) =>
+        dotEdges(game, Math.floor(d / (game.cols + 1)), d % (game.cols + 1)).filter(
+          (e) => game.marks[e] === LINE,
+        ).length,
     ),
   );
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.cols}×${d.rows}` }]),
+    Object.entries(DIFFICULTIES).map(([k, d]) => [
+      k,
+      { label: d.label, detail: `${d.cols}×${d.rows}` },
+    ]),
   ) as Record<Difficulty, { label: string; detail: string }>;
 
   // The New dialog's picks, starting from the current game's settings.
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
+    difficulty: 'easy',
+    rules: { ...NO_RULES },
+  });
   function askNew() {
     choice = { difficulty: game.difficulty, rules: { ...game.rules } };
   }
@@ -53,7 +83,8 @@
   }
 
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) return make(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty))
+      return make(choice.difficulty, choice.rules);
   }
 </script>
 
@@ -86,14 +117,23 @@
       {#each game.clues as clue, i (i)}
         {#if clue !== null}
           {#if around[i] > clue}
-            <rect class="over" x={(i % game.cols) + 0.2} y={Math.floor(i / game.cols) + 0.2} width="0.6" height="0.6" rx="0.12" />
+            <rect
+              class="over"
+              x={(i % game.cols) + 0.2}
+              y={Math.floor(i / game.cols) + 0.2}
+              width="0.6"
+              height="0.6"
+              rx="0.12"
+            />
           {/if}
           <text
             class={['clue', { met: clue > 0 && around[i] === clue }]}
             data-n={clue}
             x={(i % game.cols) + 0.5}
             y={Math.floor(i / game.cols) + 0.53}
-          >{clue}</text>
+          >
+            {clue}
+          </text>
         {/if}
       {/each}
 
@@ -116,7 +156,10 @@
         {:else if game.marks[e] === CROSS}
           {@const x = (c1 + c2) / 2}
           {@const y = (r1 + r2) / 2}
-          <path class="cross" d="M{x - 0.09} {y - 0.09}l0.18 0.18M{x + 0.09} {y - 0.09}l-0.18 0.18" />
+          <path
+            class="cross"
+            d="M{x - 0.09} {y - 0.09}l0.18 0.18M{x + 0.09} {y - 0.09}l-0.18 0.18"
+          />
         {/if}
         <!-- Wide invisible target: a tap cycles the side through empty, line and cross. -->
         <line

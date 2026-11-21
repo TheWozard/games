@@ -11,7 +11,10 @@
   import Choice from './ui/Choice.svelte';
   import PickGroup from './ui/PickGroup.svelte';
   /** Each game's tab name, and its choices under a heading. Choice values are "<game>:<setting>". */
-  export type Games = Record<string, { label: string; title: string; options: { value: string; label: string; detail?: string }[] }>;
+  export type Games = Record<
+    string,
+    { label: string; title: string; options: { value: string; label: string; detail?: string }[] }
+  >;
 
   /** A pick's game and setting, if it's one of `games`' choices. */
   export function parsePick(games: Games, value: string): { game: string; setting: string } | null {
@@ -55,11 +58,18 @@
 
 <div class="pick-tabs" role="tablist" aria-label="Game" bind:this={row}>
   {#each Object.entries(games) as [key, g] (key)}
-    <button type="button" role="tab" aria-selected={shown === key} onclick={() => show(key)}>{g.label}</button>
+    <button type="button" role="tab" aria-selected={shown === key} onclick={() => show(key)}>
+      {g.label}
+    </button>
   {/each}
 </div>
 <PickGroup title={games[shown].title}>
   {#each games[shown].options as option (option.value)}
-    <Choice label={option.label} detail={option.detail} pressed={value === option.value} onclick={() => (value = option.value)} />
+    <Choice
+      label={option.label}
+      detail={option.detail}
+      pressed={value === option.value}
+      onclick={() => (value = option.value)}
+    />
   {/each}
 </PickGroup>

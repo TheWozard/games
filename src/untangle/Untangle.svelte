@@ -6,8 +6,29 @@
   import { Tween } from 'svelte/motion';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
-  import { DEFAULT, describe, fromSaved, newGame, reducer, settingsOf, STORAGE_KEY, type Action } from './game';
-  import { boardFor, crossings, dotRadius, SIZES, STARTS, STYLES, type Point, type Settings, type Size, type Start, type Style } from './logic';
+  import {
+    DEFAULT,
+    describe,
+    fromSaved,
+    newGame,
+    reducer,
+    settingsOf,
+    STORAGE_KEY,
+    type Action,
+  } from './game';
+  import {
+    boardFor,
+    crossings,
+    dotRadius,
+    SIZES,
+    STARTS,
+    STYLES,
+    type Point,
+    type Settings,
+    type Size,
+    type Start,
+    type Style,
+  } from './logic';
 
   const anything = (_value: unknown): _value is unknown => true;
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame(DEFAULT));
@@ -21,12 +42,15 @@
 
   // Where the dots are drawn: right where the game has them, except that after a drop, dots the
   // game nudged off lines (or clear of each other) glide there.
-  const shown = new Tween<Point[]>(untrack(() => game.points), { easing: cubicOut });
+  const shown = new Tween<Point[]>(
+    untrack(() => game.points),
+    { easing: cubicOut },
+  );
   let glide = false;
   // Before drawing, so a drag follows the finger in the same frame.
   $effect.pre(() => {
     const points = game.points;
-    shown.set(points, { duration: untrack(() => glide) ? 260 : 0 });
+    void shown.set(points, { duration: untrack(() => glide) ? 260 : 0 });
     glide = false;
   });
   // A new puzzle may have more dots than the last: until the tween has caught up, its own.
@@ -45,7 +69,9 @@
     return [...ks.filter((k) => !held(k)), ...ks.filter(held)];
   });
   const neighbors = $derived(
-    dragging === null ? new Set<number>() : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
+    dragging === null
+      ? new Set<number>()
+      : new Set(game.edges.flatMap(([a, b]) => (a === dragging ? [b] : b === dragging ? [a] : []))),
   );
 
   // The board fills all the space it's given; when that changes shape (rotation, another
@@ -55,7 +81,8 @@
   const board = $derived(boardFor(areaW, areaH));
   $effect(() => {
     const to = board;
-    if (areaW > 0 && areaH > 0 && dragging === null) untrack(() => dispatch({ type: 'resize', board: to }));
+    if (areaW > 0 && areaH > 0 && dragging === null)
+      untrack(() => dispatch({ type: 'resize', board: to }));
   });
 
   // Save whenever the game changes, except mid-drag (a drop saves the result).
@@ -107,14 +134,27 @@
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
   onopennew={askNew}
-  onstart={(value) => { if (value === 'start') game = newGame(choice, game); }}
+  onstart={(value) => {
+    if (value === 'start') game = newGame(choice, game);
+  }}
   finished={game.done}
   onnext={() => (game = newGame(game, game))}
 >
   {#snippet status()}
     {#if !game.done}
-      <span class="tangle-count" aria-live="polite" aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      <span
+        class="tangle-count"
+        aria-live="polite"
+        aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M3 3l10 10M13 3L3 13"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
         {tangle.count}
       </span>
     {/if}
@@ -122,7 +162,11 @@
   {#snippet picker()}
     <PickGroup title="Dots">
       {#each Object.entries(SIZES) as [key, s] (key)}
-        <Choice label={s.label} pressed={choice.size === key} onclick={() => (choice.size = key as Size)} />
+        <Choice
+          label={s.label}
+          pressed={choice.size === key}
+          onclick={() => (choice.size = key as Size)}
+        />
       {/each}
     </PickGroup>
 
@@ -139,7 +183,11 @@
 
     <PickGroup title="Layout" class="starts">
       {#each Object.entries(STARTS) as [key, s] (key)}
-        <Choice label={s.label} pressed={choice.start === key} onclick={() => (choice.start = key as Start)} />
+        <Choice
+          label={s.label}
+          pressed={choice.start === key}
+          onclick={() => (choice.start = key as Start)}
+        />
       {/each}
     </PickGroup>
   {/snippet}
@@ -159,14 +207,19 @@
            small gap in the earlier and they read as separate strands. -->
       {#each edgeOrder as k (k)}
         {@const [a, b] = game.edges[k]}
-        <g class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}>
+        <g
+          class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}
+        >
           <line class="casing" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
           <line class="strand" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
         </g>
       {/each}
       {#each view as [x, y], i (i)}
         <g
-          class={['dot', { held: dragging === i, near: neighbors.has(i), touching: tangle.touching[i] }]}
+          class={[
+            'dot',
+            { held: dragging === i, near: neighbors.has(i), touching: tangle.touching[i] },
+          ]}
           role="button"
           tabindex="-1"
           aria-label="Dot {i + 1}"

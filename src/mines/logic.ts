@@ -19,8 +19,10 @@ export const DENSITIES = {
 export type Size = keyof typeof SIZES;
 export type Density = keyof typeof DENSITIES;
 
-export const isSize = (value: unknown): value is Size => typeof value === 'string' && Object.hasOwn(SIZES, value);
-export const isDensity = (value: unknown): value is Density => typeof value === 'string' && Object.hasOwn(DENSITIES, value);
+export const isSize = (value: unknown): value is Size =>
+  typeof value === 'string' && Object.hasOwn(SIZES, value);
+export const isDensity = (value: unknown): value is Density =>
+  typeof value === 'string' && Object.hasOwn(DENSITIES, value);
 
 /** How many mines a board of `size` gets at `density`. */
 export const mineCount = (size: Size, density: Density) =>
@@ -53,7 +55,12 @@ export function counts(mines: readonly boolean[], board: Board): number[] {
 }
 
 /** Cells uncovered by revealing `start`: it, plus everything reachable through zero-count cells. */
-export function flood(start: number, near: readonly number[], board: Board, blocked: (i: number) => boolean): number[] {
+export function flood(
+  start: number,
+  near: readonly number[],
+  board: Board,
+  blocked: (i: number) => boolean,
+): number[] {
   const seen = new Set([start]);
   const queue = [start];
   for (let k = 0; k < queue.length; k++) {
@@ -72,7 +79,12 @@ export function flood(start: number, near: readonly number[], board: Board, bloc
 const MAX_ATTEMPTS = 1000;
 
 /** A mine layout with `first` and its neighbors clear, solvable from `first` without guessing. */
-export function placeMines(board: Board, count: number, first: number, random: Random = Math.random): boolean[] {
+export function placeMines(
+  board: Board,
+  count: number,
+  first: number,
+  random: Random = Math.random,
+): boolean[] {
   const total = board.rows * board.cols;
   const keepClear = new Set([first, ...neighbors(first, board)]);
   const open = [...Array(total).keys()].filter((i) => !keepClear.has(i));
@@ -100,7 +112,9 @@ export function solvable(mines: readonly boolean[], board: Board, first: number)
   const total = mines.length;
   const mineCount = mines.filter(Boolean).length;
   const near = counts(mines, board);
-  const UNKNOWN = 0, SAFE = 1, MINE = 2;
+  const UNKNOWN = 0,
+    SAFE = 1,
+    MINE = 2;
   const known = new Array<number>(total).fill(UNKNOWN);
   let safeLeft = total - mineCount;
   let minesLeft = mineCount;

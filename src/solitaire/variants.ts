@@ -13,7 +13,10 @@ export type Variant = (typeof VARIANTS)[number];
 export const isVariant = (value: unknown): value is Variant => VARIANTS.includes(value as Variant);
 
 /** Each game's name, and its New Game choices under a heading. */
-export const GAMES: Record<Variant, { label: string; title: string; options: { value: string; label: string; detail: string }[] }> = {
+export const GAMES: Record<
+  Variant,
+  { label: string; title: string; options: { value: string; label: string; detail: string }[] }
+> = {
   klondike: {
     label: 'Klondike',
     title: 'Difficulty',
@@ -25,7 +28,11 @@ export const GAMES: Record<Variant, { label: string; title: string; options: { v
   freecell: {
     label: 'FreeCell',
     title: 'Difficulty',
-    options: Object.entries(FREECELL).map(([key, d]) => ({ value: `freecell:${key}`, label: d.label, detail: `${d.cells} cells` })),
+    options: Object.entries(FREECELL).map(([key, d]) => ({
+      value: `freecell:${key}`,
+      label: d.label,
+      detail: `${d.cells} cells`,
+    })),
   },
 };
 

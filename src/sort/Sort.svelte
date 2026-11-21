@@ -5,13 +5,25 @@
   import { createShake } from '../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { capacity, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { DIFFICULTIES, isDifficulty, NO_RULES, pourAmount, RULES, type Difficulty, type Rule, type Rules } from './logic';
+  import {
+    DIFFICULTIES,
+    isDifficulty,
+    NO_RULES,
+    pourAmount,
+    RULES,
+    type Difficulty,
+    type Rule,
+    type Rules,
+  } from './logic';
 
   let game = $state.raw(loadJSON(STORAGE_KEY, isGame) ?? newGame('easy'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
   const label = $derived(
-    [DIFFICULTIES[game.difficulty].label, ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label)].join(' · '),
+    [
+      DIFFICULTIES[game.difficulty].label,
+      ...(Object.keys(RULES) as Rule[]).filter((k) => game.rules[k]).map((k) => RULES[k].label),
+    ].join(' · '),
   );
 
   // Layout, in tube widths: up to six tubes a row; a little headroom above each row for lifting.
@@ -54,7 +66,11 @@
     let bestScale = 0;
     for (let k = Math.min(n, 7); k >= Math.ceil(n / 4); k--) {
       const r = Math.ceil(n / k);
-      const scale = Math.min(MAX_TUBE_PX, areaW / (k + (k - 1) * GAP + 0.4), areaH / (r * (TUBE_H + ROW_GAP) + 0.2));
+      const scale = Math.min(
+        MAX_TUBE_PX,
+        areaW / (k + (k - 1) * GAP + 0.4),
+        areaH / (r * (TUBE_H + ROW_GAP) + 0.2),
+      );
       if (scale > bestScale * 1.02) {
         best = k;
         bestScale = scale;
@@ -63,7 +79,10 @@
     return best;
   });
   const rows = $derived(Math.ceil(game.tubes.length / perRow));
-  const box = $derived({ w: perRow + (perRow - 1) * GAP + 0.4, h: rows * (TUBE_H + ROW_GAP) + 0.2 });
+  const box = $derived({
+    w: perRow + (perRow - 1) * GAP + 0.4,
+    h: rows * (TUBE_H + ROW_GAP) + 0.2,
+  });
   const place = (t: number) => {
     const row = Math.floor(t / perRow);
     const inRow = row === rows - 1 ? game.tubes.length - row * perRow : perRow;
@@ -76,20 +95,32 @@
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   const sizes = Object.fromEntries(
-    Object.entries(DIFFICULTIES).map(([k, d]) => [k, { label: d.label, detail: `${d.colors} colors` }]),
+    Object.entries(DIFFICULTIES).map(([k, d]) => [
+      k,
+      { label: d.label, detail: `${d.colors} colors` },
+    ]),
   ) as Record<Difficulty, { label: string; detail: string }>;
 
   // The New Game picks, starting from the current game's; Play starts them.
-  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({ difficulty: 'easy', rules: { ...NO_RULES } });
+  let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
+    difficulty: 'easy',
+    rules: { ...NO_RULES },
+  });
 
   function start(value: string) {
-    if (value === 'start' && isDifficulty(choice.difficulty)) game = newGame(choice.difficulty, choice.rules);
+    if (value === 'start' && isDifficulty(choice.difficulty))
+      game = newGame(choice.difficulty, choice.rules);
   }
 
   function tap(t: number) {
     const from = game.selected;
     // A pour that isn't allowed onto a tube that's full or empty: give it a little shake.
-    if (from !== null && from !== t && pourAmount(game.tubes, from, t, cap, game.hidden) === 0 && !game.tubes[t].length) {
+    if (
+      from !== null &&
+      from !== t &&
+      pourAmount(game.tubes, from, t, cap, game.hidden) === 0 &&
+      !game.tubes[t].length
+    ) {
       shake.start(t);
     }
     dispatch({ type: 'tap', tube: t });
@@ -113,11 +144,28 @@
     <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
   <div class="board-area">
-    <svg class={['sort-board', { done: game.done }]} viewBox="0 0 {box.w} {box.h}" style:--w={box.w} style:--h={box.h} role="group" aria-label="Tubes">
+    <svg
+      class={['sort-board', { done: game.done }]}
+      viewBox="0 0 {box.w} {box.h}"
+      style:--w={box.w}
+      style:--h={box.h}
+      role="group"
+      aria-label="Tubes"
+    >
       {#each game.tubes as tube, t (t)}
         {@const p = place(t)}
         <g
-          class={['tube', { selected: game.selected === t, shake: shake.current === t, full: tube.length === cap && tube.every((c) => c === tube[0]) && !game.hidden[t].some(Boolean) }]}
+          class={[
+            'tube',
+            {
+              selected: game.selected === t,
+              shake: shake.current === t,
+              full:
+                tube.length === cap &&
+                tube.every((c) => c === tube[0]) &&
+                !game.hidden[t].some(Boolean),
+            },
+          ]}
           style:transform="translate({p.x}px, {p.y}px)"
           role="button"
           tabindex="-1"

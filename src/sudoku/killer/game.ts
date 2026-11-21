@@ -24,7 +24,10 @@ export function isGame(value: unknown): value is Game {
 }
 
 /** Layout derived from the cages, cached per game (cages never change during a game). */
-const cache = new WeakMap<Cage[], { cageOf: number[]; peers: number[][]; sumAt: Map<number, number>; colorOf: number[] }>();
+const cache = new WeakMap<
+  Cage[],
+  { cageOf: number[]; peers: number[][]; sumAt: Map<number, number>; colorOf: number[] }
+>();
 
 export const ZONES = 5;
 
@@ -78,7 +81,9 @@ function cageInfo(cages: Cage[]) {
   if (!info) {
     const cageOf = new Array<number>(81);
     cages.forEach((c, k) => c.cells.forEach((i) => (cageOf[i] = k)));
-    const peers = PEERS.map((p, i) => [...new Set([...p, ...cages[cageOf[i]].cells])].filter((j) => j !== i));
+    const peers = PEERS.map((p, i) =>
+      [...new Set([...p, ...cages[cageOf[i]].cells])].filter((j) => j !== i),
+    );
     const sumAt = new Map(cages.filter((c) => c.cells.length > 1).map((c) => [c.cells[0], c.sum]));
     info = { cageOf, peers, sumAt, colorOf: cageColors(cages, cageOf) };
     cache.set(cages, info);

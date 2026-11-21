@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { counts, DENSITIES, mineCount, neighbors, placeMines, SIZES, solvable, type Density, type Size } from './logic';
+import {
+  counts,
+  DENSITIES,
+  mineCount,
+  neighbors,
+  placeMines,
+  SIZES,
+  solvable,
+  type Density,
+  type Size,
+} from './logic';
 
 describe('placeMines', () => {
   for (const size of Object.keys(SIZES) as Size[]) {
@@ -19,7 +29,11 @@ describe('placeMines', () => {
   }
 
   it('keeps the old Easy, Medium and Hard mine counts', () => {
-    expect([mineCount('small', 'few'), mineCount('medium', 'some'), mineCount('large', 'many')]).toEqual([10, 22, 40]);
+    expect([
+      mineCount('small', 'few'),
+      mineCount('medium', 'some'),
+      mineCount('large', 'many'),
+    ]).toEqual([10, 22, 40]);
   });
 });
 

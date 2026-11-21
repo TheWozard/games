@@ -9,7 +9,11 @@
   import MenuItem from '../shared/ui/MenuItem.svelte';
   import { pairsLeft, reducer, replayOf, type Deal, type Game } from './game';
 
-  let { game, set, deal }: { game: Game; set: (game: Game) => void; deal: (deal: Deal) => unknown } = $props();
+  let {
+    game,
+    set,
+    deal,
+  }: { game: Game; set: (game: Game) => void; deal: (deal: Deal) => unknown } = $props();
 
   const win = () => set({ ...game, gone: game.gone.map(() => true), selected: null, done: true });
 

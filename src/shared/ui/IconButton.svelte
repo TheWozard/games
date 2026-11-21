@@ -16,7 +16,15 @@
     class?: string;
   }
 
-  let { icon: Icon, label, href, disabled = false, strokeWidth = 2.4, class: className, ...rest }: Props = $props();
+  let {
+    icon: Icon,
+    label,
+    href,
+    disabled = false,
+    strokeWidth = 2.4,
+    class: className,
+    ...rest
+  }: Props = $props();
 </script>
 
 {#if href}
@@ -24,7 +32,14 @@
     <Icon {strokeWidth} aria-hidden="true" />
   </a>
 {:else}
-  <button type="button" class={['icon-btn', className]} aria-label={label} title={label} {disabled} {...rest}>
+  <button
+    type="button"
+    class={['icon-btn', className]}
+    aria-label={label}
+    title={label}
+    {disabled}
+    {...rest}
+  >
     <Icon {strokeWidth} aria-hidden="true" />
   </button>
 {/if}

@@ -2,7 +2,18 @@
 // there are no colors), or crossed: the player's note that it stays empty. A stroke (a tap, or a
 // drag along a row or column) paints its cells one value, as one undo step.
 import { PALETTE } from '../shared/palette';
-import { DIFFICULTIES, generate, isDifficulty, isRules, isSolved, NO_RULES, type Difficulty, type Puzzle, type Rules, type Run } from './logic';
+import {
+  DIFFICULTIES,
+  generate,
+  isDifficulty,
+  isRules,
+  isSolved,
+  NO_RULES,
+  type Difficulty,
+  type Puzzle,
+  type Rules,
+  type Run,
+} from './logic';
 
 // ---- Palettes ----
 // A colored puzzle is drawn in one of these sets of PALETTE's colors (by index), picked at random.
@@ -41,7 +52,8 @@ export function pickPalette(colors: number, random: () => number = Math.random):
 }
 
 /** PALETTE's first colors, as a palette: what games were drawn in before palettes were picked. */
-const firstColors = (colors: number) => Array.from({ length: colors > 1 ? colors : 0 }, (_, k) => k);
+const firstColors = (colors: number) =>
+  Array.from({ length: colors > 1 ? colors : 0 }, (_, k) => k);
 
 /** The palette a game is drawn in (older saves have none, and used the first colors). */
 export const paletteOf = (g: Game): number[] => g.palette ?? firstColors(g.colors);
@@ -65,18 +77,33 @@ export interface Game {
   done: boolean;
 }
 
-export type Action =
-  | { type: 'paint'; indices: number[]; value: number }
-  | { type: 'undo' };
+export type Action = { type: 'paint'; indices: number[]; value: number } | { type: 'undo' };
 
-export function gameOf(difficulty: Difficulty, rules: Rules, { size, colors, rows, cols }: Puzzle, palette = firstColors(colors)): Game {
+export function gameOf(
+  difficulty: Difficulty,
+  rules: Rules,
+  { size, colors, rows, cols }: Puzzle,
+  palette = firstColors(colors),
+): Game {
   return {
-    difficulty, rules: { ...rules }, size, colors, rows, cols, palette: [...palette],
-    cells: new Array<number>(size * size).fill(EMPTY), history: [], done: false,
+    difficulty,
+    rules: { ...rules },
+    size,
+    colors,
+    rows,
+    cols,
+    palette: [...palette],
+    cells: new Array<number>(size * size).fill(EMPTY),
+    history: [],
+    done: false,
   };
 }
 
-export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES, random: () => number = Math.random): Game {
+export function newGame(
+  difficulty: Difficulty,
+  rules: Rules = NO_RULES,
+  random: () => number = Math.random,
+): Game {
   const p = generate(difficulty, rules, random);
   return gameOf(difficulty, rules, p, pickPalette(p.colors, random));
 }
@@ -84,20 +111,30 @@ export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES, random:
 /** The cells as shading only: crosses count as empty. */
 export const shading = (cells: number[]) => cells.map((v) => (v === CROSS ? EMPTY : v));
 
-const isRun = (colors: number) => (run: unknown): boolean => {
-  const r = run as Run | null;
-  return typeof r === 'object' && r !== null &&
-    Number.isInteger(r.color) && r.color >= 1 && r.color <= colors &&
-    (r.length === null || (Number.isInteger(r.length) && r.length >= 1));
-};
+const isRun =
+  (colors: number) =>
+  (run: unknown): boolean => {
+    const r = run as Run | null;
+    return (
+      typeof r === 'object' &&
+      r !== null &&
+      Number.isInteger(r.color) &&
+      r.color >= 1 &&
+      r.color <= colors &&
+      (r.length === null || (Number.isInteger(r.length) && r.length >= 1))
+    );
+  };
 
 const isClues = (clues: unknown, size: number, colors: number) =>
-  Array.isArray(clues) && clues.length === size &&
+  Array.isArray(clues) &&
+  clues.length === size &&
   clues.every((clue) => Array.isArray(clue) && clue.every(isRun(colors)));
 
 const isPalette = (palette: unknown, colors: number) =>
   palette === undefined ||
-  (Array.isArray(palette) && palette.length === (colors > 1 ? colors : 0) && new Set(palette).size === palette.length &&
+  (Array.isArray(palette) &&
+    palette.length === (colors > 1 ? colors : 0) &&
+    new Set(palette).size === palette.length &&
     palette.every((i) => Number.isInteger(i) && i >= 0 && i < PALETTE.length));
 
 export function isGame(value: unknown): value is Game {
@@ -105,12 +142,19 @@ export function isGame(value: unknown): value is Game {
   if (!isDifficulty(g?.difficulty) || !isRules(g.rules)) return false;
   const { size, colors } = DIFFICULTIES[g.difficulty];
   const k = g.rules.colors ? colors : 1;
-  const isCell = (v: unknown) => v === EMPTY || v === CROSS || (Number.isInteger(v) && (v as number) >= 1 && (v as number) <= k);
+  const isCell = (v: unknown) =>
+    v === EMPTY || v === CROSS || (Number.isInteger(v) && (v as number) >= 1 && (v as number) <= k);
   return (
-    g.size === size && g.colors === k && isPalette(g.palette, k) &&
-    isClues(g.rows, size, k) && isClues(g.cols, size, k) &&
-    Array.isArray(g.cells) && g.cells.length === size * size && g.cells.every(isCell) &&
-    Array.isArray(g.history) && g.history.every((h) => Array.isArray(h) && h.length === size * size) &&
+    g.size === size &&
+    g.colors === k &&
+    isPalette(g.palette, k) &&
+    isClues(g.rows, size, k) &&
+    isClues(g.cols, size, k) &&
+    Array.isArray(g.cells) &&
+    g.cells.length === size * size &&
+    g.cells.every(isCell) &&
+    Array.isArray(g.history) &&
+    g.history.every((h) => Array.isArray(h) && h.length === size * size) &&
     typeof g.done === 'boolean'
   );
 }
@@ -119,12 +163,25 @@ export function reducer(g: Game, action: Action): Game {
   switch (action.type) {
     case 'paint': {
       const { indices, value } = action;
-      if (g.done || !(value === EMPTY || value === CROSS || (Number.isInteger(value) && value >= 1 && value <= g.colors))) return g;
+      if (
+        g.done ||
+        !(
+          value === EMPTY ||
+          value === CROSS ||
+          (Number.isInteger(value) && value >= 1 && value <= g.colors)
+        )
+      )
+        return g;
       const targets = indices.filter((i) => i in g.cells && g.cells[i] !== value);
       if (!targets.length) return g;
       const cells = g.cells.slice();
       for (const i of targets) cells[i] = value;
-      return { ...g, cells, history: [...g.history, g.cells].slice(-HISTORY_LIMIT), done: isSolved(g, shading(cells)) };
+      return {
+        ...g,
+        cells,
+        history: [...g.history, g.cells].slice(-HISTORY_LIMIT),
+        done: isSolved(g, shading(cells)),
+      };
     }
     case 'undo': {
       const last = g.history.at(-1);

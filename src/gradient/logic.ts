@@ -22,8 +22,10 @@ export const PATTERNS = {
 export type Size = keyof typeof SIZES;
 export type Pattern = keyof typeof PATTERNS;
 
-export const isSize = (value: unknown): value is Size => typeof value === 'string' && Object.hasOwn(SIZES, value);
-export const isPattern = (value: unknown): value is Pattern => typeof value === 'string' && Object.hasOwn(PATTERNS, value);
+export const isSize = (value: unknown): value is Size =>
+  typeof value === 'string' && Object.hasOwn(SIZES, value);
+export const isPattern = (value: unknown): value is Pattern =>
+  typeof value === 'string' && Object.hasOwn(PATTERNS, value);
 
 /** An OKLab color: lightness, then two opponent-color axes. */
 export type Lab = [L: number, a: number, b: number];
@@ -32,7 +34,11 @@ type Random = () => number;
 
 // ---- Color ----
 
-const lerp = (x: Lab, y: Lab, t: number): Lab => [x[0] + (y[0] - x[0]) * t, x[1] + (y[1] - x[1]) * t, x[2] + (y[2] - x[2]) * t];
+const lerp = (x: Lab, y: Lab, t: number): Lab => [
+  x[0] + (y[0] - x[0]) * t,
+  x[1] + (y[1] - x[1]) * t,
+  x[2] + (y[2] - x[2]) * t,
+];
 
 function labToLinear([L, a, b]: Lab): [number, number, number] {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
@@ -84,7 +90,10 @@ export function corners(random: Random = Math.random): [Lab, Lab, Lab, Lab] {
   const c = hues.map((hue, k) => fromLch(lightness[k], chroma[k], hue));
   // Random orientation, so the light corner isn't always top-left.
   const flips = [
-    [0, 1, 2, 3], [1, 0, 3, 2], [2, 3, 0, 1], [3, 2, 1, 0],
+    [0, 1, 2, 3],
+    [1, 0, 3, 2],
+    [2, 3, 0, 1],
+    [3, 2, 1, 0],
   ][Math.floor(random() * 4)];
   return flips.map((k) => c[k]) as [Lab, Lab, Lab, Lab];
 }
@@ -104,7 +113,12 @@ export function palette(cols: number, rows: number, [tl, tr, bl, br]: readonly L
 
 // ---- Layout ----
 
-export function fixedTiles(cols: number, rows: number, pattern: Pattern, random: Random = Math.random): boolean[] {
+export function fixedTiles(
+  cols: number,
+  rows: number,
+  pattern: Pattern,
+  random: Random = Math.random,
+): boolean[] {
   return Array.from({ length: cols * rows }, (_, i) => {
     const r = Math.floor(i / cols);
     const c = i % cols;
@@ -112,11 +126,16 @@ export function fixedTiles(cols: number, rows: number, pattern: Pattern, random:
     const edgeC = c === 0 || c === cols - 1;
     if (edgeR && edgeC) return true;
     switch (pattern) {
-      case 'checker': return (r + c) % 2 === 0;
-      case 'stripes': return r % 2 === 0;
-      case 'border': return edgeR || edgeC;
-      case 'scattered': return random() < 0.3;
-      case 'corners': return false;
+      case 'checker':
+        return (r + c) % 2 === 0;
+      case 'stripes':
+        return r % 2 === 0;
+      case 'border':
+        return edgeR || edgeC;
+      case 'scattered':
+        return random() < 0.3;
+      case 'corners':
+        return false;
     }
   });
 }

@@ -87,7 +87,8 @@ export function countSolutions(
   const isBridgeNode = (v: number) => v >= n || live[n + v];
   const sibling = (v: number) => (v < n ? n + v : v - n);
   /** Whether color k may step onto empty node u (not both ways over one bridge). */
-  const mayEnter = (u: number, k: number) => color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k);
+  const mayEnter = (u: number, k: number) =>
+    color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k);
 
   // Worked out by viable(), for the step that follows it.
   const pocket = new Int32Array(nodes); // pocket number per empty node
@@ -183,7 +184,8 @@ export function countSolutions(
     const pin = pinned[k];
     const out: number[] = [];
     for (const u of next[at[e]]) {
-      if (pin !== -1 ? mayEnter(u, k) && pocket[u] === pin : u === other || mayEnter(u, k)) out.push(u);
+      if (pin !== -1 ? mayEnter(u, k) && pocket[u] === pin : u === other || mayEnter(u, k))
+        out.push(u);
     }
     return out;
   }

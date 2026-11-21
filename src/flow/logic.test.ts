@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
-  adjacent, connected, DIFFICULTIES, extend, generate, isBridge, isHole, isSlow, isSolved, NO_RULES, plainBoard, settle, wait,
-  startStroke, type Board, type Difficulty, type Rules,
+  adjacent,
+  connected,
+  DIFFICULTIES,
+  extend,
+  generate,
+  isBridge,
+  isHole,
+  isSlow,
+  isSolved,
+  NO_RULES,
+  plainBoard,
+  settle,
+  wait,
+  startStroke,
+  type Board,
+  type Difficulty,
+  type Rules,
 } from './logic';
 import { countSolutions } from './solve';
 
@@ -13,7 +28,11 @@ const RULE_SETS: Rules[] = [
   { ...NO_RULES, bridges: true },
   { walls: true, holes: true, wrap: true, bridges: true },
 ];
-const named = (rules: Rules) => Object.entries(rules).filter(([, on]) => on).map(([k]) => k).join(' + ') || 'no rules';
+const named = (rules: Rules) =>
+  Object.entries(rules)
+    .filter(([, on]) => on)
+    .map(([k]) => k)
+    .join(' + ') || 'no rules';
 
 describe('generate', () => {
   for (const difficulty of Object.keys(DIFFICULTIES) as Difficulty[]) {
@@ -31,16 +50,22 @@ describe('generate', () => {
             for (let k = 1; k < p.length; k++) expect(adjacent(p[k - 1], p[k], board)).toBe(true);
           }
           expect(isSolved(dots, solution, board)).toBe(true);
-        expect(countSolutions(dots, board, 2)).toBe(1);
+          expect(countSolutions(dots, board, 2)).toBe(1);
           // Each rule's feature appears only with the rule.
           expect(board.wrap).toBe(rules.wrap);
           expect(board.holes.length > 0).toBe(rules.holes);
           expect(board.walls.length > 0).toBe(rules.walls);
           expect(board.bridges.length > 0).toBe(rules.bridges);
           // No dot on a hole or a bridge, and no wall on an edge the answer uses.
-          for (const cell of dots.flat()) expect(isHole(cell, board) || isBridge(cell, board)).toBe(false);
-          const used = new Set(solution.flatMap((p) => p.slice(1).map((c, k) => [p[k], c].sort((a, b) => a - b).join())));
-          for (const [a, b] of board.walls) expect(used.has([a, b].sort((x, y) => x - y).join())).toBe(false);
+          for (const cell of dots.flat())
+            expect(isHole(cell, board) || isBridge(cell, board)).toBe(false);
+          const used = new Set(
+            solution.flatMap((p) =>
+              p.slice(1).map((c, k) => [p[k], c].sort((a, b) => a - b).join()),
+            ),
+          );
+          for (const [a, b] of board.walls)
+            expect(used.has([a, b].sort((x, y) => x - y).join())).toBe(false);
         }
       }, 120_000);
     }
@@ -53,7 +78,8 @@ describe('wait', () => {
     expect(wait('hard', wrap)).toBe('slower');
     expect(wait('medium', wrap)).toBe('quick');
     expect(wait('hard', NO_RULES)).toBe('quick');
-    for (const rule of ['walls', 'holes', 'bridges'] as const) expect(wait('hard', { ...wrap, [rule]: true })).toBe('quick');
+    for (const rule of ['walls', 'holes', 'bridges'] as const)
+      expect(wait('hard', { ...wrap, [rule]: true })).toBe('quick');
     expect(isSlow('hard', wrap)).toBe(true);
     expect(isSlow('hard', { ...wrap, walls: true })).toBe(false);
   });
@@ -62,7 +88,10 @@ describe('wait', () => {
 describe('drawing', () => {
   // 3×3: red joins 0 → 2 along the top, blue joins 6 → 8 along the bottom.
   const board = plainBoard(3);
-  const dots: [number, number][] = [[0, 2], [6, 8]];
+  const dots: [number, number][] = [
+    [0, 2],
+    [6, 8],
+  ];
 
   it('starts from a dot, extends, retraces, and stops at the other dot', () => {
     let { color, paths } = startStroke(dots, [[], []], 0, board);
@@ -95,11 +124,56 @@ describe('drawing', () => {
   });
 
   it('needs every square filled to be solved', () => {
-    expect(isSolved(dots, [[0, 1, 2], [6, 7, 8]], board)).toBe(false); // middle row empty
-    expect(isSolved(dots, [[0, 1, 2], [6, 3, 4, 5, 8]], board)).toBe(false); // 7 empty
-    expect(isSolved(dots, [[0, 1, 2], [6, 3, 4, 7, 8]], board)).toBe(false); // 5 empty
-    expect(isSolved(dots, [[0, 1, 2], [6, 3, 4, 5, 8]], board)).toBe(false); // 7 still empty
-    expect(isSolved(dots, [[0, 1, 2], [6, 7, 4, 3, 4]], board)).toBe(false); // not joined
+    expect(
+      isSolved(
+        dots,
+        [
+          [0, 1, 2],
+          [6, 7, 8],
+        ],
+        board,
+      ),
+    ).toBe(false); // middle row empty
+    expect(
+      isSolved(
+        dots,
+        [
+          [0, 1, 2],
+          [6, 3, 4, 5, 8],
+        ],
+        board,
+      ),
+    ).toBe(false); // 7 empty
+    expect(
+      isSolved(
+        dots,
+        [
+          [0, 1, 2],
+          [6, 3, 4, 7, 8],
+        ],
+        board,
+      ),
+    ).toBe(false); // 5 empty
+    expect(
+      isSolved(
+        dots,
+        [
+          [0, 1, 2],
+          [6, 3, 4, 5, 8],
+        ],
+        board,
+      ),
+    ).toBe(false); // 7 still empty
+    expect(
+      isSolved(
+        dots,
+        [
+          [0, 1, 2],
+          [6, 7, 4, 3, 4],
+        ],
+        board,
+      ),
+    ).toBe(false); // not joined
   });
 });
 
@@ -131,23 +205,48 @@ describe('rules', () => {
   it('bridges carry one path across and one down, straight through', () => {
     // 3×3 with a bridge in the middle: red 3 → 5 across it, blue 1 → 7 down it.
     const board: Board = { ...plainBoard(3), bridges: [4] };
-    const dots: [number, number][] = [[3, 5], [1, 7]];
+    const dots: [number, number][] = [
+      [3, 5],
+      [1, 7],
+    ];
     let paths = [[3], [1]];
     paths = extend(dots, paths, 0, 4, board); // red onto the bridge, going across
     paths = extend(dots, paths, 1, 4, board); // blue onto it too, going down
-    expect(paths).toEqual([[3, 4], [1, 4]]);
+    expect(paths).toEqual([
+      [3, 4],
+      [1, 4],
+    ]);
     expect(extend(dots, paths, 0, 7, board)).toBe(paths); // red can't turn on the bridge
     paths = extend(dots, paths, 0, 5, board);
     paths = extend(dots, paths, 1, 7, board);
-    expect(paths).toEqual([[3, 4, 5], [1, 4, 7]]);
+    expect(paths).toEqual([
+      [3, 4, 5],
+      [1, 4, 7],
+    ]);
     // A second path the same way is blocked, and a stroke can't start on a bridge.
-    expect(extend([[3, 5], [1, 7], [0, 2]], [[3, 4], [], [5]], 2, 4, board)).toEqual([[3, 4], [], [5]]);
+    expect(
+      extend(
+        [
+          [3, 5],
+          [1, 7],
+          [0, 2],
+        ],
+        [[3, 4], [], [5]],
+        2,
+        4,
+        board,
+      ),
+    ).toEqual([[3, 4], [], [5]]);
     expect(startStroke(dots, paths, 4, board).color).toBe(-1);
   });
 
   it('carries a path let go on a bridge on through it, or back off it if the way on is taken', () => {
     const board: Board = { ...plainBoard(3), bridges: [4] };
-    const dots: [number, number][] = [[3, 5], [1, 7], [2, 8]];
+    const dots: [number, number][] = [
+      [3, 5],
+      [1, 7],
+      [2, 8],
+    ];
     expect(settle(dots, [[3, 4], [], []], 0, board)).toEqual([[3, 4, 5], [], []]); // on to red's own dot
     const blocked = [[3, 4], [], [8, 5]]; // yellow is in the way at 5
     expect(settle(dots, blocked, 0, board)).toEqual([[3], [], [8, 5]]);
@@ -168,8 +267,29 @@ describe('rules', () => {
   it('counts a bridge filled only when one path crosses it each way', () => {
     // The same, with the corners as holes so the two paths fill the board.
     const board: Board = { ...plainBoard(3), bridges: [4], holes: [0, 2, 6, 8] };
-    const dots: [number, number][] = [[3, 5], [1, 7]];
-    expect(isSolved(dots, [[3, 4, 5], [1, 4, 7]], board)).toBe(true);
-    expect(isSolved(dots, [[3, 4, 5], [1, 7]], board)).toBe(false); // crossed only once
+    const dots: [number, number][] = [
+      [3, 5],
+      [1, 7],
+    ];
+    expect(
+      isSolved(
+        dots,
+        [
+          [3, 4, 5],
+          [1, 4, 7],
+        ],
+        board,
+      ),
+    ).toBe(true);
+    expect(
+      isSolved(
+        dots,
+        [
+          [3, 4, 5],
+          [1, 7],
+        ],
+        board,
+      ),
+    ).toBe(false); // crossed only once
   });
 });

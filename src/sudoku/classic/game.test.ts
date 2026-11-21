@@ -66,7 +66,8 @@ describe('reducer', () => {
 
   it('finishes when the last cell is filled correctly, then takes no more moves', () => {
     let g = newGame('easy');
-    for (const i of emptyCells(g)) g = reducer(g, { type: 'place', index: i, digit: g.solution[i] });
+    for (const i of emptyCells(g))
+      g = reducer(g, { type: 'place', index: i, digit: g.solution[i] });
     expect(g.done).toBe(true);
     expect(reducer(g, { type: 'erase', indices: emptyCells(g) })).toBe(g);
   });
@@ -76,6 +77,8 @@ describe('reducer', () => {
     const saved = JSON.parse(JSON.stringify(g));
     expect(isGame(saved)).toBe(true);
     const i = emptyCell(saved);
-    expect(reducer(saved, { type: 'place', index: i, digit: saved.solution[i] }).values[i]).toBe(saved.solution[i]);
+    expect(reducer(saved, { type: 'place', index: i, digit: saved.solution[i] }).values[i]).toBe(
+      saved.solution[i],
+    );
   });
 });

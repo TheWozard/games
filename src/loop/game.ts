@@ -1,6 +1,21 @@
 // Loop game state and moves, as a pure reducer. Each edge is empty, a line, or a cross (the
 // player's note that the loop doesn't go there). Tapping a side cycles it: empty, line, cross, empty.
-import { DARK, DIFFICULTIES, edgeCount, generate, isDifficulty, isRules, isSolved, LIGHT, NO_RULES, type Difficulty, type Grid, type Puzzle, type Rules, type Square } from './logic';
+import {
+  DARK,
+  DIFFICULTIES,
+  edgeCount,
+  generate,
+  isDifficulty,
+  isRules,
+  isSolved,
+  LIGHT,
+  NO_RULES,
+  type Difficulty,
+  type Grid,
+  type Puzzle,
+  type Rules,
+  type Square,
+} from './logic';
 
 export const STORAGE_KEY = 'games.loop.v1';
 const HISTORY_LIMIT = 300;
@@ -24,17 +39,30 @@ export interface Game extends Grid {
   done: boolean;
 }
 
-export type Action =
-  | { type: 'cycle'; edge: number }
-  | { type: 'undo' };
+export type Action = { type: 'cycle'; edge: number } | { type: 'undo' };
 
 export const newGame = (difficulty: Difficulty, rules: Rules = NO_RULES): Game =>
   gameOf(difficulty, rules, generate(difficulty, rules));
 
 /** A new game of a puzzle already made (e.g. in the background, background.ts). */
-export function gameOf(difficulty: Difficulty, rules: Rules, { clues, squares, rings }: Puzzle): Game {
+export function gameOf(
+  difficulty: Difficulty,
+  rules: Rules,
+  { clues, squares, rings }: Puzzle,
+): Game {
   const { rows, cols } = DIFFICULTIES[difficulty];
-  return { difficulty, rules: { ...rules }, rows, cols, clues, squares, rings, marks: new Array<Mark>(edgeCount({ rows, cols })).fill(EMPTY), history: [], done: false };
+  return {
+    difficulty,
+    rules: { ...rules },
+    rows,
+    cols,
+    clues,
+    squares,
+    rings,
+    marks: new Array<Mark>(edgeCount({ rows, cols })).fill(EMPTY),
+    history: [],
+    done: false,
+  };
 }
 
 /**
@@ -50,16 +78,25 @@ export function isGame(value: unknown): value is Game {
   g.rules ??= { squares: g.squares.some((k) => k !== null), rings: g.rings.some(Boolean) };
   return (
     isRules(g.rules) &&
-    g.squares.length === rows * cols && g.squares.every((k) => k === null || k === LIGHT || k === DARK) &&
-    g.rings.length === (rows + 1) * (cols + 1) && g.rings.every((x) => typeof x === 'boolean') &&
-    g.rows === rows && g.cols === cols &&
-    g.clues?.length === rows * cols && g.marks?.length === edgeCount({ rows, cols }) &&
+    g.squares.length === rows * cols &&
+    g.squares.every((k) => k === null || k === LIGHT || k === DARK) &&
+    g.rings.length === (rows + 1) * (cols + 1) &&
+    g.rings.every((x) => typeof x === 'boolean') &&
+    g.rows === rows &&
+    g.cols === cols &&
+    g.clues?.length === rows * cols &&
+    g.marks?.length === edgeCount({ rows, cols }) &&
     g.marks.every((m) => m === EMPTY || m === LINE || m === CROSS) &&
     Array.isArray(g.history)
   );
 }
 
-const solved = (g: Game, marks: Mark[]) => isSolved(g, g, marks.map((m) => m === LINE));
+const solved = (g: Game, marks: Mark[]) =>
+  isSolved(
+    g,
+    g,
+    marks.map((m) => m === LINE),
+  );
 
 export function reducer(g: Game, action: Action): Game {
   switch (action.type) {
@@ -67,7 +104,12 @@ export function reducer(g: Game, action: Action): Game {
       if (g.done || !(action.edge in g.marks)) return g;
       const marks = g.marks.slice();
       marks[action.edge] = next(g.marks[action.edge]);
-      return { ...g, marks, history: [...g.history, g.marks].slice(-HISTORY_LIMIT), done: solved(g, marks) };
+      return {
+        ...g,
+        marks,
+        history: [...g.history, g.marks].slice(-HISTORY_LIMIT),
+        done: solved(g, marks),
+      };
     }
     case 'undo': {
       const last = g.history.at(-1);

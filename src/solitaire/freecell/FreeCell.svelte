@@ -6,7 +6,16 @@
   import { createShake } from '../../shared/shake.svelte';
   import { loadJSON, saveJSON } from '../../shared/storage';
   import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
-  import { bestTarget, canMove, COLUMNS, DIFFICULTIES, isDifficulty, lifted, type Source, type Target } from './logic';
+  import {
+    bestTarget,
+    canMove,
+    COLUMNS,
+    DIFFICULTIES,
+    isDifficulty,
+    lifted,
+    type Source,
+    type Target,
+  } from './logic';
   import { untrack } from 'svelte';
   import VariantPicker from '../../shared/VariantPicker.svelte';
   import { GAMES, parse, type VariantProps } from '../variants';
@@ -17,7 +26,9 @@
   let pick = $state('');
 
   let game = $state.raw(
-    untrack(() => (isDifficulty(first) ? newGame(first) : (loadJSON(STORAGE_KEY, isGame) ?? newGame('classic')))),
+    untrack(() =>
+      isDifficulty(first) ? newGame(first) : (loadJSON(STORAGE_KEY, isGame) ?? newGame('classic')),
+    ),
   );
   // Cards glide between places only once the player has moved: not while the page lays out.
   let animate = $state(false);
@@ -56,7 +67,12 @@
   const gap = $derived(Math.max(3, Math.min(width, PHONE_W) * 0.012));
   const across = (n: number, w = width) => (w - gap * (n - 1)) / n;
   const heightCap = $derived(height / (5.5 * 1.4));
-  const cw = $derived(Math.max(Math.min(across(COLUMNS), heightCap), Math.min(across(5, Math.min(width, PHONE_W)), heightCap)));
+  const cw = $derived(
+    Math.max(
+      Math.min(across(COLUMNS), heightCap),
+      Math.min(across(5, Math.min(width, PHONE_W)), heightCap),
+    ),
+  );
   const ch = $derived(cw * 1.4);
   const columnsW = $derived(COLUMNS * cw + (COLUMNS - 1) * gap);
   const maxScroll = $derived(Math.max(0, columnsW - width));
@@ -93,10 +109,12 @@
     const t = game.table;
     const out: Placed[] = [];
     t.cells.forEach((card, i) => {
-      if (card !== null) out.push({ card, x: cellX(i), y: bottomY, z: 1, source: { from: 'cell', i } });
+      if (card !== null)
+        out.push({ card, x: cellX(i), y: bottomY, z: 1, source: { from: 'cell', i } });
     });
     t.foundations.forEach((n, suit) => {
-      for (let r = 0; r < n; r++) out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 1 + r, source: null });
+      for (let r = 0; r < n; r++)
+        out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 1 + r, source: null });
     });
     // Columns end above the free cells, squeezed to fit if they must.
     const room = Math.max(0, bottomY - gap * 2.5 - tableauY - ch);
@@ -105,7 +123,14 @@
       col.forEach((card, k) => {
         const source: Source = { from: 'column', col: c, index: k };
         const free = lifted(t, source) !== null;
-        out.push({ card, x: colX(c), y: tableauY + k * step, z: 10 + k, source: free ? source : null, buried: !free });
+        out.push({
+          card,
+          x: colX(c),
+          y: tableauY + k * step,
+          z: 10 + k,
+          source: free ? source : null,
+          buried: !free,
+        });
       });
     });
     return out.sort((a, b) => a.card - b.card); // stable order, so cards animate between places
@@ -120,11 +145,16 @@
   let press: { id: number; source: Source; card: Card; x: number; y: number } | null = null;
   // sx0: the pan when the drag began. Cards lifted from a column stay under the finger as the
   // columns pan beneath them.
-  let drag = $state<{ cards: Card[]; dx: number; dy: number; sx0: number; fromColumn: boolean } | null>(null);
+  let drag = $state<{
+    cards: Card[];
+    dx: number;
+    dy: number;
+    sx0: number;
+    fromColumn: boolean;
+  } | null>(null);
   let pointerX = 0; // where the finger is, across the board, while dragging
   const dragShift = $derived(drag?.fromColumn ? sx - drag.sx0 : 0);
   let swallowClick = false;
-
 
   function tap(p: Placed) {
     if (swallowClick) {
@@ -150,7 +180,13 @@
     if (!drag) {
       if (Math.hypot(dx, dy) < 8) return;
       board?.setPointerCapture?.(e.pointerId);
-      drag = { cards: lifted(game.table, press.source) ?? [], dx, dy, sx0: sx, fromColumn: press.source.from === 'column' };
+      drag = {
+        cards: lifted(game.table, press.source) ?? [],
+        dx,
+        dy,
+        sx0: sx,
+        fromColumn: press.source.from === 'column',
+      };
     } else {
       drag = { ...drag, dx, dy };
     }
@@ -168,11 +204,20 @@
     // The bottom row is the free cells: the one under it if that's empty, else any empty one.
     const cells = game.table.cells;
     if (cy > bottomY - gap) {
-      const under = Math.min(cells.length - 1, Math.max(0, Math.floor((cx - cellX(0) + gap / 2) / (cw + gap))));
+      const under = Math.min(
+        cells.length - 1,
+        Math.max(0, Math.floor((cx - cellX(0) + gap / 2) / (cw + gap))),
+      );
       const i = cells[under] === null ? under : cells.indexOf(null);
       return i === -1 ? null : { to: 'cell', i };
     }
-    return { to: 'column', col: Math.min(COLUMNS - 1, Math.max(0, Math.floor((cx - columnsLeft + sx + gap / 2) / (cw + gap)))) };
+    return {
+      to: 'column',
+      col: Math.min(
+        COLUMNS - 1,
+        Math.max(0, Math.floor((cx - columnsLeft + sx + gap / 2) / (cw + gap))),
+      ),
+    };
   }
 
   function pointerUp(e: PointerEvent) {
@@ -180,8 +225,17 @@
     if (drag) {
       swallowClick = true;
       const target = dropTarget();
-      if (target && canMove(game.table, press.source, target)) dispatch({ type: 'move', source: press.source, target });
-      else if (target && !(target.to === 'column' && press.source.from === 'column' && target.col === press.source.col)) shake.start(press.card);
+      if (target && canMove(game.table, press.source, target))
+        dispatch({ type: 'move', source: press.source, target });
+      else if (
+        target &&
+        !(
+          target.to === 'column' &&
+          press.source.from === 'column' &&
+          target.col === press.source.col
+        )
+      )
+        shake.start(press.card);
     }
     press = null;
     drag = null;
@@ -224,7 +278,10 @@
   subtitle="FreeCell · {DIFFICULTIES[game.difficulty].label}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => { pick = `freecell:${game.difficulty}`; pickerOpens++; }}
+  onopennew={() => {
+    pick = `freecell:${game.difficulty}`;
+    pickerOpens++;
+  }}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.difficulty))}
@@ -235,7 +292,10 @@
   <div class="board-area">
     <div
       bind:this={board}
-      class={['card-table fc-board', { animate, pannable: maxScroll > 0, panning: panning || (drag !== null && maxScroll > 0) }]}
+      class={[
+        'card-table fc-board',
+        { animate, pannable: maxScroll > 0, panning: panning || (drag !== null && maxScroll > 0) },
+      ]}
       bind:clientWidth={width}
       bind:clientHeight={height}
       style:--cw="{cw}px"
@@ -248,21 +308,45 @@
     >
       <!-- Empty places: free cells, foundations (marked with their suit) and columns. -->
       {#each game.table.cells as _, i (i)}
-        <div class="slot cell" style:transform="translate({cellX(i)}px, {bottomY}px)" aria-hidden="true"></div>
+        <div
+          class="slot cell"
+          style:transform="translate({cellX(i)}px, {bottomY}px)"
+          aria-hidden="true"
+        ></div>
       {/each}
       {#each SUITS as suit, s (s)}
-        <div class="slot" style:transform="translate({foundationX(s)}px, {topY}px)" aria-hidden="true">{suit}</div>
+        <div
+          class="slot"
+          style:transform="translate({foundationX(s)}px, {topY}px)"
+          aria-hidden="true"
+        >
+          {suit}
+        </div>
       {/each}
       {#each { length: COLUMNS } as _, col (col)}
-        <div class="slot" style:transform="translate({colX(col)}px, {tableauY}px)" aria-hidden="true"></div>
+        <div
+          class="slot"
+          style:transform="translate({colX(col)}px, {tableauY}px)"
+          aria-hidden="true"
+        ></div>
       {/each}
 
       {#each placed as p (p.card)}
         {@const lifting = drag?.cards.includes(p.card) ?? false}
         <button
           type="button"
-          class={['card', { red: isRed(p.card), live: p.source !== null, buried: p.buried, shake: shake.current === p.card, dragging: lifting }]}
-          style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y + (lifting ? drag!.dy : 0)}px)"
+          class={[
+            'card',
+            {
+              red: isRed(p.card),
+              live: p.source !== null,
+              buried: p.buried,
+              shake: shake.current === p.card,
+              dragging: lifting,
+            },
+          ]}
+          style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y +
+            (lifting ? drag!.dy : 0)}px)"
           style:z-index={lifting ? 1000 + p.z : p.z}
           aria-label={cardName(p.card)}
           onpointerdown={(e) => pointerDown(e, p)}

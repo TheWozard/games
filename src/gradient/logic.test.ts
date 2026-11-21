@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { corners, fixedTiles, palette, PATTERNS, shuffled, SIZES, toCss, type Pattern, type Size } from './logic';
+import {
+  corners,
+  fixedTiles,
+  palette,
+  PATTERNS,
+  shuffled,
+  SIZES,
+  toCss,
+  type Pattern,
+  type Size,
+} from './logic';
 
 describe('palette', () => {
-  it('blends from the four corners, in sRGB range', () => {
+  it('blends from the four corners, in srgb range', () => {
     const c = corners();
     const p = palette(5, 7, c);
     expect(p).toHaveLength(35);
@@ -18,7 +28,8 @@ describe('palette', () => {
     for (let run = 0; run < 50; run++) {
       const { cols, rows } = SIZES.huge;
       const p = palette(cols, rows, corners());
-      const dist = (i: number, j: number) => Math.hypot(p[i][0] - p[j][0], p[i][1] - p[j][1], p[i][2] - p[j][2]);
+      const dist = (i: number, j: number) =>
+        Math.hypot(p[i][0] - p[j][0], p[i][1] - p[j][1], p[i][2] - p[j][2]);
       for (let i = 0; i < p.length; i++) {
         if (i % cols < cols - 1) expect(dist(i, i + 1)).toBeGreaterThan(0.01);
         if (i + cols < p.length) expect(dist(i, i + cols)).toBeGreaterThan(0.01);
@@ -33,7 +44,9 @@ describe('shuffled', () => {
       it(`keeps ${size} ${pattern} fixed tiles home and moves every other tile`, () => {
         const { cols, rows } = SIZES[size];
         const fixed = fixedTiles(cols, rows, pattern);
-        expect(fixed[0] && fixed[cols - 1] && fixed[cols * (rows - 1)] && fixed[cols * rows - 1]).toBe(true);
+        expect(
+          fixed[0] && fixed[cols - 1] && fixed[cols * (rows - 1)] && fixed[cols * rows - 1],
+        ).toBe(true);
         expect(fixed.filter((f) => !f).length).toBeGreaterThanOrEqual(2);
         const order = shuffled(fixed);
         expect([...order].sort((a, b) => a - b)).toEqual([...Array(cols * rows).keys()]);
@@ -47,7 +60,12 @@ describe('fixedTiles', () => {
   it('draws each pattern', () => {
     const grid = (p: Pattern) => {
       const f = fixedTiles(4, 5, p, () => 0.5);
-      return [0, 1, 2, 3, 4].map((r) => f.slice(r * 4, r * 4 + 4).map((x) => (x ? '#' : '.')).join(''));
+      return [0, 1, 2, 3, 4].map((r) =>
+        f
+          .slice(r * 4, r * 4 + 4)
+          .map((x) => (x ? '#' : '.'))
+          .join(''),
+      );
     };
     expect(grid('corners')).toEqual(['#..#', '....', '....', '....', '#..#']);
     expect(grid('border')).toEqual(['####', '#..#', '#..#', '#..#', '####']);

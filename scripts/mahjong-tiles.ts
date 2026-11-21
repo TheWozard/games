@@ -11,8 +11,10 @@
 import { writeFileSync } from 'node:fs';
 import { optimize } from 'svgo';
 
-const FLUFFY = 'https://raw.githubusercontent.com/FluffyStuff/riichi-mahjong-tiles/26e127ba2117f45cdce5ea0225748cc0cfad3169/Regular/';
-const XHOKIR = 'https://raw.githubusercontent.com/xhokir/riichi-mahjong-tiles/19d72ff5cf9ad9c401188734f80cef7e6c8c6140/Regular/';
+const FLUFFY =
+  'https://raw.githubusercontent.com/FluffyStuff/riichi-mahjong-tiles/26e127ba2117f45cdce5ea0225748cc0cfad3169/Regular/';
+const XHOKIR =
+  'https://raw.githubusercontent.com/xhokir/riichi-mahjong-tiles/19d72ff5cf9ad9c401188734f80cef7e6c8c6140/Regular/';
 
 const nine = (suit: string) => Array.from({ length: 9 }, (_, n) => FLUFFY + suit + (n + 1));
 const four = (name: string) => Array.from({ length: 4 }, (_, n) => XHOKIR + name + (n + 1));
@@ -55,7 +57,10 @@ async function face(url: string, kind: number): Promise<string> {
 }
 
 const symbols = await Promise.all(
-  SOURCES.map(async (url, kind) => `<symbol id="mj-k${kind}" viewBox="0 0 300 400">${url ? await face(url, kind) : WHITE_DRAGON}</symbol>`),
+  SOURCES.map(
+    async (url, kind) =>
+      `<symbol id="mj-k${kind}" viewBox="0 0 300 400">${url ? await face(url, kind) : WHITE_DRAGON}</symbol>`,
+  ),
 );
 
 writeFileSync(

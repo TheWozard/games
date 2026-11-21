@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { hitoriValid, seeded, subsets } from '../rules.test-helpers';
-import { conflicts, DIFFICULTIES, generate, isPuzzle, isUnique, solutions, type Difficulty } from './logic';
+import {
+  conflicts,
+  DIFFICULTIES,
+  generate,
+  isPuzzle,
+  isUnique,
+  solutions,
+  type Difficulty,
+} from './logic';
 
 describe('solutions', () => {
   it('counts answers the way brute force does, on small boards', () => {
@@ -26,7 +34,13 @@ describe('generate', () => {
         expect(isPuzzle(p, difficulty)).toBe(true);
         expect(hitoriValid(size, p.numbers, p.solution)).toBe(true);
         expect(isUnique(p)).toBe(true);
-        expect(conflicts(p, p.solution, p.solution.map((s) => !s)).some(Boolean)).toBe(false);
+        expect(
+          conflicts(
+            p,
+            p.solution,
+            p.solution.map((s) => !s),
+          ).some(Boolean),
+        ).toBe(false);
       }
     });
   }

@@ -18,7 +18,11 @@
 
   const isDraw = (s: string | undefined) => s === '1' || s === '3';
   let game = $state.raw(
-    untrack(() => (isDraw(first) ? newGame(Number(first) as Draw) : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)))),
+    untrack(() =>
+      isDraw(first)
+        ? newGame(Number(first) as Draw)
+        : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)),
+    ),
   );
   // Cards glide between places only once the player has moved: not while the page lays out.
   let animate = $state(false);
@@ -42,7 +46,12 @@
   const gap = $derived(Math.max(4, Math.min(width, PHONE_W) * 0.014));
   const across = (n: number, w = width) => (w - gap * (n - 1)) / n;
   const heightCap = $derived(height / (5.5 * 1.4));
-  const cw = $derived(Math.max(Math.min(across(7), heightCap), Math.min(across(5, Math.min(width, PHONE_W)), heightCap)));
+  const cw = $derived(
+    Math.max(
+      Math.min(across(7), heightCap),
+      Math.min(across(5, Math.min(width, PHONE_W)), heightCap),
+    ),
+  );
   const ch = $derived(cw * 1.4);
   const columnsW = $derived(7 * cw + 6 * gap);
   const maxScroll = $derived(Math.max(0, columnsW - width));
@@ -81,19 +90,35 @@
     const t = game.table;
     const out: Placed[] = [];
     // Stock: face down in the bottom-right corner.
-    t.stock.forEach((card, k) => out.push({ card, x: stockX, y: bottomY, z: k, up: false, source: 'stock' }));
+    t.stock.forEach((card, k) =>
+      out.push({ card, x: stockX, y: bottomY, z: k, up: false, source: 'stock' }),
+    );
     // Waste: just left of the stock. The top one (or three) fans out leftward, so the card you
     // can play is always the one nearest the stock.
     const fan = game.draw === 3 ? 3 : 1;
     t.waste.forEach((card, k) => {
       const fromTop = t.waste.length - 1 - k;
       const shift = Math.min(fromTop, fan - 1, t.waste.length - 1) * cw * 0.42;
-      out.push({ card, x: wasteX - shift, y: bottomY, z: 100 + k, up: true, source: fromTop === 0 ? { from: 'waste' } : null });
+      out.push({
+        card,
+        x: wasteX - shift,
+        y: bottomY,
+        z: 100 + k,
+        up: true,
+        source: fromTop === 0 ? { from: 'waste' } : null,
+      });
     });
     // Foundations: one slot per suit, centered along the top.
     t.foundations.forEach((n, suit) => {
       for (let r = 0; r < n; r++) {
-        out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 200 + r, up: true, source: r === n - 1 ? { from: 'foundation', suit } : null });
+        out.push({
+          card: suit * 13 + r,
+          x: foundationX(suit),
+          y: topY,
+          z: 200 + r,
+          up: true,
+          source: r === n - 1 ? { from: 'foundation', suit } : null,
+        });
       }
     });
     // Tableau: face-down cards tightly stacked, face-up ones fanned; squeezed to end above the
@@ -107,11 +132,26 @@
         downStep *= room / need;
         upStep *= room / need;
       }
-      down.forEach((card, k) => out.push({ card, x: colX(col), y: tableauY + k * downStep, z: 300 + k, up: false, source: null }));
-      up.forEach((card, k) => out.push({
-        card, x: colX(col), y: tableauY + down.length * downStep + k * upStep, z: 330 + k, up: true,
-        source: { from: 'tableau', col, index: k },
-      }));
+      down.forEach((card, k) =>
+        out.push({
+          card,
+          x: colX(col),
+          y: tableauY + k * downStep,
+          z: 300 + k,
+          up: false,
+          source: null,
+        }),
+      );
+      up.forEach((card, k) =>
+        out.push({
+          card,
+          x: colX(col),
+          y: tableauY + down.length * downStep + k * upStep,
+          z: 330 + k,
+          up: true,
+          source: { from: 'tableau', col, index: k },
+        }),
+      );
     });
     return out.sort((a, b) => a.card - b.card);
   });
@@ -172,7 +212,10 @@
   subtitle="Klondike · {KLONDIKE[game.draw]}"
   onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => { pick = `klondike:${game.draw}`; pickerOpens++; }}
+  onopennew={() => {
+    pick = `klondike:${game.draw}`;
+    pickerOpens++;
+  }}
   onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.draw))}
@@ -200,16 +243,34 @@
         {#if !game.table.stock.length && game.table.waste.length}↻{/if}
       </button>
       {#each SUITS as suit, s (s)}
-        <div class="slot" style:transform="translate({foundationX(s)}px, {topY}px)" aria-hidden="true">{suit}</div>
+        <div
+          class="slot"
+          style:transform="translate({foundationX(s)}px, {topY}px)"
+          aria-hidden="true"
+        >
+          {suit}
+        </div>
       {/each}
       {#each { length: 7 } as _, col (col)}
-        <div class="slot" style:transform="translate({colX(col)}px, {tableauY}px)" aria-hidden="true"></div>
+        <div
+          class="slot"
+          style:transform="translate({colX(col)}px, {tableauY}px)"
+          aria-hidden="true"
+        ></div>
       {/each}
 
       {#each placed as p (p.card)}
         <button
           type="button"
-          class={['card', { down: !p.up, red: isRed(p.card), shake: shake.current === p.card, live: p.source !== null }]}
+          class={[
+            'card',
+            {
+              down: !p.up,
+              red: isRed(p.card),
+              shake: shake.current === p.card,
+              live: p.source !== null,
+            },
+          ]}
           style:transform="translate({p.x}px, {p.y}px)"
           style:z-index={p.z}
           aria-label={p.up ? cardName(p.card) : 'Face-down card'}

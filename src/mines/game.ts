@@ -1,6 +1,17 @@
 // Mine finder game state and moves, as a pure reducer (apart from placing mines on the first
 // reveal, which uses Math.random unless a source is passed in).
-import { counts, flood, isDensity, isSize, mineCount, neighbors, placeMines, SIZES, type Density, type Size } from './logic';
+import {
+  counts,
+  flood,
+  isDensity,
+  isSize,
+  mineCount,
+  neighbors,
+  placeMines,
+  SIZES,
+  type Density,
+  type Size,
+} from './logic';
 
 export const STORAGE_KEY = 'games.mines.v1';
 
@@ -38,7 +49,11 @@ export function newGame(size: Size, density: Density): Game {
 }
 
 /** Saves from before size and density were separate settings had one difficulty instead. */
-const OLD_DIFFICULTIES: Record<string, [Size, Density]> = { easy: ['small', 'few'], medium: ['medium', 'some'], hard: ['large', 'many'] };
+const OLD_DIFFICULTIES: Record<string, [Size, Density]> = {
+  easy: ['small', 'few'],
+  medium: ['medium', 'some'],
+  hard: ['large', 'many'],
+};
 
 /** Validates a save, reading a pre-split save's difficulty as the size and density it stood for. */
 export function isGame(value: unknown): value is Game {
@@ -51,9 +66,11 @@ export function isGame(value: unknown): value is Game {
   const { rows, cols } = SIZES[g.size];
   const cells = rows * cols;
   return (
-    g.rows === rows && g.cols === cols &&
+    g.rows === rows &&
+    g.cols === cols &&
     (g.mines === null || g.mines?.length === cells) &&
-    g.revealed?.length === cells && g.flagged?.length === cells &&
+    g.revealed?.length === cells &&
+    g.flagged?.length === cells &&
     (g.status === 'playing' || g.status === 'won' || g.status === 'lost')
   );
 }
@@ -80,7 +97,8 @@ function open(g: Game, mines: boolean[], targets: number[]): Game {
       revealed[t] = true;
       continue;
     }
-    for (const j of flood(t, near, board, (k) => revealed[k] || g.flagged[k] || mines[k])) revealed[j] = true;
+    for (const j of flood(t, near, board, (k) => revealed[k] || g.flagged[k] || mines[k]))
+      revealed[j] = true;
   }
   if (exploded !== null) return { ...g, mines, revealed, status: 'lost', exploded };
   const safeLeft = revealed.filter((r, i) => !r && !mines[i]).length;

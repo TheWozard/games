@@ -50,7 +50,8 @@ export function linePeers(size: number): number[][] {
   return Array.from({ length: size * size }, (_, i) => {
     const peers: number[] = [];
     for (let j = 0; j < size * size; j++) {
-      if (j !== i && (Math.floor(j / size) === Math.floor(i / size) || j % size === i % size)) peers.push(j);
+      if (j !== i && (Math.floor(j / size) === Math.floor(i / size) || j % size === i % size))
+        peers.push(j);
     }
     return peers;
   });
@@ -60,14 +61,22 @@ export function linePeers(size: number): number[][] {
 export function isGridState(value: unknown, cells: number): value is GridState {
   const g = value as Partial<GridState> | null;
   return (
-    typeof g === 'object' && g !== null &&
+    typeof g === 'object' &&
+    g !== null &&
     typeof g.difficulty === 'string' &&
-    g.values?.length === cells && g.solution?.length === cells && g.puzzle?.length === cells && g.notes?.length === cells &&
+    g.values?.length === cells &&
+    g.solution?.length === cells &&
+    g.puzzle?.length === cells &&
+    g.notes?.length === cells &&
     Array.isArray(g.history)
   );
 }
 
-export function hasConflict(values: readonly number[], peers: GridShape['peers'], i: number): boolean {
+export function hasConflict(
+  values: readonly number[],
+  peers: GridShape['peers'],
+  i: number,
+): boolean {
   const v = values[i];
   return v !== 0 && peers[i].some((p) => values[p] === v);
 }
@@ -87,11 +96,16 @@ function apply<G extends GridState>(g: G, changes: Change[]): G {
 }
 
 /** A cell on the board that the player fills (not a given). */
-const open = (g: GridState, i: number, size: number) => Number.isInteger(i) && i >= 0 && i < size * size && g.puzzle[i] === 0;
+const open = (g: GridState, i: number, size: number) =>
+  Number.isInteger(i) && i >= 0 && i < size * size && g.puzzle[i] === 0;
 const unique = (indices: number[]) => [...new Set(indices)];
 
 /** Applies one move. Returns the same object when the move changes nothing. */
-export function gridReducer<G extends GridState>(g: G, action: GridAction, { size, peers }: GridShape): G {
+export function gridReducer<G extends GridState>(
+  g: G,
+  action: GridAction,
+  { size, peers }: GridShape,
+): G {
   switch (action.type) {
     case 'place': {
       const { index: i, digit: d } = action;
