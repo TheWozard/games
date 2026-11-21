@@ -7,7 +7,6 @@
   import Toggle from '../shared/ui/Toggle.svelte';
   import Chip from '../shared/ui/Chip.svelte';
   import PickList from '../shared/ui/PickList.svelte';
-  import { createShake } from '../shared/shake.svelte';
   import { formatSeed } from '../shared/seed';
   import { CHOICES, loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
@@ -142,10 +141,9 @@
   let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
   if (import.meta.env.DEV) import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
 
-  // A tap on a blocked tile gives it a little shake instead of doing nothing at all.
-  const shake = createShake<number>();
+  // A tap on a blocked tile does nothing.
   function tap(i: number) {
-    if (!free(game, i)) return shake.start(i);
+    if (!free(game, i)) return;
     dispatch({ type: 'tap', slot: i });
   }
 </script>
@@ -244,7 +242,6 @@
           class={['mj-tile', {
             blocked: dim && !free(game, s.i),
             selected: game.selected === s.i,
-            shake: shake.current === s.i,
             inset,
           }]}
           style:left="{((leftOf(s, box.maxZ) - box.x0) / box.w) * 100}%"

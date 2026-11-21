@@ -20,7 +20,7 @@
   background: none;
   /* A soft shadow on the layer below; the tile itself is drawn by .mj-body. */
   box-shadow: calc(var(--u) * 0.55) calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgb(0 0 0 / 0.45);
-  transition: filter 0.2s ease, transform 0.12s ease;
+  transition: filter 0.2s ease;
   touch-action: manipulation;
 }
 
@@ -47,10 +47,10 @@
 
 /* A picked tile is dyed the accent's hue all over, face, edge, back and symbol, as if it were
    made in blue, and bordered in a pale accent (#mj-pick and #mj-pick-outline, in TileFaces.svelte).
-   On the body and symbol, not the button, so the border follows the tile and not its shadow. */
-.mj-tile.selected { transform: translate(calc(var(--u) * -0.12), calc(var(--u) * -0.12)); }
+   On the body and symbol, not the button, so the border follows the tile and not its shadow. It's
+   drawn over every other tile, so the ones drawn after it (a row above and a layer up, say) don't
+   hide any of it; it's free, so nothing rests on it, and only neighbors' edges are overlapped. */
+.mj-tile.selected { z-index: 1; }
 .mj-tile.selected .mj-body { filter: url(#mj-pick-outline); }
 .mj-tile.selected .mj-face { filter: url(#mj-pick); }
-
-.mj-tile.shake { --shake: 2px; animation: shake 0.3s ease; }
 
