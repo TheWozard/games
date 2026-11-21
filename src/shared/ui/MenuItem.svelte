@@ -1,6 +1,6 @@
 <!--
   One entry in GameScreen2's menu: an icon and a name, the width of the menu. Tapping it closes the
-  menu; with `value`, the menu closes with that value (GameScreen2's New Game is 'new').
+  menu; with `value`, the menu closes with that value (GameScreen2's Customize is 'new').
 -->
 <script lang="ts">
   import type { Component } from 'svelte';

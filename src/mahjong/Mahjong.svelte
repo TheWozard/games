@@ -20,7 +20,7 @@
   let game = $state.raw(fromSaved(loadJSON(STORAGE_KEY, anything)) ?? newGame('pyramid'));
   const dispatch = (action: Action) => (game = reducer(game, action));
 
-  // How the tiles look: set in the Settings dialog (from the menu), and changed at once (saved for next time too).
+  // How the tiles look: set in the Display dialog (from the menu), and changed at once (saved for next time too).
   let prefs = $state.raw(loadSettings());
   const inset = $derived(prefs.mahjongFaces === 'inset');
   const dim = $derived(prefs.mahjongBlocked === 'dimmed');
@@ -71,7 +71,7 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
-  // What the menu's Game Details copies: what deals these tiles again (no seed in saves from before there was one).
+  // What the menu's Details copies: what deals these tiles again (no seed in saves from before there was one).
   const puzzle = $derived(
     [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty]
       .filter(Boolean)

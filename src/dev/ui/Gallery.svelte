@@ -10,8 +10,10 @@
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Pencil from '@lucide/svelte/icons/pencil';
   import Plus from '@lucide/svelte/icons/plus';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-  import SettingsIcon from '@lucide/svelte/icons/settings';
+  import Palette from '@lucide/svelte/icons/palette';
   import Trophy from '@lucide/svelte/icons/trophy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import Dialog from '../../shared/Dialog.svelte';
@@ -59,7 +61,7 @@
   let rules = $state({ squares: false, rings: true });
   let layouts = $state({ pyramid: true, turtle: false });
 
-  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Game Details copies: one
+  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Details copies: one
   // of Mahjong's.
   let menuOpen = $state(false);
   const PUZZLE = '60bc4843 · kmahjongg/arena · medium · turned';
@@ -154,7 +156,7 @@
     <h2>MenuSection + MenuItem + MenuPuzzle</h2>
     <p>
       GameScreen2's menu. The real one closes as an item is tapped, with its <code>value</code>. The
-      last entry, Game Details, copies what the puzzle is and leaves the menu open.
+      last entry, Details, copies what the puzzle is and leaves the menu open.
     </p>
     <div class="row">
       <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
@@ -195,8 +197,9 @@
 
 {#snippet menuItems()}
   <MenuSection>
-    <MenuItem icon={Plus} label="New Game" value="new" onclick={() => note('Menu: New Game')} />
-    <MenuItem icon={SettingsIcon} label="Settings" value="settings" onclick={() => note('Menu: Settings')} />
+    <MenuItem icon={ChevronRight} label="New" value="next" onclick={() => note('Menu: New')} />
+    <MenuItem icon={SlidersHorizontal} label="Customize" value="new" onclick={() => note('Menu: Customize')} />
+    <MenuItem icon={Palette} label="Display" value="settings" onclick={() => note('Menu: Display')} />
   </MenuSection>
   <MenuSection>
     <MenuItem icon={RotateCcw} label="Restart" onclick={() => note('Menu: Restart')} />

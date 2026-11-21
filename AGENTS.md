@@ -30,10 +30,10 @@ src/
     wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
-    settings.ts         how games look, set in the Settings dialog from a game's menu (key games.settings.v1)
+    settings.ts         how games look, set in the Display dialog from a game's menu (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
-    GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New Game, the game's
+    GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New, Customize, the game's
                         sections, the puzzle's seed/id), a stage holding only the board, controls floating over it
     ZoomStage.svelte, zoom.ts   GameScreen2's stage for a game that gives a `board` size: drawn at that
                         size (comfortable, never shrunk to start), it pans both ways and zooms (drag,
@@ -173,7 +173,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
 - **New Game dialog** (`GameScreen`; one shape in every game):
-  - Title "New Game", an × in the top corner to close it (Escape and the backdrop too), and one
+  - Title "New Game" (GameScreen2 calls it "Customize", as its menu entry is), an × in the top corner to close it (Escape and the backdrop too), and one
     **Play** button at the bottom. Nothing else in the dialog starts a game: choices only select.
   - Every group of choices has a `.pick-title` heading ("Difficulty" for Easy / Medium / Hard,
     "Size" for real sizes, "Rules" for optional rules, "Layout"...), over a `.pick` row of
@@ -194,7 +194,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
   Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
   own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
-- **Settings** (Settings in a game's menu, which opens the Settings dialog: GameScreen2's
+- **Settings** (Display in a game's menu, which opens the Display dialog: GameScreen2's
   `settings`) are for how a game looks, never how it plays (that's the New Game dialog). The dialog
   looks like New Game (a `PickGroup` of `Choice` tiles per setting) but has no Play: a tap saves
   with `saveSetting()` and changes the game at once. Add a setting to `CHOICES` in

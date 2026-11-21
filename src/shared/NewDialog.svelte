@@ -39,12 +39,14 @@
   interface Props extends NewOptions {
     open: boolean;
     onclose: () => void;
+    /** The dialog's title: GameScreen2 calls it Customize, since its menu's New starts one. */
+    title?: string;
     /** Whether a new game is being made: true from Play until it's ready. */
     busy?: boolean;
   }
 
   let {
-    open, onclose, busy = $bindable(false), options = [], current, optionsTitle = 'Difficulty', picker,
+    open, onclose, title = 'New Game', busy = $bindable(false), options = [], current, optionsTitle = 'Difficulty', picker,
     canPlay = true, onstart, wait = 'quick',
   }: Props = $props();
 
@@ -69,7 +71,7 @@
 </script>
 
 <Dialog {open} locked={busy} {onclose}>
-  <h2>New Game</h2>
+  <h2>{title}</h2>
   {#if picker}
     {@render picker()}
   {:else}
