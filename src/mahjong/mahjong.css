@@ -29,7 +29,8 @@
 
 /* The face, its ivory edge and green back (body.ts), from the tile's top left, a side's depth
    (0.42 of a 3 × 4 face) larger than the button. */
-.mj-tile .mj-body {
+.mj-tile .mj-body,
+.mj-tile .mj-tint {
   position: absolute;
   top: 0;
   left: 0;
@@ -46,12 +47,10 @@
 .mj-tile.blocked { filter: brightness(0.8) saturate(0.85); }
 
 .mj-tile.selected { transform: translate(calc(var(--u) * -0.12), calc(var(--u) * -0.12)); }
-.mj-tile.selected .mj-top {
-  fill: url(#mj-top-picked);
-  stroke: var(--accent);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
+/* A picked tile is dyed the accent color all over, face, edge, back and symbol, as if it were
+   made in blue. */
+.mj-tint { fill: var(--accent); mix-blend-mode: multiply; opacity: 0; pointer-events: none; transition: opacity 0.12s ease; }
+.mj-tile.selected .mj-tint { opacity: 0.85; }
 
 .mj-tile.shake { --shake: 2px; animation: shake 0.3s ease; }
 

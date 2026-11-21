@@ -29,10 +29,6 @@
       <stop offset="0" stop-color="#fbf7ec" />
       <stop offset="1" stop-color="#ece3cc" />
     </linearGradient>
-    <linearGradient id="mj-top-picked" x1="0.33" y1="0" x2="0.67" y2="1">
-      <stop offset="0" stop-color="#e3ecff" />
-      <stop offset="1" stop-color="#c4d5fb" />
-    </linearGradient>
   </defs>
 </svg>
 
