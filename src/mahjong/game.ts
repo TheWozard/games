@@ -1,5 +1,6 @@
 // Mahjong solitaire game state and moves, as a pure reducer (apart from Shuffle, which uses
 // Math.random unless a source is passed in).
+import { isSeed, newSeed, seeded } from '../shared/seed';
 import { isLayoutId, layoutOf, type LayoutId } from './layouts';
 import { deal, freePairs, isDifficulty, isFree, isWide, matches, neighbors, reshuffle, turn, type Difficulty, type Neighbors, type Slot } from './logic';
 
@@ -18,6 +19,8 @@ export interface Game {
    */
   turned?: boolean;
   difficulty: Difficulty;
+  /** What the deal was made from: the same layout, turn, difficulty and seed deal the same tiles (missing in older saves). */
+  seed?: number;
   kinds: number[]; // face per slot of slotsOf(game)
   gone: boolean[];
   selected: number | null;
@@ -49,10 +52,10 @@ const near = (g: Game) => {
  * A new game. On an `upright` board area (taller than wide), a layout drawn wider than tall is
  * dealt a quarter turn round, so it fills the screen instead of panning.
  */
-export function newGame(layout: LayoutId, difficulty: Difficulty = 'medium', pool: readonly LayoutId[] = [layout], upright = false): Game {
+export function newGame(layout: LayoutId, difficulty: Difficulty = 'medium', pool: readonly LayoutId[] = [layout], upright = false, seed = newSeed()): Game {
   const turned = upright && isWide(layoutOf(layout).slots);
-  const { kinds } = deal(slotsFor(layout, turned), difficulty);
-  return { layout, pool: [...pool], ...(turned && { turned }), difficulty, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
+  const { kinds } = deal(slotsFor(layout, turned), difficulty, seeded(seed));
+  return { layout, pool: [...pool], ...(turned && { turned }), difficulty, seed, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
 }
 
 /** The layouts a game's deals are drawn from. */
@@ -75,7 +78,7 @@ export function isGame(value: unknown): value is Game {
   const g = value as Partial<Game> | null;
   if (!isLayoutId(g?.layout) || !isDifficulty(g.difficulty)) return false;
   const n = layoutOf(g.layout).slots.length;
-  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history) && isPool(g.pool) && (g.turned === undefined || typeof g.turned === 'boolean');
+  return g.kinds?.length === n && g.gone?.length === n && Array.isArray(g.history) && isPool(g.pool) && (g.turned === undefined || typeof g.turned === 'boolean') && (g.seed === undefined || isSeed(g.seed));
 }
 
 /**

@@ -111,6 +111,21 @@ describe('reducer', () => {
     expect(isGame({ ...old, pool: ['moon'] })).toBe(false);
   });
 
+  it('deals the same tiles again from the same seed, and saves the seed', () => {
+    for (const difficulty of ['easy', 'hard'] as const) {
+      const a = newGame('pyramid', difficulty, ['pyramid'], false, 0x1234abcd);
+      expect(a.seed).toBe(0x1234abcd);
+      expect(newGame('pyramid', difficulty, ['pyramid'], false, 0x1234abcd).kinds).toEqual(a.kinds);
+      expect(isGame(JSON.parse(JSON.stringify(a)))).toBe(true);
+    }
+    expect(newGame('pyramid', 'medium', ['pyramid'], false, 1).kinds).not.toEqual(newGame('pyramid', 'medium', ['pyramid'], false, 2).kinds);
+    const { seed: _, ...old } = newGame('pyramid');
+    expect(isGame(old)).toBe(true); // saved before deals had a seed
+    expect(isGame({ ...old, seed: -1 })).toBe(false);
+    expect(isGame({ ...old, seed: 1.5 })).toBe(false);
+    expect(isGame({ ...old, seed: '1' })).toBe(false);
+  });
+
   it('plays archive layouts, alone or in a pool with its own', () => {
     const g = newGame('gnome-mahjongg/overpass', 'easy');
     expect(g.kinds).toHaveLength(layoutOf('gnome-mahjongg/overpass').slots.length);
