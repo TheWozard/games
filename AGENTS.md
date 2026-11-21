@@ -43,6 +43,7 @@ src/
                         IconButton (round, header), MenuItem / MenuSection (GameScreen2's menu),
                         Button (.btn, `primary`, `small`), PickGroup + Choice (a New Game group of
                         tiles), Toggle (a check box tile, with an optional detail line)
+                        Try them all at /dev/ui/ (`just dev`; src/dev/ui/), which logs every tap
     seed.ts             seeded random numbers, so a puzzle can be made again from its seed
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
     GridPlay.svelte     the whole screen for a digit-grid game; a game supplies a `layout`

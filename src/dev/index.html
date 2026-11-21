@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dev Pages</title>
+  <meta name="theme-color" content="#16181d">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  <main class="dev-index">
+    <h1>Dev Pages</h1>
+    <p>Served by <code>just dev</code> only; never built.</p>
+    <ul>
+      <li><a href="./ui/">UI Components</a>: every standard button and tile, in each state, to tap and try</li>
+      <li><a href="./tiles/">Mahjong Tiles</a>: every tile face, as it looks in play</li>
+    </ul>
+  </main>
+  <style>
+    .dev-index { max-width: 520px; margin: 0 auto; padding: 16px; }
+    .dev-index a { color: var(--accent); }
+    .dev-index p { color: var(--muted); }
+    .dev-index li { margin: 8px 0; }
+  </style>
+  <script type="module">import "../shared/base.css";</script>
+</body>
+</html>
