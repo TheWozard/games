@@ -79,7 +79,7 @@
   // When the columns fit with room to spare, they're centered.
   const columnsLeft = $derived(Math.max(0, (width - columnsW) / 2));
   // null: not panned since the deal, so the columns sit centered.
-  let scrollX = $state<number | null>(null);
+  let scrollX = $state<null | number>(null);
   const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
   const colX = (col: number) => columnsLeft + col * (cw + gap) - sx;
   // On a tall screen the table is centered as a block: the top row, room for columns about as
@@ -97,12 +97,12 @@
   };
 
   interface Placed {
+    buried?: boolean; // in a column under cards that aren't a run off it: can't be picked up yet
     card: Card;
+    source: null | Source; // where a tap or drag picks it up from (null: not movable)
     x: number;
     y: number;
     z: number;
-    source: Source | null; // where a tap or drag picks it up from (null: not movable)
-    buried?: boolean; // in a column under cards that aren't a run off it: can't be picked up yet
   }
 
   const placed = $derived.by(() => {
@@ -142,16 +142,16 @@
 
   let board = $state<HTMLDivElement>();
   const shake = createShake<Card>();
-  let press: { id: number; source: Source; card: Card; x: number; y: number } | null = null;
+  let press: null | { card: Card; id: number; source: Source; x: number; y: number } = null;
   // sx0: the pan when the drag began. Cards lifted from a column stay under the finger as the
   // columns pan beneath them.
-  let drag = $state<{
+  let drag = $state<null | {
     cards: Card[];
     dx: number;
     dy: number;
-    sx0: number;
     fromColumn: boolean;
-  } | null>(null);
+    sx0: number;
+  }>(null);
   let pointerX = 0; // where the finger is, across the board, while dragging
   const dragShift = $derived(drag?.fromColumn ? sx - drag.sx0 : 0);
   let swallowClick = false;
@@ -193,7 +193,7 @@
   }
 
   /** Where the dragged cards' top card is over: a column, a free cell or the foundations. */
-  function dropTarget(): Target | null {
+  function dropTarget(): null | Target {
     if (!press || !drag) return null;
     const p = placed.find((q) => q.card === press!.card);
     if (!p) return null;
@@ -273,18 +273,18 @@
 </script>
 
 <GameScreen
-  wide
-  title="Solitaire"
-  subtitle="FreeCell · {DIFFICULTIES[game.difficulty].label}"
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => deal(newGame(game.difficulty))}
   onopennew={() => {
     pick = `freecell:${game.difficulty}`;
     pickerOpens++;
   }}
   onstart={start}
-  finished={game.done}
-  onnext={() => deal(newGame(game.difficulty))}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle="FreeCell · {DIFFICULTIES[game.difficulty].label}"
+  title="Solitaire"
+  wide
 >
   {#snippet picker()}
     {#key pickerOpens}<VariantPicker games={GAMES} bind:value={pick} />{/key}
@@ -292,32 +292,32 @@
   <div class="board-area">
     <div
       bind:this={board}
+      style:--cw="{cw}px"
+      style:--ch="{ch}px"
       class={[
         'card-table fc-board',
         { animate, pannable: maxScroll > 0, panning: panning || (drag !== null && maxScroll > 0) },
       ]}
-      bind:clientWidth={width}
-      bind:clientHeight={height}
-      style:--cw="{cw}px"
-      style:--ch="{ch}px"
-      role="group"
       aria-label="FreeCell table"
+      onpointercancel={pointerCancel}
       onpointermove={pointerMove}
       onpointerup={pointerUp}
-      onpointercancel={pointerCancel}
+      role="group"
+      bind:clientWidth={width}
+      bind:clientHeight={height}
     >
       <!-- Empty places: free cells, foundations (marked with their suit) and columns. -->
       {#each game.table.cells as _, i (i)}
         <div
-          class="slot cell"
           style:transform="translate({cellX(i)}px, {bottomY}px)"
+          class="slot cell"
           aria-hidden="true"
         ></div>
       {/each}
       {#each SUITS as suit, s (s)}
         <div
-          class="slot"
           style:transform="translate({foundationX(s)}px, {topY}px)"
+          class="slot"
           aria-hidden="true"
         >
           {suit}
@@ -325,8 +325,8 @@
       {/each}
       {#each { length: COLUMNS } as _, col (col)}
         <div
-          class="slot"
           style:transform="translate({colX(col)}px, {tableauY}px)"
+          class="slot"
           aria-hidden="true"
         ></div>
       {/each}
@@ -334,7 +334,9 @@
       {#each placed as p (p.card)}
         {@const lifting = drag?.cards.includes(p.card) ?? false}
         <button
-          type="button"
+          style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y +
+            (lifting ? drag!.dy : 0)}px)"
+          style:z-index={lifting ? 1000 + p.z : p.z}
           class={[
             'card',
             {
@@ -345,12 +347,10 @@
               dragging: lifting,
             },
           ]}
-          style:transform="translate({p.x + (lifting ? dragShift + drag!.dx : 0)}px, {p.y +
-            (lifting ? drag!.dy : 0)}px)"
-          style:z-index={lifting ? 1000 + p.z : p.z}
           aria-label={cardName(p.card)}
-          onpointerdown={(e) => pointerDown(e, p)}
           onclick={() => tap(p)}
+          onpointerdown={(e) => pointerDown(e, p)}
+          type="button"
         >
           <CardFace card={p.card} />
         </button>

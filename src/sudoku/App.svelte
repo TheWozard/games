@@ -26,35 +26,35 @@
 
 {#if variant === 'classic'}
   <GridPlay
-    title="Sudoku"
-    storageKey={classic.STORAGE_KEY}
-    difficulties={CLASSIC}
-    isValid={classic.isGame}
     create={(d) => classic.newGame(isClassic(d) ? d : 'easy')}
-    layout={() => classic.LAYOUT}
-    variants={{ games: GAMES, current: 'classic', onswitch }}
+    difficulties={CLASSIC}
     {first}
+    isValid={classic.isGame}
+    layout={() => classic.LAYOUT}
+    storageKey={classic.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'classic', onswitch }}
   />
 {:else if variant === 'jigsaw'}
   <GridPlay
-    title="Sudoku"
-    storageKey={jigsaw.STORAGE_KEY}
-    difficulties={JIGSAW}
-    isValid={jigsaw.isGame}
     create={(d) => jigsaw.newGame(isJigsaw(d) ? d : 'easy')}
-    layout={jigsaw.layout}
-    variants={{ games: GAMES, current: 'jigsaw', onswitch }}
+    difficulties={JIGSAW}
     {first}
+    isValid={jigsaw.isGame}
+    layout={jigsaw.layout}
+    storageKey={jigsaw.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'jigsaw', onswitch }}
   />
 {:else}
   <GridPlay
-    title="Sudoku"
-    storageKey={killer.STORAGE_KEY}
-    difficulties={KILLER}
-    isValid={killer.isGame}
     create={(d) => killer.newGame(isKiller(d) ? d : 'easy')}
-    layout={killer.layout}
-    variants={{ games: GAMES, current: 'killer', onswitch }}
+    difficulties={KILLER}
     {first}
+    isValid={killer.isGame}
+    layout={killer.layout}
+    storageKey={killer.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'killer', onswitch }}
   />
 {/if}

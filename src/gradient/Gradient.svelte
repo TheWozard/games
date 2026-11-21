@@ -49,7 +49,7 @@
   ) as Record<Pattern, boolean[]>;
 
   // Drag a tile onto another to swap them; a press that doesn't move is an ordinary tap.
-  let dragFrom: number | null = null;
+  let dragFrom: null | number = null;
   let dragged = false;
 
   function pointerDown(e: PointerEvent, pos: number) {
@@ -83,25 +83,25 @@
 <svelte:document onpointerup={pointerUp} />
 
 <GameScreen
-  title="Gradient"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => (game = newGame({ size: game.size, pattern: game.pattern }))}
   onopennew={askNew}
   onstart={(value) => {
     if (value === 'start') start(choice);
   }}
-  finished={game.done}
-  onnext={() => (game = newGame({ size: game.size, pattern: game.pattern }))}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Gradient"
 >
   {#snippet picker()}
-    <PickGroup title="Size" class="sizes">
+    <PickGroup class="sizes" title="Size">
       {#each Object.entries(SIZES) as [key, s] (key)}
         <Choice
-          label={s.label}
           detail="{s.cols}×{s.rows}"
-          pressed={choice.size === key}
+          label={s.label}
           onclick={() => (choice.size = key as Size)}
+          pressed={choice.size === key}
         />
       {/each}
     </PickGroup>
@@ -111,20 +111,20 @@
     <div class="pick patterns" {@attach slidePick}>
       {#each Object.entries(PATTERNS) as [key, p] (key)}
         <button
-          type="button"
           class="btn"
           aria-pressed={choice.pattern === key}
           onclick={() => (choice.pattern = key as Pattern)}
+          type="button"
         >
-          <svg viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}" aria-hidden="true">
+          <svg aria-hidden="true" viewBox="0 0 {PREVIEW.cols * 5} {PREVIEW.rows * 5}">
             {#each previews[key as Pattern] as fixed, i (i)}
               <rect
-                x={(i % PREVIEW.cols) * 5 + 0.5}
-                y={Math.floor(i / PREVIEW.cols) * 5 + 0.5}
-                width="4"
+                class={fixed ? 'fixed' : 'loose'}
                 height="4"
                 rx="1"
-                class={fixed ? 'fixed' : 'loose'}
+                width="4"
+                x={(i % PREVIEW.cols) * 5 + 0.5}
+                y={Math.floor(i / PREVIEW.cols) * 5 + 0.5}
               />
             {/each}
           </svg>
@@ -138,21 +138,21 @@
        line is all in place. Lines made only of fixed tiles are always right, so they get none. -->
   <div class="board-area">
     <div
-      class={['gradient-wrap', { done: game.done }]}
       style:--cols={game.cols}
       style:--rows={game.rows}
+      class={['gradient-wrap', { done: game.done }]}
     >
-      <div class="gradient-board" role="group" aria-label="Gradient tiles">
+      <div class="gradient-board" aria-label="Gradient tiles" role="group">
         {#each game.order as id, pos (id)}
           <button
-            type="button"
-            class={['tile', { fixed: game.fixed[pos], selected: game.selected === pos }]}
             style:background={colors[id]}
-            data-pos={pos}
+            class={['tile', { fixed: game.fixed[pos], selected: game.selected === pos }]}
             aria-label={game.fixed[pos] ? 'Fixed tile' : 'Tile'}
             aria-pressed={game.selected === pos}
-            onpointerdown={(e) => pointerDown(e, pos)}
+            data-pos={pos}
             onclick={() => click(pos)}
+            onpointerdown={(e) => pointerDown(e, pos)}
+            type="button"
             animate:flip={{ duration: 260 }}
           ></button>
         {/each}

@@ -21,9 +21,9 @@
  * Jigsaw's are irregular.
  */
 export interface Geometry {
-  units: readonly (readonly number[])[];
-  peers: readonly (readonly number[])[];
   isPeer: readonly (readonly boolean[])[];
+  peers: readonly (readonly number[])[];
+  units: readonly (readonly number[])[];
   /** Each cell's three units: its row, column and region. */
   unitsOf: readonly (readonly number[])[];
 }
@@ -328,7 +328,7 @@ export function solve(
   puzzle: readonly number[],
   upTo = MAX_TIER,
   regions: readonly number[] = BOXES,
-): { tier: number; grid: number[] } | null {
+): null | { grid: number[]; tier: number } {
   const b = new Board(puzzle, geometry(regions));
   let tier = 1;
   while (b.empty) {

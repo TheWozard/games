@@ -1,13 +1,15 @@
 {
-  "singleQuote": true,
-  "printWidth": 100,
+  "experimentalTernaries": true,
+  "importOrder": ["<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^[.]"],
+  "jsonRecursiveSort": true,
+  "objectWrap": "collapse",
   "plugins": [
     "@ianvs/prettier-plugin-sort-imports",
     "prettier-plugin-packagejson",
+    "prettier-plugin-sort-json",
     "prettier-plugin-svelte"
   ],
-  "importOrder": ["<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^[.]"],
-  "objectWrap": "collapse",
-  "experimentalTernaries": true,
+  "printWidth": 100,
+  "singleQuote": true,
   "svelteSortOrder": "options-scripts-markup-styles"
 }

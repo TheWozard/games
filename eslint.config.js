@@ -1,5 +1,6 @@
 // Lint for bugs and for this repo's conventions (AGENTS.md); formatting is Prettier's job.
 import js from '@eslint/js';
+import perfectionist from 'eslint-plugin-perfectionist';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import ts from 'typescript-eslint';
@@ -9,6 +10,22 @@ export default ts.config(
   js.configs.recommended,
   ...ts.configs.recommendedTypeChecked,
   ...svelte.configs.recommended,
+  {
+    // Sorted where order means nothing at run time: type members, unions and exports (`just fmt`
+    // fixes them). Not object literals: CHOICES, DIFFICULTIES and the like are read in order.
+    plugins: { perfectionist },
+    settings: { perfectionist: { type: 'natural', ignoreCase: true } },
+    rules: {
+      'perfectionist/sort-interfaces': 'error',
+      'perfectionist/sort-object-types': 'error',
+      'perfectionist/sort-union-types': 'error',
+      'perfectionist/sort-intersection-types': 'error',
+      'perfectionist/sort-exports': 'error',
+      'perfectionist/sort-named-exports': 'error',
+      // Attributes in one order; never moved across a {...spread}, which overrides what's before it.
+      'svelte/sort-attributes': 'error',
+    },
+  },
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },

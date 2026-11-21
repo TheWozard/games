@@ -8,12 +8,12 @@
   import type { HTMLAttributes } from 'svelte/elements';
 
   interface Props extends HTMLAttributes<HTMLElement> {
-    icon: Component<{ strokeWidth?: number; 'aria-hidden'?: 'true' }>;
-    label: string;
-    href?: string;
-    disabled?: boolean;
-    strokeWidth?: number;
     class?: string;
+    disabled?: boolean;
+    href?: string;
+    icon: Component<{ 'aria-hidden'?: 'true'; strokeWidth?: number }>;
+    label: string;
+    strokeWidth?: number;
   }
 
   let {
@@ -28,18 +28,18 @@
 </script>
 
 {#if href}
-  <a class={['icon-btn', className]} {href} aria-label={label} title={label} {...rest}>
-    <Icon {strokeWidth} aria-hidden="true" />
+  <a class={['icon-btn', className]} aria-label={label} {href} title={label} {...rest}>
+    <Icon aria-hidden="true" {strokeWidth} />
   </a>
 {:else}
   <button
-    type="button"
     class={['icon-btn', className]}
     aria-label={label}
-    title={label}
     {disabled}
+    title={label}
+    type="button"
     {...rest}
   >
-    <Icon {strokeWidth} aria-hidden="true" />
+    <Icon aria-hidden="true" {strokeWidth} />
   </button>
 {/if}

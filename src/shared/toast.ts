@@ -28,7 +28,7 @@ export interface ToastOptions {
   /** How long it stays up, in milliseconds. */
   duration?: number;
   /** 'error' shows it in red, for a loss or a failed action. */
-  tone?: 'normal' | 'error';
+  tone?: 'error' | 'normal';
 }
 
 export function toast(

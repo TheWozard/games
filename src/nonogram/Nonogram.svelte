@@ -81,7 +81,7 @@
       k,
       { label: d.label, detail: `${d.size}×${d.size}` },
     ]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
+  ) as Record<Difficulty, { detail: string; label: string }>;
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
     difficulty: 'easy',
     rules: { ...NO_RULES },
@@ -158,15 +158,15 @@
   // one. It's drawn as it goes and applied on release.
 
   interface Stroke {
-    pointer: number;
-    start: number;
+    axis: 'col' | 'row' | null;
     end: number;
     from: number; // the first cell's value
+    pointer: number;
+    start: number;
     value: number;
-    axis: 'row' | 'col' | null;
   }
 
-  let stroke = $state.raw<Stroke | null>(null);
+  let stroke = $state.raw<null | Stroke>(null);
   let svg = $state<SVGSVGElement>();
   let area = $state<HTMLDivElement>();
 
@@ -192,7 +192,7 @@
     Array.from({ length: Math.abs(b - a) + 1 }, (_, k) => (a <= b ? a + k : a - k));
 
   /** The cell under a pointer, or null outside the grid. */
-  function cellAt(e: PointerEvent): number | null {
+  function cellAt(e: PointerEvent): null | number {
     if (!svg) return null;
     const box = svg.getBoundingClientRect();
     const x = (e.clientX - box.left) / u - 0.05;
@@ -259,7 +259,7 @@
   });
 
   // Each line's clue dims once the line matches it, and turns red once its marks can't.
-  type Fit = 'met' | 'bad' | null;
+  type Fit = 'bad' | 'met' | null;
   function fitOf(line: number[], clue: Run[]): Fit {
     if (fits(shading(line), clue)) return 'met';
     const all = (1 << (game.colors + 1)) - 1;
@@ -282,7 +282,7 @@
   // The lines between blocks, one cell's side at a time, leaving out the sides with shaded cells on
   // both: those are covered, like the thin lines between shaded neighbors.
   const blockEdges = $derived.by(() => {
-    const edges: { x1: number; y1: number; x2: number; y2: number }[] = [];
+    const edges: { x1: number; x2: number; y1: number; y2: number }[] = [];
     for (let at = block; at < n; at += block) {
       for (let t = 0; t < n; t++) {
         if (!(shown[t * n + at - 1] > 0 && shown[t * n + at] > 0))
@@ -310,45 +310,45 @@
 </script>
 
 <GameScreen
-  title="Nonogram"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={opennew}
-  onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.difficulty, game.rules))}
+  onopennew={opennew}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Nonogram"
   wide
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    <RulesPicker rules={RULES} {sizes} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
   <div
-    class="board-area nonogram-area"
     bind:this={area}
+    class="board-area nonogram-area"
     bind:clientWidth={areaW}
     bind:clientHeight={areaH}
   >
     <svg
       bind:this={svg}
       class={['nonogram', { done: game.done, pannable: maxScroll > 0, panning }]}
-      width={shownW * u}
-      height={viewH * u}
-      viewBox="-0.05 -0.05 {shownW} {viewH}"
-      role="group"
       aria-label="Nonogram board"
+      height={viewH * u}
+      oncontextmenu={(e) => e.preventDefault()}
+      onlostpointercapture={cancel}
+      onpointercancel={cancel}
       onpointerdown={down}
       onpointermove={move}
       onpointerup={up}
-      onpointercancel={cancel}
-      onlostpointercapture={cancel}
-      oncontextmenu={(e) => e.preventDefault()}
+      role="group"
+      viewBox="-0.05 -0.05 {shownW} {viewH}"
+      width={shownW * u}
     >
       <!-- The whole board pans sideways, row clues and all, so they slide off the left on a narrow screen. -->
       <g transform="translate({-sx} 0)">
         {#if focus}
-          <rect class="focus" x={left + focus.c} y="0" width="1" height={top - 0.04} rx="0.12" />
+          <rect class="focus" height={top - 0.04} rx="0.12" width="1" x={left + focus.c} y="0" />
         {/if}
 
         {#each game.cols as clue, c (c)}
@@ -356,19 +356,19 @@
             {#if colFit[c] === 'bad'}
               <rect
                 class="over"
-                x={left + c + 0.08}
-                y={top - 0.1 - clue.length * CLUE_H - 0.04}
-                width="0.84"
                 height={clue.length * CLUE_H + 0.04}
                 rx="0.14"
+                width="0.84"
+                x={left + c + 0.08}
+                y={top - 0.1 - clue.length * CLUE_H - 0.04}
               />
             {/if}
             {#each clue as run, k (k)}
               <text
-                x={left + c + 0.5}
-                y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H}
                 style:fill={clueColor(run)}
                 class={{ colored: game.colors > 1, mystery: run.length === null }}
+                x={left + c + 0.5}
+                y={top - 0.1 - (clue.length - k - 0.5) * CLUE_H}
               >
                 {run.length ?? '?'}
               </text>
@@ -379,10 +379,10 @@
         <!-- The cells, rounded at the corners to fit inside the border: empty ground, the thin lines
              (a fixed 1px, like every grid board's), then the shaded cells over them. -->
         <clipPath id="nonogram-cells">
-          <rect x={left} y={top} width={n} height={n} rx={(RADIUS - THICK) / u} />
+          <rect height={n} rx={(RADIUS - THICK) / u} width={n} x={left} y={top} />
         </clipPath>
         <g clip-path="url(#nonogram-cells)">
-          <rect class="cell empty" x={left} y={top} width={n} height={n} />
+          <rect class="cell empty" height={n} width={n} x={left} y={top} />
           <path
             class="lines"
             d={Array.from(
@@ -398,11 +398,11 @@
                    over, so no seam shows where two meet. -->
               <rect
                 class="cell"
+                fill={colorOf(v)}
+                height="1.02"
+                width="1.02"
                 x={x - 0.01}
                 y={y - 0.01}
-                width="1.02"
-                height="1.02"
-                fill={colorOf(v)}
               />
             {:else if v === CROSS && !game.done}
               <path
@@ -414,21 +414,21 @@
         </g>
         <g class="blocks">
           {#each blockEdges as { x1, y1, x2, y2 }, k (k)}
-            <line x1={left + x1} y1={top + y1} x2={left + x2} y2={top + y2} />
+            <line x1={left + x1} x2={left + x2} y1={top + y1} y2={top + y2} />
           {/each}
           <!-- The border, outside the cells: its stroke is centered on this outline. -->
           <rect
             class="frame"
-            x={left - THICK / 2 / u}
-            y={top - THICK / 2 / u}
-            width={n + THICK / u}
             height={n + THICK / u}
             rx={(RADIUS - THICK / 2) / u}
+            width={n + THICK / u}
+            x={left - THICK / 2 / u}
+            y={top - THICK / 2 / u}
           />
         </g>
 
         {#if focus}
-          <rect class="focus" x="0" y={top + focus.r} width={left - 0.04} height="1" rx="0.12" />
+          <rect class="focus" height="1" rx="0.12" width={left - 0.04} x="0" y={top + focus.r} />
         {/if}
         {#each rowLayout as items, r (r)}
           <g class={['clue', rowFit[r]]}>
@@ -436,19 +436,19 @@
               {@const from = items.length ? items[0].x - items[0].w / 2 : left - 1}
               <rect
                 class="over"
-                x={from - 0.04}
-                y={top + r + 0.08}
-                width={left - 0.08 - from}
                 height="0.84"
                 rx="0.14"
+                width={left - 0.08 - from}
+                x={from - 0.04}
+                y={top + r + 0.08}
               />
             {/if}
             {#each items as { run, x }, k (k)}
               <text
-                {x}
-                y={top + r + 0.5}
                 style:fill={clueColor(run)}
                 class={{ colored: game.colors > 1, mystery: run.length === null }}
+                {x}
+                y={top + r + 0.5}
               >
                 {run.length ?? '?'}
               </text>
@@ -462,12 +462,12 @@
   <BrushPicker stops={brushStops} bind:value={brush}>
     {#snippet icon(b)}
       {#if b === CROSS}
-        <svg viewBox="0 0 16 16" aria-hidden="true">
+        <svg aria-hidden="true" viewBox="0 0 16 16">
           <path
             d="M4.5 4.5l7 7M11.5 4.5l-7 7"
             stroke="currentColor"
-            stroke-width="1.8"
             stroke-linecap="round"
+            stroke-width="1.8"
           />
         </svg>
       {/if}

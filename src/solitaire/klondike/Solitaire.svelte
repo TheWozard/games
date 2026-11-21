@@ -59,7 +59,7 @@
   // with their right edge.
   const columnsLeft = $derived(Math.max(0, (width - columnsW) / 2));
   // null: not panned since the deal, so the columns sit centered.
-  let scrollX = $state<number | null>(null);
+  let scrollX = $state<null | number>(null);
   const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
   const colX = (col: number) => columnsLeft + col * (cw + gap) - sx;
   // Laid out for a phone held upright: the four foundations centered along the top, the columns
@@ -79,11 +79,11 @@
 
   interface Placed {
     card: Card;
+    source: 'stock' | null | Source;
+    up: boolean;
     x: number;
     y: number;
     z: number;
-    up: boolean;
-    source: Source | 'stock' | null;
   }
 
   const placed = $derived.by(() => {
@@ -207,45 +207,45 @@
 <svelte:document onkeydown={onKey} />
 
 <GameScreen
-  wide
-  title="Solitaire"
-  subtitle="Klondike · {KLONDIKE[game.draw]}"
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => deal(newGame(game.draw))}
   onopennew={() => {
     pick = `klondike:${game.draw}`;
     pickerOpens++;
   }}
   onstart={start}
-  finished={game.done}
-  onnext={() => deal(newGame(game.draw))}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle="Klondike · {KLONDIKE[game.draw]}"
+  title="Solitaire"
+  wide
 >
   {#snippet picker()}
     {#key pickerOpens}<VariantPicker games={GAMES} bind:value={pick} />{/key}
   {/snippet}
   <div class="board-area">
     <div
-      class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}
       bind:this={table}
-      bind:clientWidth={width}
-      bind:clientHeight={height}
       style:--cw="{cw}px"
       style:--ch="{ch}px"
+      class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}
+      bind:clientWidth={width}
+      bind:clientHeight={height}
     >
       <!-- Empty slots: the stock (tap to turn the waste over), foundations, and columns. -->
       <button
-        type="button"
-        class="slot stock"
         style:transform="translate({stockX}px, {bottomY}px)"
+        class="slot stock"
         aria-label={game.table.stock.length ? 'Draw' : 'Turn the waste over'}
         onclick={() => dispatch({ type: 'stock' })}
+        type="button"
       >
         {#if !game.table.stock.length && game.table.waste.length}↻{/if}
       </button>
       {#each SUITS as suit, s (s)}
         <div
-          class="slot"
           style:transform="translate({foundationX(s)}px, {topY}px)"
+          class="slot"
           aria-hidden="true"
         >
           {suit}
@@ -253,15 +253,16 @@
       {/each}
       {#each { length: 7 } as _, col (col)}
         <div
-          class="slot"
           style:transform="translate({colX(col)}px, {tableauY}px)"
+          class="slot"
           aria-hidden="true"
         ></div>
       {/each}
 
       {#each placed as p (p.card)}
         <button
-          type="button"
+          style:transform="translate({p.x}px, {p.y}px)"
+          style:z-index={p.z}
           class={[
             'card',
             {
@@ -271,10 +272,9 @@
               live: p.source !== null,
             },
           ]}
-          style:transform="translate({p.x}px, {p.y}px)"
-          style:z-index={p.z}
           aria-label={p.up ? cardName(p.card) : 'Face-down card'}
           onclick={() => tap(p)}
+          type="button"
         >
           {#if p.up}<CardFace card={p.card} />{/if}
         </button>

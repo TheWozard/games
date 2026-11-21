@@ -18,10 +18,10 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export interface Puzzle {
-  size: number;
-  stars: number; // per row, column and region
   regions: number[]; // per cell: its region, 0..size-1
+  size: number;
   solution: boolean[]; // per cell: a star
+  stars: number; // per row, column and region
 }
 
 // ---- Solver ----
@@ -46,11 +46,11 @@ function rowChoices(n: number, k: number): number[] {
 export function solutions(
   n: number,
   k: number,
-  regions: number[] | null,
+  regions: null | number[],
   limit = 2,
   budget = 200_000,
   random?: Random,
-): number[][] | null {
+): null | number[][] {
   const choices = rowChoices(n, k);
   const colCount = new Array<number>(n).fill(0);
   const regCount = new Array<number>(n).fill(0);
@@ -122,7 +122,7 @@ const toCells = (n: number, rows: number[]) =>
   Array.from({ length: n * n }, (_, i) => (rows[Math.floor(i / n)] & (1 << (i % n))) !== 0);
 
 /** Whether the puzzle has exactly one placement (within the step budget). */
-export function isUnique(p: Pick<Puzzle, 'size' | 'stars' | 'regions'>): boolean {
+export function isUnique(p: Pick<Puzzle, 'regions' | 'size' | 'stars'>): boolean {
   const found = solutions(p.size, p.stars, p.regions);
   return found !== null && found.length === 1;
 }
@@ -130,7 +130,7 @@ export function isUnique(p: Pick<Puzzle, 'size' | 'stars' | 'regions'>): boolean
 // ---- Generator ----
 
 /** Regions around the stars: one star each, or pairs joined by a path; then grown to fill. */
-function growRegions(n: number, k: number, stars: number[], random: Random): number[] | null {
+function growRegions(n: number, k: number, stars: number[], random: Random): null | number[] {
   const region = new Array<number>(n * n).fill(-1);
   if (k === 1) stars.forEach((s, g) => (region[s] = g));
   else {
@@ -222,7 +222,7 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
 
 /** Stars that break a rule: touching another star, or one too many in their row, column or region. */
 export function conflicts(
-  p: Pick<Puzzle, 'size' | 'stars' | 'regions'>,
+  p: Pick<Puzzle, 'regions' | 'size' | 'stars'>,
   stars: boolean[],
 ): boolean[] {
   const n = p.size;
@@ -246,7 +246,7 @@ export function conflicts(
 }
 
 export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzle {
-  const p = value as Puzzle | null;
+  const p = value as null | Puzzle;
   const { size: n, stars: k } = DIFFICULTIES[difficulty];
   return (
     typeof p === 'object' &&

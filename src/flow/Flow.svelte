@@ -83,7 +83,7 @@
    */
   const wrapEdges = $derived.by(() => {
     if (!board.wrap) return [];
-    const out: { d: string; color: number }[] = [];
+    const out: { color: number; d: string }[] = [];
     const i = 0.02; // inset, so the line sits just inside the board
     // Leaving `from` over its edge into `to`: the piece, colored for a dot on either side (-1: none).
     const add = (from: number, to: number, d: string) => {
@@ -118,7 +118,7 @@
       k,
       { label: d.label, detail: `${d.size}×${d.size} · ${d.colors} colors` },
     ]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
+  ) as Record<Difficulty, { detail: string; label: string }>;
   // The New Game picks, starting from the current game's; Play starts them.
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
     difficulty: 'easy',
@@ -132,7 +132,7 @@
   });
 
   /** A new game: made here, or for a slow setting in the background (GameScreen shows a spinner). */
-  function make(difficulty: Difficulty, rules: Rules): void | Promise<void> {
+  function make(difficulty: Difficulty, rules: Rules): Promise<void> | void {
     if (!isSlow(difficulty, rules)) {
       game = newGame(difficulty, rules);
       return;
@@ -154,8 +154,8 @@
   // the edges), so on a wrapping board a drag off one side carries on from the opposite one.
 
   let svg: SVGSVGElement;
-  type Spot = { r: number; c: number };
-  let stroke: { id: number; color: number; at: Spot; before: Path[] } | null = null;
+  type Spot = { c: number; r: number };
+  let stroke: null | { at: Spot; before: Path[]; color: number; id: number } = null;
 
   function spotAt(e: PointerEvent): Spot {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
@@ -163,7 +163,7 @@
   }
 
   /** The square at a spot: wrapped onto the board if it wraps, else null off the edge. */
-  function cellOf({ r, c }: Spot): number | null {
+  function cellOf({ r, c }: Spot): null | number {
     if (board.wrap) return (((r % n) + n) % n) * n + (((c % n) + n) % n);
     return r >= 0 && r < n && c >= 0 && c < n ? r * n + c : null;
   }
@@ -219,53 +219,53 @@
 </script>
 
 <GameScreen
-  title="Flow"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  nextWait={wait(game.difficulty, game.rules)}
+  onnext={() => make(game.difficulty, game.rules)}
   onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
   onstart={start}
-  finished={game.done}
-  onnext={() => make(game.difficulty, game.rules)}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Flow"
   wait={wait(choice.difficulty, choice.rules)}
-  nextWait={wait(game.difficulty, game.rules)}
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    <RulesPicker rules={RULES} {sizes} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
   <div class="board-area">
     <svg
       bind:this={svg}
       class={['flow-board', { done: game.done }]}
-      viewBox="0 0 {n} {n}"
-      role="group"
       aria-label="Flow board"
+      onpointercancel={pointerUp}
       onpointerdown={pointerDown}
       onpointermove={pointerMove}
       onpointerup={pointerUp}
-      onpointercancel={pointerUp}
+      role="group"
+      viewBox="0 0 {n} {n}"
     >
       {#each fill as k, cell (cell)}
         <rect
           class="square"
-          x={cell % n}
-          y={Math.floor(cell / n)}
-          width="1"
-          height="1"
           fill={k === -1 ? undefined : PALETTE[k]}
           fill-opacity={k === -1 ? undefined : 0.16}
+          height="1"
+          width="1"
+          x={cell % n}
+          y={Math.floor(cell / n)}
         />
       {/each}
       {#each { length: n - 1 } as _, i (i)}
-        <line class="grid" x1={i + 1} y1="0" x2={i + 1} y2={n} />
-        <line class="grid" x1="0" y1={i + 1} x2={n} y2={i + 1} />
+        <line class="grid" x1={i + 1} x2={i + 1} y1="0" y2={n} />
+        <line class="grid" x1="0" x2={n} y1={i + 1} y2={i + 1} />
       {/each}
       <!-- Wrapping: the outer edge is dashed wherever a path can wrap to the opposite side. -->
       {#each wrapEdges as { d, color } (d)}
         <path
+          style:stroke={color === -1 ? undefined : PALETTE[color]}
           class={['wrap-edge', { dot: color !== -1 }]}
           {d}
-          style:stroke={color === -1 ? undefined : PALETTE[color]}
         />
       {/each}
       <!-- Holes are hatched, inside their usual grid lines, so they read as missing squares. -->
@@ -273,29 +273,29 @@
         <defs>
           <pattern
             id="flow-hatch"
-            width="0.2"
             height="0.2"
-            patternUnits="userSpaceOnUse"
             patternTransform="rotate(45)"
+            patternUnits="userSpaceOnUse"
+            width="0.2"
           >
-            <line class="hatch" x1="0.1" y1="0" x2="0.1" y2="0.2" />
+            <line class="hatch" x1="0.1" x2="0.1" y1="0" y2="0.2" />
           </pattern>
         </defs>
       {/if}
       {#each board.holes as cell (cell)}
         <rect
           class="hole-hatch"
-          x={(cell % n) + 0.08}
-          y={Math.floor(cell / n) + 0.08}
-          width="0.84"
+          fill="url(#flow-hatch)"
           height="0.84"
           rx="0.12"
-          fill="url(#flow-hatch)"
+          width="0.84"
+          x={(cell % n) + 0.08}
+          y={Math.floor(cell / n) + 0.08}
         />
       {/each}
       {#each game.paths as path, k (k)}
         {#if path.length > 1}
-          <path class="path" stroke={PALETTE[k]} d={pathD(path)} />
+          <path class="path" d={pathD(path)} stroke={PALETTE[k]} />
         {/if}
       {/each}
       <!-- Bridges: a tube across the square, open at both ends. Drawn over the paths, its body
@@ -304,19 +304,19 @@
         {@const x = cell % n}
         {@const y = Math.floor(cell / n) + 0.5}
         <!-- Inset from the square's edges, like a hole's hatching, so it doesn't touch the grid lines. -->
-        <rect class="bridge-body" x={x + 0.08} y={y - 0.3} width="0.84" height="0.6" />
+        <rect class="bridge-body" height="0.6" width="0.84" x={x + 0.08} y={y - 0.3} />
         <path class="bridge-side" d="M{x + 0.08} {y - 0.3}h0.84M{x + 0.08} {y + 0.3}h0.84" />
       {/each}
       {#each overpasses as { b, k } (b)}
         {@const p = center(b)}
-        <line class="path" stroke={PALETTE[k]} x1={p.x - 0.5} y1={p.y} x2={p.x + 0.5} y2={p.y} />
+        <line class="path" stroke={PALETTE[k]} x1={p.x - 0.5} x2={p.x + 0.5} y1={p.y} y2={p.y} />
       {/each}
 
       {#each board.walls as [a, b] (`${a}-${b}`)}
         {@const vertical = b - a === 1}
         {@const x = vertical ? b % n : a % n}
         {@const y = vertical ? Math.floor(a / n) : Math.floor(b / n)}
-        <line class="wall" x1={x} y1={y} x2={vertical ? x : x + 1} y2={vertical ? y + 1 : y} />
+        <line class="wall" x1={x} x2={vertical ? x : x + 1} y1={y} y2={vertical ? y + 1 : y} />
       {/each}
 
       {#each game.dots as pair, k (k)}
@@ -326,8 +326,8 @@
             class={['dot', { joined: connected(game.dots, game.paths, k) }]}
             cx={p.x}
             cy={p.y}
-            r="0.32"
             fill={PALETTE[k]}
+            r="0.32"
           />
         {/each}
       {/each}

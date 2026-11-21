@@ -148,7 +148,7 @@ describe('isSolved', () => {
     ],
   ];
   const none = { squares: [null, null, null, null], rings: new Array(9).fill(false) };
-  const just = (clues: (number | null)[]) => ({ ...none, clues });
+  const just = (clues: (null | number)[]) => ({ ...none, clues });
   it('accepts one loop matching the clues', () => {
     expect(isSolved(g, just([2, 2, 2, 2]), lines(ring))).toBe(true);
     expect(isSolved(g, just([2, null, null, 3]), lines(ring))).toBe(false); // clue mismatch

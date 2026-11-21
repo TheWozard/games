@@ -5,7 +5,7 @@
   A game supplies its puzzles, which cells are fixed, which marks break a rule, and a `cells`
   snippet that draws the board's contents in cell units (cell i's top left is (i % n, i / n)).
 -->
-<script lang="ts" generics="P extends Shape">
+<script generics="P extends Shape" lang="ts">
   import { untrack, type Snippet } from 'svelte';
   import BrushPicker from '../shared/BrushPicker.svelte';
   import GameScreen from '../shared/GameScreen.svelte';
@@ -14,34 +14,38 @@
   import { EMPTY, gameOf, isGame, MAIN, NOTE, reducer, type Action, type Shape } from './board';
   import type { Switcher } from './variants';
 
-  type Drag = 'none' | 'line' | 'free';
+  type Drag = 'free' | 'line' | 'none';
 
   interface Props {
-    title: string;
-    storageKey: string;
-    difficulties: Record<string, { label: string }>;
-    create: (difficulty: string) => P;
-    isPuzzle: (value: unknown, difficulty: string) => boolean;
-    /** Cells that take no marks (numbers, walls). */
-    fixed?: (puzzle: P, i: number) => boolean;
+    /** Draws the board's contents. */
+    cells: Snippet<[{ bad: boolean[]; done: boolean; marks: number[]; puzzle: P }]>;
     /** Which marks break a rule, to show them red. */
     conflicts: (puzzle: P, marks: number[]) => boolean[];
-    /** The picker's two stops: the game's mark, then the player's note. */
-    names: [string, string];
+    /**
+     * A new puzzle. Give its parameter a type (`(d: string) => ...`): then P is inferred from it
+     * first, not narrowed to the bare Shape by a callback that comes before it (props are sorted).
+     */
+    create: (difficulty: string) => P;
+    difficulties: Record<string, { label: string }>;
     /**
      * How a drag carries each one, the game's mark then the note: 'none' (taps only: a star or lamp
      * goes in one cell at a time), 'line' (along the row or column it first moves in), or 'free'
      * (every cell it passes over, any way it goes).
      */
     drags?: [Drag, Drag];
-    /** The picker's icons, for MAIN and NOTE. */
-    icon: Snippet<[number]>;
-    /** Draws the board's contents. */
-    cells: Snippet<[{ puzzle: P; marks: number[]; bad: boolean[]; done: boolean }]>;
-    /** The tabs of the New Game dialog, and switching between the games. */
-    variants: Switcher;
     /** Start a new game at this difficulty instead of resuming the saved one. */
     first?: string;
+    /** Cells that take no marks (numbers, walls). */
+    fixed?: (puzzle: P, i: number) => boolean;
+    /** The picker's icons, for MAIN and NOTE. */
+    icon: Snippet<[number]>;
+    isPuzzle: (value: unknown, difficulty: string) => boolean;
+    /** The picker's two stops: the game's mark, then the player's note. */
+    names: [string, string];
+    storageKey: string;
+    title: string;
+    /** The tabs of the New Game dialog, and switching between the games. */
+    variants: Switcher;
   }
 
   let {
@@ -103,17 +107,17 @@
   // goes and applied on release.
 
   interface Stroke {
-    pointer: number;
-    start: number;
+    axis: 'col' | 'row' | null;
+    drag: Drag;
     end: number;
     from: number;
-    value: number;
-    drag: Drag;
-    axis: 'row' | 'col' | null;
     path: number[]; // a free drag's cells, in order
+    pointer: number;
+    start: number;
+    value: number;
   }
 
-  let stroke = $state.raw<Stroke | null>(null);
+  let stroke = $state.raw<null | Stroke>(null);
   let svg = $state<SVGSVGElement>();
 
   const range = (a: number, b: number) =>
@@ -130,7 +134,7 @@
     return line.filter((i) => !isFixed(i) && game.marks[i] === s.from);
   }
 
-  function cellAt(e: PointerEvent): number | null {
+  function cellAt(e: PointerEvent): null | number {
     if (!svg) return null;
     // The cells fill the box inside the border (shading.css).
     const box = svg.getBoundingClientRect();
@@ -218,38 +222,38 @@
 {/snippet}
 
 <GameScreen
-  {title}
-  subtitle={[variants.games[variants.current].label, difficulties[game.difficulty]?.label]
-    .filter(Boolean)
-    .join(' · ')}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  picker={variantPicker}
+  finished={game.done}
+  onnext={() => (game = make(game.difficulty))}
   onopennew={() => {
     pick = `${variants.current}:${game.difficulty}`;
     pickerOpens++;
   }}
   onstart={start}
-  finished={game.done}
-  onnext={() => (game = make(game.difficulty))}
+  onundo={() => dispatch({ type: 'undo' })}
+  picker={variantPicker}
+  subtitle={[variants.games[variants.current].label, difficulties[game.difficulty]?.label]
+    .filter(Boolean)
+    .join(' · ')}
+  {title}
 >
   <div class="board-area">
     <svg
       bind:this={svg}
       class={['shade-board', { done: game.done }]}
-      viewBox="0 0 {n} {n}"
-      role="group"
       aria-label="{variants.games[variants.current].label} board"
+      oncontextmenu={(e) => e.preventDefault()}
+      onlostpointercapture={cancel}
+      onpointercancel={cancel}
       onpointerdown={down}
       onpointermove={move}
       onpointerup={up}
-      onpointercancel={cancel}
-      onlostpointercapture={cancel}
-      oncontextmenu={(e) => e.preventDefault()}
+      role="group"
+      viewBox="0 0 {n} {n}"
     >
       <!-- The cells, then the thin lines between them (a fixed 1px whatever the board's size, like
            Sudoku's), then the game's own marks over both. The outer border is the svg's (shading.css). -->
-      <rect class="cell" x="0" y="0" width={n} height={n} />
+      <rect class="cell" height={n} width={n} x="0" y="0" />
       <path
         class="lines"
         d={Array.from({ length: n - 1 }, (_, k) => `M${k + 1} 0V${n}M0 ${k + 1}H${n}`).join('')}
@@ -258,5 +262,5 @@
     </svg>
   </div>
 
-  <BrushPicker {stops} bind:value={brush} {icon} />
+  <BrushPicker {icon} {stops} bind:value={brush} />
 </GameScreen>

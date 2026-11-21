@@ -21,14 +21,14 @@ const HISTORY_LIMIT = 400;
 
 export interface Game {
   difficulty: Difficulty;
-  table: Table;
-  history: Table[]; // tables before each move, for undo
   done: boolean;
+  history: Table[]; // tables before each move, for undo
+  table: Table;
 }
 
 export type Action =
-  | { type: 'tap'; source: Source } // send these cards to their best place
-  | { type: 'move'; source: Source; target: Target } // dragged to a chosen place
+  | { source: Source; target: Target; type: 'move' } // dragged to a chosen place
+  | { source: Source; type: 'tap' } // send these cards to their best place
   | { type: 'undo' };
 
 export function newGame(difficulty: Difficulty): Game {
@@ -43,7 +43,7 @@ export function newGame(difficulty: Difficulty): Game {
 const isCard = (c: unknown) => Number.isInteger(c) && (c as number) >= 0 && (c as number) < 52;
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   const t = g?.table;
   if (!isDifficulty(g?.difficulty) || !t || !Array.isArray(g.history)) return false;
   if (!Array.isArray(t.cells) || t.cells.length !== DIFFICULTIES[g.difficulty].cells) return false;

@@ -31,8 +31,8 @@ export const mineCount = (size: Size, density: Density) =>
 type Random = () => number;
 
 export interface Board {
-  rows: number;
   cols: number;
+  rows: number;
 }
 
 export function neighbors(i: number, { rows, cols }: Board): number[] {

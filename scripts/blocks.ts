@@ -62,7 +62,7 @@ async function makeAll(variants: Variant[]): Promise<[Variant, Found][]> {
             workerData: variant,
             execArgv: ['--experimental-strip-types'],
           });
-          worker.on('message', (m: { progress?: string; done?: Found }) => {
+          worker.on('message', (m: { done?: Found; progress?: string }) => {
             if (m.progress) {
               progress[variant] = m.progress;
               show();

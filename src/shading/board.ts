@@ -18,13 +18,13 @@ export interface Shape {
 
 export interface Game<P extends Shape> {
   difficulty: string;
-  puzzle: P;
-  marks: number[];
-  history: number[][];
   done: boolean;
+  history: number[][];
+  marks: number[];
+  puzzle: P;
 }
 
-export type Action = { type: 'paint'; indices: number[]; value: number } | { type: 'undo' };
+export type Action = { indices: number[]; type: 'paint'; value: number } | { type: 'undo' };
 
 export function gameOf<P extends Shape>(difficulty: string, puzzle: P): Game<P> {
   return {
@@ -73,7 +73,7 @@ export function isGame<P extends Shape>(
   isDifficulty: (d: unknown) => boolean,
   isPuzzle: (p: unknown, difficulty: string) => boolean,
 ): value is Game<P> {
-  const g = value as Partial<Game<P>> | null;
+  const g = value as null | Partial<Game<P>>;
   if (
     typeof g !== 'object' ||
     g === null ||

@@ -15,7 +15,7 @@ export const isVariant = (value: unknown): value is Variant => VARIANTS.includes
 /** Each game's name, and its New Game choices under a heading. */
 export const GAMES: Record<
   Variant,
-  { label: string; title: string; options: { value: string; label: string; detail: string }[] }
+  { label: string; options: { detail: string; label: string; value: string }[]; title: string }
 > = {
   klondike: {
     label: 'Klondike',
@@ -40,7 +40,7 @@ export const GAMES: Record<
 export const OPTIONS = VARIANTS.flatMap((v) => GAMES[v].options);
 
 /** A choice's game and setting, or null if it isn't one of OPTIONS. */
-export function parse(value: string): { variant: Variant; setting: string } | null {
+export function parse(value: string): null | { setting: string; variant: Variant } {
   if (!OPTIONS.some((o) => o.value === value)) return null;
   const [variant, setting] = value.split(':');
   return { variant: variant as Variant, setting };
@@ -48,8 +48,8 @@ export function parse(value: string): { variant: Variant; setting: string } | nu
 
 /** What a game screen is given by the page. */
 export interface VariantProps {
-  /** Deal a new game with this setting instead of resuming the saved one. */
-  start?: string;
   /** Called with a New dialog choice for the other game. */
   onswitch: (value: string) => void;
+  /** Deal a new game with this setting instead of resuming the saved one. */
+  start?: string;
 }

@@ -23,7 +23,7 @@ const HISTORY_LIMIT = 300;
 export const EMPTY = 0;
 export const LINE = 1;
 export const CROSS = 2;
-export type Mark = typeof EMPTY | typeof LINE | typeof CROSS;
+export type Mark = typeof CROSS | typeof EMPTY | typeof LINE;
 
 /** What a tap turns a side into: empty → line → cross → empty. */
 export const next = (m: Mark): Mark =>
@@ -32,17 +32,17 @@ export const next = (m: Mark): Mark =>
   : EMPTY;
 
 export interface Game extends Grid {
+  clues: (null | number)[];
   difficulty: Difficulty;
-  rules: Rules;
-  clues: (number | null)[];
-  squares: (Square | null)[]; // per cell
-  rings: boolean[]; // per dot
-  marks: Mark[]; // per edge
-  history: Mark[][];
   done: boolean;
+  history: Mark[][];
+  marks: Mark[]; // per edge
+  rings: boolean[]; // per dot
+  rules: Rules;
+  squares: (null | Square)[]; // per cell
 }
 
-export type Action = { type: 'cycle'; edge: number } | { type: 'undo' };
+export type Action = { edge: number; type: 'cycle' } | { type: 'undo' };
 
 export const newGame = (difficulty: Difficulty, rules: Rules = NO_RULES): Game =>
   gameOf(difficulty, rules, generate(difficulty, rules));
@@ -73,7 +73,7 @@ export function gameOf(
  * the rules could be picked, with the rules its clues show.
  */
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isDifficulty(g?.difficulty)) return false;
   const { rows, cols } = DIFFICULTIES[g.difficulty];
   g.squares ??= new Array(rows * cols).fill(null);

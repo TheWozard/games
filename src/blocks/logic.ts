@@ -65,12 +65,12 @@ export const DIFFICULTIES: Record<
 
 /** A board's size, how many key blocks it has, and where they leave. */
 export interface Shape {
-  size: number;
-  keys: number;
-  /** The row the first key block lies on, and the gap in the right-hand edge it leaves by. */
-  exitRow: number;
   /** The column the second key block (if any) stands in, and the gap in the bottom edge it leaves by. */
   exitCol: number;
+  /** The row the first key block lies on, and the gap in the right-hand edge it leaves by. */
+  exitRow: number;
+  keys: number;
+  size: number;
 }
 
 export function shape(variant: Variant): Shape {
@@ -84,11 +84,11 @@ export function shape(variant: Variant): Shape {
  * second (Two Keys) stands down.
  */
 export interface Block {
-  r: number;
-  c: number;
-  len: number;
   across: boolean;
+  c: number;
   fixed?: boolean;
+  len: number;
+  r: number;
 }
 
 type Random = () => number;
@@ -260,12 +260,12 @@ export interface Puzzle {
 export const positionKey = (blocks: readonly Block[]) => blocks.map(along).join('');
 
 export interface Explored {
+  /** The blocks of position `id`. */
+  blocksOf: (id: number) => Block[];
   /** Every position reachable from the start (which is the first), as `positionKey`s. */
   keys: string[];
   /** Per position, the fewest moves to finish from there, or -1 if it can't be finished. */
   moves: Int32Array;
-  /** The blocks of position `id`. */
-  blocksOf: (id: number) => Block[];
 }
 
 /**
@@ -362,7 +362,7 @@ export function interest(start: readonly Block[], s: Shape, fewest: Map<string, 
     // A move one closer to the finish; among those, one that moves a block already moved, if any
     // (so the count of different blocks is what the solution can't do without).
     const grid = occupancy(blocks, s);
-    let chosen: { i: number; next: Block[] } | null = null;
+    let chosen: null | { i: number; next: Block[] } = null;
     for (let i = 0; i < blocks.length; i++) {
       const [lo, hi] = range(blocks, i, s, grid);
       for (let p = lo; p <= hi; p++) {

@@ -24,7 +24,7 @@ const cards = (names: string) => (names ? names.split(' ').map(c) : []);
 /** A table with only the cards given (the rest notionally elsewhere): enough for move rules. */
 function table(
   columns: string[],
-  cells: (string | null)[] = [null, null, null, null],
+  cells: (null | string)[] = [null, null, null, null],
   foundations = [0, 0, 0, 0],
 ): Table {
   return {

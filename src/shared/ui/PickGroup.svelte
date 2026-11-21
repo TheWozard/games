@@ -12,7 +12,7 @@
     title,
     class: className,
     children,
-  }: { title: string; class?: string; children: Snippet } = $props();
+  }: { children: Snippet; class?: string; title: string } = $props();
 </script>
 
 <h3 class="pick-title">{title}</h3>

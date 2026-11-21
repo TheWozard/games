@@ -8,11 +8,11 @@ import { LAYOUTS, type Difficulty, type LayoutName, type Slot } from './logic';
 export type LayoutId = string;
 
 export interface Layout {
+  /** Where an archive layout comes from; missing on the game's own. */
+  archive?: Pick<ArchiveLayout, 'by' | 'source'>;
   id: LayoutId;
   name: string;
   slots: readonly Slot[];
-  /** Where an archive layout comes from; missing on the game's own. */
-  archive?: Pick<ArchiveLayout, 'by' | 'source'>;
 }
 
 /** The game's own layouts' ids, in their order (by tile count). */

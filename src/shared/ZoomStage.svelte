@@ -23,12 +23,12 @@
 
   interface Props {
     board: Size;
+    children: Snippet;
+    height?: number;
     /** Changes for a new board, to open it on the starting view even if its size is the same. */
     key?: unknown;
     /** The space's size (all of it, bottom inset included), for a game that sizes its board from it. */
     width?: number;
-    height?: number;
-    children: Snippet;
   }
 
   let { board, key, width = $bindable(0), height = $bindable(0), children }: Props = $props();
@@ -85,8 +85,8 @@
   // eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping, never drawn
   const pointers = new Map<number, { x: number; y: number }>();
   // One finger: where it started and the view then. Two: their distance and midpoint at the start.
-  let drag: { x: number; y: number; from: View; moved: boolean } | null = null;
-  let pinch: { dist: number; mid: { x: number; y: number }; from: View } | null = null;
+  let drag: null | { from: View; moved: boolean; x: number; y: number } = null;
+  let pinch: null | { dist: number; from: View; mid: { x: number; y: number } } = null;
   let swallow = false; // the next click ends a drag or pinch
   // While the board moves under a finger or the wheel, it's its own layer (`.moving`: will-change),
   // so the phone's GPU moves and scales a picture of it rather than the browser redrawing every
@@ -241,7 +241,7 @@
   const shown = $derived(clampView(view, stage, board, REACH));
 </script>
 
-<div class="zoom-stage" bind:this={el} bind:clientWidth={width} bind:clientHeight={height}>
+<div bind:this={el} class="zoom-stage" bind:clientWidth={width} bind:clientHeight={height}>
   <div
     class="zoom-frame"
     aria-hidden="true"
@@ -249,11 +249,11 @@
     bind:clientHeight={frameH}
   ></div>
   <div
-    class="zoom-board"
-    class:moving
     style:width="{board.width}px"
     style:height="{board.height}px"
     style:transform="translate({shown.x}px, {shown.y}px) scale({shown.z})"
+    class="zoom-board"
+    class:moving
   >
     {@render children()}
   </div>

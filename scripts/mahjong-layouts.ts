@@ -33,8 +33,8 @@ async function get(url: string): Promise<string> {
 }
 
 interface Parsed {
-  name: string;
   by: string;
+  name: string;
   slots: Slot[];
 }
 

@@ -7,7 +7,7 @@ const IDLE_MS = 60 * 60 * 1000;
 
 export function keepScreenOn(): void {
   if (!('wakeLock' in navigator)) return;
-  let lock: WakeLockSentinel | null = null;
+  let lock: null | WakeLockSentinel = null;
   let asking = false;
   let idle: ReturnType<typeof setTimeout> | undefined;
 

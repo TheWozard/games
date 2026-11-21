@@ -24,8 +24,8 @@ export const WALL = -1;
 
 export interface Puzzle {
   size: number;
-  walls: (number | null)[]; // per cell: null for white, WALL, or a wall's count 0..4
   solution: boolean[]; // per cell: a lamp
+  walls: (null | number)[]; // per cell: null for white, WALL, or a wall's count 0..4
 }
 
 /** The white cells a lamp at i would light (not i itself): along its row and column to the walls. */
@@ -134,7 +134,7 @@ export function solutions(
     }
     if (!settle(state)) return;
     // The unlit cell with fewest places left to light it from.
-    let best: number[] | null = null;
+    let best: null | number[] = null;
     for (let i = 0; i < n * n; i++) {
       if (!white[i] || state[i] === LAMP || seen[i].some((j) => state[j] === LAMP)) continue;
       const places = [i, ...seen[i]].filter((j) => state[j] === UNKNOWN);
@@ -168,8 +168,8 @@ export function isUnique(p: Pick<Puzzle, 'size' | 'walls'>): boolean {
 // ---- Generator ----
 
 /** Walls at random, the same turned half around (as these puzzles usually are). */
-function layout(n: number, share: number, random: Random): (number | null)[] {
-  const walls = new Array<number | null>(n * n).fill(null);
+function layout(n: number, share: number, random: Random): (null | number)[] {
+  const walls = new Array<null | number>(n * n).fill(null);
   for (let i = 0; i < n * n; i++) {
     const j = n * n - 1 - i;
     if (j < i) break;
@@ -227,7 +227,7 @@ export function conflicts(p: Pick<Puzzle, 'size' | 'walls'>, lamps: boolean[]): 
 }
 
 export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzle {
-  const p = value as Puzzle | null;
+  const p = value as null | Puzzle;
   const n = DIFFICULTIES[difficulty].size;
   return (
     typeof p === 'object' &&

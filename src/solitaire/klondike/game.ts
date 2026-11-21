@@ -16,16 +16,16 @@ export const STORAGE_KEY = 'games.solitaire.v1';
 const HISTORY_LIMIT = 400;
 
 export interface Game {
+  done: boolean;
   draw: Draw;
-  table: Table;
   history: Table[];
   moves: number;
-  done: boolean;
+  table: Table;
 }
 
 export type Action =
+  | { source: Source; type: 'tap' } // send these cards to their best place
   | { type: 'stock' } // turn over stock cards (or the waste back over)
-  | { type: 'tap'; source: Source } // send these cards to their best place
   | { type: 'undo' };
 
 export function newGame(drawCount: Draw): Game {
@@ -33,7 +33,7 @@ export function newGame(drawCount: Draw): Game {
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   const t = g?.table;
   if ((g?.draw !== 1 && g?.draw !== 3) || !t || !Array.isArray(g.history)) return false;
   if (

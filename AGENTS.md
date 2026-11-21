@@ -280,6 +280,10 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
   above its selector. Generated data
   (`src/blocks/puzzles.ts`, `src/mahjong/archive.ts`, `src/solitaire/klondike/deals.ts`,
   `faces.svg`) is left as its scripts write it (`.prettierignore`).
+- Sorted wherever order means nothing at run time: the keys of JSON files (Prettier; arrays keep
+  their order), and with ESLint's fixes, interface and object-type members, union and intersection
+  members, exports, and Svelte attributes (`svelte/sort-attributes`, which never moves one past a
+  `{...spread}`). Not object literals: `CHOICES`, `DIFFICULTIES` and the like are read in order.
 - ESLint's `no-unsafe-*` rules are off: typescript-eslint can't read the types of `.svelte`
   imports. Mark a promise left to run on its own with `void` (`no-floating-promises`).
 - Silence a rule only for one line, with a reason: `// eslint-disable-next-line <rule> -- why`.

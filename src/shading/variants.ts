@@ -19,8 +19,8 @@ export const storageKey = (variant: Variant) => `games.shading.${variant}.v1`;
 
 /** What each game's screen gets to show the other games' tabs and switch to one. */
 export interface Switcher {
-  games: Games;
   current: Variant;
+  games: Games;
   onswitch: (pick: string) => void;
 }
 

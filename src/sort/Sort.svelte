@@ -99,7 +99,7 @@
       k,
       { label: d.label, detail: `${d.colors} colors` },
     ]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
+  ) as Record<Difficulty, { detail: string; label: string }>;
 
   // The New Game picks, starting from the current game's; Play starts them.
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
@@ -131,30 +131,31 @@
 
 <!-- Next once sorted. A dead end isn't called: Undo backs out of it, or + starts a new deal. -->
 <GameScreen
-  title="Color Sort"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
-  onstart={start}
   finished={game.done}
   onnext={() => (game = newGame(game.difficulty, game.rules))}
+  onopennew={() => (choice = { difficulty: game.difficulty, rules: { ...game.rules } })}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Color Sort"
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    <RulesPicker rules={RULES} {sizes} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
   <div class="board-area">
     <svg
-      class={['sort-board', { done: game.done }]}
-      viewBox="0 0 {box.w} {box.h}"
       style:--w={box.w}
       style:--h={box.h}
-      role="group"
+      class={['sort-board', { done: game.done }]}
       aria-label="Tubes"
+      role="group"
+      viewBox="0 0 {box.w} {box.h}"
     >
       {#each game.tubes as tube, t (t)}
         {@const p = place(t)}
         <g
+          style:transform="translate({p.x}px, {p.y}px)"
           class={[
             'tube',
             {
@@ -166,26 +167,25 @@
                 !game.hidden[t].some(Boolean),
             },
           ]}
-          style:transform="translate({p.x}px, {p.y}px)"
-          role="button"
-          tabindex="-1"
           aria-label="Tube {t + 1}: {tube.length} layers"
           onclick={() => tap(t)}
           onkeydown={() => {}}
+          role="button"
+          tabindex="-1"
         >
           <g class="lift">
-            <rect class="hit" x={-GAP / 2} y="-0.5" width={1 + GAP} height={TUBE_H + 0.8} />
-            <rect class="body" x="0" y="0" width="1" height={TUBE_H} rx="0.5" />
+            <rect class="hit" height={TUBE_H + 0.8} width={1 + GAP} x={-GAP / 2} y="-0.5" />
+            <rect class="body" height={TUBE_H} rx="0.5" width="1" x="0" y="0" />
             <!-- Each run of one color is a single rounded block, with a small gap between runs. -->
             {#each runs(tube, game.hidden[t]) as [color, from, count] (from)}
               <rect
                 class={['run', { hidden: color === HIDDEN }]}
-                x={INSET}
-                y={TUBE_H - INSET - (from + count) * LAYER + 0.04}
-                width={1 - INSET * 2}
+                fill={color === HIDDEN ? undefined : PALETTE[color]}
                 height={count * LAYER - 0.08}
                 rx={(1 - INSET * 2) / 2}
-                fill={color === HIDDEN ? undefined : PALETTE[color]}
+                width={1 - INSET * 2}
+                x={INSET}
+                y={TUBE_H - INSET - (from + count) * LAYER + 0.04}
               />
             {/each}
           </g>

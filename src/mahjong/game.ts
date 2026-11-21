@@ -19,21 +19,21 @@ export const STORAGE_KEY = 'games.mahjong.v1';
 type Move = { pair: [number, number] } | { shuffled: number[] }; // what to restore on undo
 
 export interface Game {
+  difficulty: Difficulty;
+  done: boolean;
+  gone: boolean[];
+  history: Move[];
+  kinds: number[]; // face per slot of slotsOf(game)
   /** An own layout's key or an archive layout's id (layouts.ts). */
   layout: LayoutId;
   /** The layouts picked in the Customize dialog: each deal takes one at random. */
   pool: LayoutId[];
-  difficulty: Difficulty;
   /** What the deal was made from: the same layout, difficulty and seed deal the same tiles. */
   seed: number;
-  kinds: number[]; // face per slot of slotsOf(game)
-  gone: boolean[];
-  selected: number | null;
-  history: Move[];
-  done: boolean;
+  selected: null | number;
 }
 
-export type Action = { type: 'tap'; slot: number } | { type: 'shuffle' } | { type: 'undo' };
+export type Action = { slot: number; type: 'tap' } | { type: 'shuffle' } | { type: 'undo' };
 
 /** A game's slots: its layout's. */
 export const slotsOf = (g: Game) => layoutOf(g.layout).slots;
@@ -78,8 +78,8 @@ export function pickLayout(
  * the same deal always gives the same tiles, wherever it's dealt.
  */
 export interface Deal {
-  layout: LayoutId;
   difficulty: Difficulty;
+  layout: LayoutId;
   pool: LayoutId[];
   seed: number;
 }
@@ -110,7 +110,7 @@ const isPool = (pool: unknown) =>
   new Set(pool).size === pool.length;
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isLayoutId(g?.layout) || !isDifficulty(g.difficulty)) return false;
   const n = layoutOf(g.layout).slots.length;
   return (

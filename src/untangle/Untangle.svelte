@@ -57,7 +57,7 @@
   const view = $derived(shown.current.length === game.points.length ? shown.current : game.points);
 
   // The dot being dragged, where it started, and the layout before the drag (for undo).
-  let dragging = $state<number | null>(null);
+  let dragging = $state<null | number>(null);
   let grab: Point = [0, 0];
   let before: Point[] = [];
 
@@ -134,31 +134,31 @@
 </script>
 
 <GameScreen
-  title="Untangle"
-  wide
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => (game = newGame(game, game))}
   onopennew={askNew}
   onstart={(value) => {
     if (value === 'start') game = newGame(choice, game);
   }}
-  finished={game.done}
-  onnext={() => (game = newGame(game, game))}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Untangle"
+  wide
 >
   {#snippet status()}
     {#if !game.done}
       <span
         class="tangle-count"
-        aria-live="polite"
         aria-label="{tangle.count} {tangle.count === 1 ? 'crossing' : 'crossings'} left"
+        aria-live="polite"
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
+        <svg aria-hidden="true" viewBox="0 0 16 16">
           <path
             d="M3 3l10 10M13 3L3 13"
             stroke="currentColor"
-            stroke-width="1.8"
             stroke-linecap="round"
+            stroke-width="1.8"
           />
         </svg>
         {tangle.count}
@@ -170,8 +170,8 @@
       {#each Object.entries(SIZES) as [key, s] (key)}
         <Choice
           label={s.label}
-          pressed={choice.size === key}
           onclick={() => (choice.size = key as Size)}
+          pressed={choice.size === key}
         />
       {/each}
     </PickGroup>
@@ -179,22 +179,22 @@
     <PickGroup title="Style">
       {#each Object.entries(STYLES) as [key, s] (key)}
         <Choice
-          label={s.label}
           detail={key === 'lines' ? 'straight lines'
           : key === 'mesh' ? 'dense'
           : 'sparse'}
-          pressed={choice.style === key}
+          label={s.label}
           onclick={() => (choice.style = key as Style)}
+          pressed={choice.style === key}
         />
       {/each}
     </PickGroup>
 
-    <PickGroup title="Layout" class="starts">
+    <PickGroup class="starts" title="Layout">
       {#each Object.entries(STARTS) as [key, s] (key)}
         <Choice
           label={s.label}
-          pressed={choice.start === key}
           onclick={() => (choice.start = key as Start)}
+          pressed={choice.start === key}
         />
       {/each}
     </PickGroup>
@@ -204,12 +204,12 @@
     <svg
       bind:this={svg}
       class={['untangle-board', { done: game.done, dragging: dragging !== null }]}
-      viewBox="0 0 {game.width} {game.height}"
-      role="group"
       aria-label="Untangle board"
+      onpointercancel={pointerUp}
       onpointermove={pointerMove}
       onpointerup={pointerUp}
-      onpointercancel={pointerUp}
+      role="group"
+      viewBox="0 0 {game.width} {game.height}"
     >
       <!-- Each line over a casing in the background color, so where lines cross the later one cuts a
            small gap in the earlier and they read as separate strands. -->
@@ -218,8 +218,8 @@
         <g
           class={['edge', { crossed: tangle.crossed[k], active: dragging === a || dragging === b }]}
         >
-          <line class="casing" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
-          <line class="strand" x1={view[a][0]} y1={view[a][1]} x2={view[b][0]} y2={view[b][1]} />
+          <line class="casing" x1={view[a][0]} x2={view[b][0]} y1={view[a][1]} y2={view[b][1]} />
+          <line class="strand" x1={view[a][0]} x2={view[b][0]} y1={view[a][1]} y2={view[b][1]} />
         </g>
       {/each}
       {#each view as [x, y], i (i)}
@@ -228,10 +228,10 @@
             'dot',
             { held: dragging === i, near: neighbors.has(i), touching: tangle.touching[i] },
           ]}
-          role="button"
-          tabindex="-1"
           aria-label="Dot {i + 1}"
           onpointerdown={(e) => pointerDown(e, i)}
+          role="button"
+          tabindex="-1"
         >
           <circle class="hit" cx={x} cy={y} r="7" />
           <circle class="mark" cx={x} cy={y} r={dragging === i ? r * 1.3 : r} />

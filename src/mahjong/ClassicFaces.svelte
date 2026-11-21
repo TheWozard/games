@@ -158,7 +158,7 @@
   });
 </script>
 
-<svg class="mj-faces" aria-hidden="true" width="0" height="0">
+<svg class="mj-faces" aria-hidden="true" height="0" width="0">
   <defs>
     {#each DOTS as dots, n (n)}
       <symbol id="mj-k{n}" viewBox="1.5 1.5 27 37">
@@ -169,8 +169,8 @@
             : n < 6 ? 4.5
             : 3.8}
           {@const color = n === 0 ? DOT_COLORS[1] : DOT_COLORS[(k + n) % 3]}
-          <circle cx={x} cy={y} {r} fill="none" stroke={color} stroke-width={n === 0 ? 2.4 : 1.6} />
-          <circle cx={x} cy={y} r={r * 0.42} fill={color} />
+          <circle cx={x} cy={y} fill="none" {r} stroke={color} stroke-width={n === 0 ? 2.4 : 1.6} />
+          <circle cx={x} cy={y} fill={color} r={r * 0.42} />
         {/each}
       </symbol>
     {/each}
@@ -190,7 +190,7 @@
             (n === 4 && k === 2) || (n === 6 && k === 0) || (n === 8 && k % 3 === 1) ?
               '#c8372d'
             : '#2e8b57'}
-          <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={w / 2} fill={color} />
+          <rect fill={color} height={h} rx={w / 2} width={w} x={x - w / 2} y={y - h / 2} />
           <path d="M{x - w / 2} {y}h{w}" stroke="#f4eedf" stroke-width="0.9" />
         {/each}
       </symbol>
@@ -199,24 +199,24 @@
     {#each NUMERALS as numeral, n (n)}
       <symbol id="mj-k{18 + n}" viewBox="1.5 1.5 27 37">
         <text
-          x="15"
-          y="17"
-          text-anchor="middle"
-          font-weight="700"
+          fill="#1d1f24"
           font-family={CJK}
           font-size="15"
-          fill="#1d1f24"
+          font-weight="700"
+          text-anchor="middle"
+          x="15"
+          y="17"
         >
           {numeral}
         </text>
         <text
-          x="15"
-          y="35"
-          text-anchor="middle"
-          font-weight="700"
+          fill="#c8372d"
           font-family={CJK}
           font-size="15.5"
-          fill="#c8372d"
+          font-weight="700"
+          text-anchor="middle"
+          x="15"
+          y="35"
         >
           萬
         </text>
@@ -226,13 +226,13 @@
     {#each WINDS as glyph, n (n)}
       <symbol id="mj-k{27 + n}" viewBox="1.5 1.5 27 37">
         <text
-          x="15"
-          y="27.5"
-          text-anchor="middle"
-          font-weight="700"
+          fill="#1d1f24"
           font-family={CJK}
           font-size="18.5"
-          fill="#1d1f24"
+          font-weight="700"
+          text-anchor="middle"
+          x="15"
+          y="27.5"
         >
           {glyph}
         </text>
@@ -241,26 +241,26 @@
 
     <symbol id="mj-k31" viewBox="1.5 1.5 27 37">
       <text
-        x="15"
-        y="27.5"
-        text-anchor="middle"
-        font-weight="700"
+        fill="#c8372d"
         font-family={CJK}
         font-size="19.5"
-        fill="#c8372d"
+        font-weight="700"
+        text-anchor="middle"
+        x="15"
+        y="27.5"
       >
         中
       </text>
     </symbol>
     <symbol id="mj-k32" viewBox="1.5 1.5 27 37">
       <text
-        x="15"
-        y="27.5"
-        text-anchor="middle"
-        font-weight="700"
+        fill="#2e8b57"
         font-family={CJK}
         font-size="19.5"
-        fill="#2e8b57"
+        font-weight="700"
+        text-anchor="middle"
+        x="15"
+        y="27.5"
       >
         發
       </text>
@@ -268,39 +268,39 @@
     <!-- The white dragon: a blue frame. -->
     <symbol id="mj-k33" viewBox="1.5 1.5 27 37">
       <rect
-        x="6"
-        y="7"
-        width="18"
+        fill="none"
         height="26"
         rx="2"
-        fill="none"
         stroke="#2f6bd8"
         stroke-width="2"
+        width="18"
+        x="6"
+        y="7"
       />
       <rect
-        x="9"
-        y="10"
-        width="12"
+        fill="none"
         height="20"
         rx="1"
-        fill="none"
         stroke="#2f6bd8"
         stroke-width="1"
+        width="12"
+        x="9"
+        y="10"
       />
     </symbol>
 
     {#each FLOWER_TILES as { glyph, color }, n (n)}
       <symbol id="mj-k{34 + n}" viewBox="1.5 1.5 27 37">
-        {#each PETALS as [x, y], k (k)}<circle cx={x} cy={y} r="2.5" fill={color} />{/each}
-        <circle cx="15" cy="10.5" r="1.7" fill="#f4eedf" />
+        {#each PETALS as [x, y], k (k)}<circle cx={x} cy={y} fill={color} r="2.5" />{/each}
+        <circle cx="15" cy="10.5" fill="#f4eedf" r="1.7" />
         <text
-          x="15"
-          y="32"
-          text-anchor="middle"
-          font-weight="700"
+          fill={color}
           font-family={CJK}
           font-size="17"
-          fill={color}
+          font-weight="700"
+          text-anchor="middle"
+          x="15"
+          y="32"
         >
           {glyph}
         </text>
@@ -309,21 +309,21 @@
 
     {#each SEASON_TILES as glyph, n (n)}
       <symbol id="mj-k{38 + n}" viewBox="1.5 1.5 27 37">
-        <circle cx="15" cy="10.5" r="3.2" fill="#2f6bd8" />
+        <circle cx="15" cy="10.5" fill="#2f6bd8" r="3.2" />
         <path
           d="M15 4.5v1.6M15 14.9v1.6M9 10.5h1.6M19.4 10.5h1.6M10.8 6.3l1.1 1.1M18.1 13.6l1.1 1.1M10.8 14.7l1.1-1.1M18.1 7.4l1.1-1.1"
           stroke="#2f6bd8"
-          stroke-width="1.1"
           stroke-linecap="round"
+          stroke-width="1.1"
         />
         <text
-          x="15"
-          y="32"
-          text-anchor="middle"
-          font-weight="700"
+          fill="#2f6bd8"
           font-family={CJK}
           font-size="17"
-          fill="#2f6bd8"
+          font-weight="700"
+          text-anchor="middle"
+          x="15"
+          y="32"
         >
           {glyph}
         </text>

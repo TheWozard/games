@@ -13,7 +13,7 @@
     game,
     set,
     deal,
-  }: { game: Game; set: (game: Game) => void; deal: (deal: Deal) => unknown } = $props();
+  }: { deal: (deal: Deal) => unknown; game: Game; set: (game: Game) => void } = $props();
 
   const win = () => set({ ...game, gone: game.gone.map(() => true), selected: null, done: true });
 

@@ -16,7 +16,7 @@ import {
 } from '../../shared/cards';
 import { DEALS } from './deals';
 
-export { isRed, rankOf, suitOf, type Card };
+export { type Card, isRed, rankOf, suitOf };
 
 export interface Column {
   down: Card[]; // face down, bottom first
@@ -24,10 +24,10 @@ export interface Column {
 }
 
 export interface Table {
-  stock: Card[]; // top is last
-  waste: Card[]; // top is last
   foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
+  stock: Card[]; // top is last
   tableau: Column[];
+  waste: Card[]; // top is last
 }
 
 export type Draw = 1 | 3;
@@ -65,12 +65,12 @@ export function fitsColumn(t: Table, c: Card, col: number): boolean {
 
 /** Where cards can be taken from. */
 export type Source =
-  | { from: 'waste' }
+  | { col: number; from: 'tableau'; index: number } // index into that column's face-up cards
   | { from: 'foundation'; suit: number }
-  | { from: 'tableau'; col: number; index: number }; // index into that column's face-up cards
+  | { from: 'waste' };
 
 /** Where they can go. */
-export type Target = { to: 'foundation' } | { to: 'tableau'; col: number };
+export type Target = { col: number; to: 'tableau' } | { to: 'foundation' };
 
 const clone = (t: Table): Table => ({
   stock: t.stock.slice(),
@@ -148,7 +148,7 @@ export function finish(t: Table): Table {
  * The best place to send the cards a tap picks up: the foundation if a single card fits there,
  * else a column (preferring one with cards to an empty one), else null.
  */
-export function bestTarget(t: Table, s: Source): Target | null {
+export function bestTarget(t: Table, s: Source): null | Target {
   if (canMove(t, s, { to: 'foundation' })) return { to: 'foundation' };
   const columns = [...Array(7).keys()].filter((col) => canMove(t, s, { to: 'tableau', col }));
   // A King already heading an otherwise empty column has nowhere better to go.

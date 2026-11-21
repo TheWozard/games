@@ -8,12 +8,12 @@
   let { href, overlay = '' }: { href: string; overlay?: string } = $props();
 </script>
 
-<svg class="mj-body" viewBox="0 0 {W + DEPTH} {H + DEPTH}" aria-hidden="true">
+<svg class="mj-body" aria-hidden="true" viewBox="0 0 {W + DEPTH} {H + DEPTH}">
   <path class="mj-back" d={SIDE.back} />
   <path class="mj-edge" d={SIDE.edge} />
-  <rect class="mj-top" width={W} height={H} rx={R} />
+  <rect class="mj-top" height={H} rx={R} width={W} />
 </svg>
-<svg class="mj-face" viewBox="0 0 300 400" aria-hidden="true">
+<svg class="mj-face" aria-hidden="true" viewBox="0 0 300 400">
   <use href="#{href}" />
   {#if overlay}<use href="#{overlay}" />{/if}
 </svg>

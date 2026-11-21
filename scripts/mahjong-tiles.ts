@@ -22,7 +22,7 @@ const four = (name: string) => Array.from({ length: 4 }, (_, n) => XHOKIR + name
 /** Source of each kind, in the order of src/mahjong/logic.ts: 0–8 dots, 9–17 bamboo,
  * 18–26 characters, 27–30 winds E S W N, 31–33 dragons red green white, 34–37 flowers
  * (plum, orchid, chrysanthemum, bamboo), 38–41 seasons (spring to winter). */
-const SOURCES: (string | null)[] = [
+const SOURCES: (null | string)[] = [
   ...nine('Pin'),
   ...nine('Sou'),
   ...nine('Man'),

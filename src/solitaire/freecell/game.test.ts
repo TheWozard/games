@@ -3,7 +3,7 @@ import { isGame, newGame, reducer, type Game } from './game';
 import { bestTarget, solve, type Source } from './logic';
 
 /** Some move a tap would make, if any. */
-function someTap(g: Game): Source | null {
+function someTap(g: Game): null | Source {
   for (let col = 0; col < 8; col++) {
     const n = g.table.columns[col].length;
     const s: Source = { from: 'column', col, index: n - 1 };

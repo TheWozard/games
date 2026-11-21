@@ -15,14 +15,14 @@
     label,
     children,
   }: {
-    open: boolean;
-    locked?: boolean;
-    onclose: (value: string) => void;
+    children: Snippet;
     /** A class for the dialog, for one placed or drawn differently (GameScreen2's menu). */
     class?: string;
     /** A name for a dialog with no heading to name it. */
     label?: string;
-    children: Snippet;
+    locked?: boolean;
+    onclose: (value: string) => void;
+    open: boolean;
   } = $props();
 
   let dialog: HTMLDialogElement;
@@ -43,16 +43,16 @@
 <!-- The keyboard way out is Escape, built into the dialog. -->
 <dialog
   bind:this={dialog}
-  tabindex="-1"
   class={className}
   aria-label={label}
-  onclose={() => onclose(dialog.returnValue)}
   oncancel={(e) => {
     if (locked) e.preventDefault();
   }}
   onclick={(e) => {
     if (e.target === dialog && !locked) dialog.close('');
   }}
+  onclose={() => onclose(dialog.returnValue)}
+  tabindex="-1"
 >
   <form method="dialog">{@render children()}</form>
 </dialog>

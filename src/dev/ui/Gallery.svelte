@@ -37,7 +37,7 @@
 
   // The log: newest first, a few lines, each with how long since the one before (a double fire
   // shows as +0ms).
-  let log = $state<{ n: number; text: string; gap: string }[]>([]);
+  let log = $state<{ gap: string; n: number; text: string }[]>([]);
   let n = 0;
   let last = 0;
   function note(text: string) {
@@ -95,7 +95,7 @@
 
 <div class="gallery">
   <header class="bar">
-    <IconButton href="../" icon={ChevronLeft} label="Dev pages" class="back" />
+    <IconButton class="back" href="../" icon={ChevronLeft} label="Dev pages" />
     <h1>UI Components <small>src/shared/ui/</small></h1>
   </header>
 
@@ -104,20 +104,20 @@
     <p>Round, in the header. Disabled stays visible but takes no tap.</p>
     <div class="row">
       <IconButton
-        icon={Undo2}
-        strokeWidth={2.2}
-        label="Undo"
         disabled={!canUndo}
+        icon={Undo2}
+        label="Undo"
         onclick={() => note('Undo')}
+        strokeWidth={2.2}
       />
       <IconButton icon={Plus} label="New Game" onclick={() => note('New Game')} />
       <IconButton
+        aria-expanded={expanded}
         icon={MenuIcon}
         label="Menu"
-        aria-expanded={expanded}
         onclick={() => note(`Menu (aria-expanded ${(expanded = !expanded)})`)}
       />
-      <IconButton icon={Bug} label="Link" href="#icon" onclick={() => note('Link (href #icon)')} />
+      <IconButton href="#icon" icon={Bug} label="Link" onclick={() => note('Link (href #icon)')} />
     </div>
     <div class="row">
       <Toggle
@@ -133,19 +133,19 @@
     <p>Plain, <code>primary</code>, <code>small</code>; Next and Play's slow colors.</p>
     <div class="row wrap">
       <Button onclick={() => note('Plain')}>Plain</Button>
-      <Button primary onclick={() => note('Primary')}>Primary</Button>
-      <Button small onclick={() => note('Small')}>Small</Button>
+      <Button onclick={() => note('Primary')} primary>Primary</Button>
+      <Button onclick={() => note('Small')} small>Small</Button>
       <Button disabled onclick={() => note('Disabled (should never log)')}>Disabled</Button>
-      <Button primary class="slow" onclick={() => note('Slow')}>Slow</Button>
-      <Button primary class="slower" onclick={() => note('Slower')}>Slower</Button>
+      <Button class="slow" onclick={() => note('Slow')} primary>Slow</Button>
+      <Button class="slower" onclick={() => note('Slower')} primary>Slower</Button>
     </div>
     <h3 class="sub">In a .tools row (equal widths, under a board)</h3>
     <div class="tools">
       <Button onclick={() => note('Erase')}>
-        <Eraser aria-hidden="true" class="inline-icon" /> Erase
+        <Eraser class="inline-icon" aria-hidden="true" /> Erase
       </Button>
       <Button aria-pressed={false} onclick={() => note('Notes')}>
-        <Pencil aria-hidden="true" class="inline-icon" /> Notes
+        <Pencil class="inline-icon" aria-hidden="true" /> Notes
       </Button>
       <Button onclick={() => note('Shuffle')}>Shuffle</Button>
     </div>
@@ -157,16 +157,16 @@
     <PickGroup title="Difficulty">
       {#each LEVELS as { value, label, detail } (value)}
         <Choice
-          {label}
           {detail}
-          pressed={level === value}
+          {label}
           onclick={() => note(`Difficulty: ${(level = value)}`)}
+          pressed={level === value}
         />
       {/each}
     </PickGroup>
     <PickGroup title="Size (no details)">
       {#each SIZES as s (s)}
-        <Choice label={s} pressed={size === s} onclick={() => note(`Size: ${(size = s)}`)} />
+        <Choice label={s} onclick={() => note(`Size: ${(size = s)}`)} pressed={size === s} />
       {/each}
     </PickGroup>
   </section>
@@ -190,14 +190,14 @@
     <h3 class="pick-title">With a detail</h3>
     <div class="grid2">
       <Toggle
-        label="Pyramid"
         detail="82 tiles"
+        label="Pyramid"
         on={layouts.pyramid}
         onclick={() => note(`Pyramid: ${(layouts.pyramid = !layouts.pyramid)}`)}
       />
       <Toggle
-        label="Turtle"
         detail="144 tiles"
+        label="Turtle"
         on={layouts.turtle}
         onclick={() => note(`Turtle: ${(layouts.turtle = !layouts.turtle)}`)}
       />
@@ -212,24 +212,24 @@
       and, scrolling by themselves under it, a toggle a row, with an <code>aside</code> at the right (Mahjong's
       layouts show their shape).
     </p>
-    <PickList title="Layouts" count={SHAPES.filter((l) => shaped[l.id]).length}>
+    <PickList count={SHAPES.filter((l) => shaped[l.id]).length} title="Layouts">
       {#snippet actions()}
         <span class="pick-select">Select</span>
         <Button
-          small
           onclick={() => {
             for (const l of shapesShown) shaped[l.id] = true;
             note('Layouts: All');
           }}
+          small
         >
           All
         </Button>
         <Button
-          small
           onclick={() => {
             for (const l of shapesShown) shaped[l.id] = false;
             note('Layouts: None');
           }}
+          small
         >
           None
         </Button>
@@ -252,8 +252,8 @@
       {/snippet}
       {#each shapesShown as l (l.id)}
         <Toggle
-          label={l.name}
           detail="{l.slots.length} tiles"
+          label={l.name}
           on={!!shaped[l.id]}
           onclick={() => note(`${l.name}: ${(shaped[l.id] = !shaped[l.id])}`)}
         >
@@ -272,7 +272,7 @@
       last entry, Details, copies what the puzzle is and leaves the menu open.
     </p>
     <div class="row">
-      <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
+      <Button onclick={() => (menuOpen = true)} primary>Open Menu</Button>
     </div>
     <div class="menu-preview">
       {@render menuItems()}
@@ -294,8 +294,8 @@
     <div class="col">
       <Toggle label="Show Next" on={showNext} onclick={() => (showNext = !showNext)} />
       <Toggle
-        label="Takes a second"
         detail="spinner, then logs"
+        label="Takes a second"
         on={slowNext}
         onclick={() => (slowNext = !slowNext)}
       />
@@ -304,8 +304,8 @@
       {#each ['quick', 'slow', 'slower'] as const as w (w)}
         <Choice
           label={w[0].toUpperCase() + w.slice(1)}
-          pressed={nextWait === w}
           onclick={() => (nextWait = w)}
+          pressed={nextWait === w}
         />
       {/each}
     </div>
@@ -322,58 +322,50 @@
 
 {#snippet menuItems()}
   <MenuSection>
-    <MenuItem icon={ChevronRight} label="New" value="next" onclick={() => note('Menu: New')} />
+    <MenuItem icon={ChevronRight} label="New" onclick={() => note('Menu: New')} value="next" />
     <MenuItem
       icon={SlidersHorizontal}
       label="Customize"
-      value="new"
       onclick={() => note('Menu: Customize')}
+      value="new"
     />
     <MenuItem
       icon={Palette}
       label="Display"
-      value="settings"
       onclick={() => note('Menu: Display')}
+      value="settings"
     />
   </MenuSection>
   <MenuSection>
     <MenuItem icon={RotateCcw} label="Restart" onclick={() => note('Menu: Restart')} />
     <MenuItem
+      disabled
       icon={Bug}
       label="Disabled"
-      disabled
       onclick={() => note('Disabled (should never log)')}
     />
   </MenuSection>
   <MenuSection tone="dev">
     <MenuItem icon={Trophy} label="Win" onclick={() => note('Menu: Win')} />
   </MenuSection>
-  <MenuPuzzle puzzle={PUZZLE} oncopy={() => note(`Copied: ${PUZZLE}`)} />
+  <MenuPuzzle oncopy={() => note(`Copied: ${PUZZLE}`)} puzzle={PUZZLE} />
 {/snippet}
 
 <Dialog
   class="game-menu"
   label="Menu"
-  open={menuOpen}
   onclose={(value) => {
     menuOpen = false;
     note(`Menu closed (value "${value}")`);
   }}
+  open={menuOpen}
 >
   {@render menuItems()}
 </Dialog>
 
 <NewDialog
-  open={newOpen}
-  onclose={() => (newOpen = false)}
-  options={[
-    { value: 'quick', label: 'Quick', detail: 'at once' },
-    { value: 'slow', label: 'Slow', detail: '1 second' },
-    { value: 'slower', label: 'Slower', detail: '3 seconds' },
-  ]}
   current="quick"
-  optionsTitle="Wait"
-  {wait}
+  onclose={() => (newOpen = false)}
   onstart={(value) => {
     wait = value as Wait;
     note(`Play: ${value}`);
@@ -381,11 +373,17 @@
         later(value === 'slow' ? 1000 : 3000).then(() => note(`Play: ${value} ready`))
       );
   }}
+  open={newOpen}
+  options={[
+    { value: 'quick', label: 'Quick', detail: 'at once' },
+    { value: 'slow', label: 'Slow', detail: '1 second' },
+    { value: 'slower', label: 'Slower', detail: '3 seconds' },
+  ]}
+  optionsTitle="Wait"
+  {wait}
 />
 
 <NextButton
-  show={showNext}
-  wait={nextWait}
   busy={nextBusy}
   onclick={() => {
     if (nextBusy) return note('Next (busy: ignored)');
@@ -398,6 +396,8 @@
       });
     }
   }}
+  show={showNext}
+  wait={nextWait}
 />
 
 <style>

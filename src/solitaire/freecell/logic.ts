@@ -28,15 +28,15 @@ export const COLUMNS = 8;
 
 export interface Table {
   cells: (Card | null)[];
-  foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
   columns: Card[][]; // bottom first
+  foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
 }
 
 /** Where cards can be taken from: a free cell, or a column from `index` to its end. */
-export type Source = { from: 'cell'; i: number } | { from: 'column'; col: number; index: number };
+export type Source = { col: number; from: 'column'; index: number } | { from: 'cell'; i: number };
 /** Where they can go. */
 export type Target =
-  { to: 'foundation' } | { to: 'cell'; i: number } | { to: 'column'; col: number };
+  { col: number; to: 'column' } | { i: number; to: 'cell' } | { to: 'foundation' };
 
 type Random = () => number;
 
@@ -135,7 +135,7 @@ export function autoplay(t: Table): Table {
  * The best place for the cards a tap picks up: the foundation for a single card that fits, else
  * a column with cards, else (one card) a free cell, else an empty column; null if none will do.
  */
-export function bestTarget(t: Table, s: Source): Target | null {
+export function bestTarget(t: Table, s: Source): null | Target {
   if (canMove(t, s, { to: 'foundation' })) return { to: 'foundation' };
   const cols = [...Array(COLUMNS).keys()];
   const onto = cols.find(
@@ -182,9 +182,9 @@ export function solve(start: Table, budget = SOLVE_BUDGET): [Source, Target][] |
   // Best first: always carry on from the most promising position seen so far. Each position
   // remembers the one it came from and the move, to read the winning line back at the end.
   interface Node {
-    t: Table;
-    parent: Node | null;
     move: [Source, Target] | null;
+    parent: Node | null;
+    t: Table;
   }
   const path = (n: Node) => {
     const out: [Source, Target][] = [];

@@ -93,71 +93,71 @@
 <!-- The guide, made like a face (a symbol with the same viewBox, drawn with <use>) so it's cut off
      exactly where a face is: the hatch runs far past every edge, and what's left of it is the area
      that shows. Labels are a second symbol, laid over the large guide only. -->
-<svg class="defs" aria-hidden="true" width="0" height="0">
+<svg class="defs" aria-hidden="true" height="0" width="0">
   <defs>
     <pattern
       id="mj-guide-hatch"
-      width={1.6 * S}
       height={1.6 * S}
-      patternUnits="userSpaceOnUse"
       patternTransform="rotate(45)"
+      patternUnits="userSpaceOnUse"
+      width={1.6 * S}
     >
-      <rect width={1.6 * S} height={1.6 * S} fill="#dfe8fb" />
+      <rect fill="#dfe8fb" height={1.6 * S} width={1.6 * S} />
       <path d="M0 0v{1.6 * S}" stroke="#9db8ef" stroke-width={0.7 * S} />
     </pattern>
     <symbol id="mj-guide" viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}">
-      <rect x={-50 * S} y={-50 * S} width={130 * S} height={140 * S} fill="url(#mj-guide-hatch)" />
+      <rect fill="url(#mj-guide-hatch)" height={140 * S} width={130 * S} x={-50 * S} y={-50 * S} />
       {#each GRID_X as x (x)}
         <path
           d="M{x} {-50 * S}V{90 * S}"
           stroke="#8b909b"
+          stroke-opacity={x === 15 * S ? 1 : 0.5}
           stroke-width="1"
           vector-effect="non-scaling-stroke"
-          stroke-opacity={x === 15 * S ? 1 : 0.5}
         />
       {/each}
       {#each GRID_Y as y (y)}
         <path
           d="M{-50 * S} {y}H{80 * S}"
           stroke="#8b909b"
+          stroke-opacity={y === 20 * S ? 1 : 0.5}
           stroke-width="1"
           vector-effect="non-scaling-stroke"
-          stroke-opacity={y === 20 * S ? 1 : 0.5}
         />
       {/each}
       <rect
+        fill="none"
+        height={VIEW.h}
+        stroke="#c8372d"
+        stroke-dasharray="5 4"
+        stroke-width="1.5"
+        vector-effect="non-scaling-stroke"
+        width={VIEW.w}
         x={VIEW.x}
         y={VIEW.y}
-        width={VIEW.w}
-        height={VIEW.h}
-        fill="none"
-        stroke="#c8372d"
-        stroke-width="1.5"
-        stroke-dasharray="5 4"
-        vector-effect="non-scaling-stroke"
       />
-      <circle cx={15 * S} cy={20 * S} r={0.8 * S} fill="#c8372d" />
+      <circle cx={15 * S} cy={20 * S} fill="#c8372d" r={0.8 * S} />
     </symbol>
     <symbol id="mj-guide-labels" viewBox="{VIEW.x} {VIEW.y} {VIEW.w} {VIEW.h}">
       {#each GRID_X.slice(1, -1) as x (x)}
         <text
+          fill="#4a4f5a"
+          font-family="system-ui, sans-serif"
+          font-size={2.3 * S}
+          text-anchor="end"
           x={x - 0.4 * S}
           y={38 * S}
-          text-anchor="end"
-          font-size={2.3 * S}
-          font-family="system-ui, sans-serif"
-          fill="#4a4f5a"
         >
           {x}
         </text>
       {/each}
       {#each GRID_Y.slice(1, -1) as y (y)}
         <text
+          fill="#4a4f5a"
+          font-family="system-ui, sans-serif"
+          font-size={2.3 * S}
           x={VIEW.x + 0.4 * S}
           y={y - 0.5 * S}
-          font-size={2.3 * S}
-          font-family="system-ui, sans-serif"
-          fill="#4a4f5a"
         >
           {y}
         </text>
@@ -167,25 +167,25 @@
 </svg>
 
 {#snippet tile(href: string, u: number, cls = '', overlay = '')}
-  <div class="mj-tile {cls}" style:--u="{u}px" style:width="{3 * u}px" style:height="{4 * u}px">
+  <div style:--u="{u}px" style:width="{3 * u}px" style:height="{4 * u}px" class="mj-tile {cls}">
     <TileBody {href} {overlay} />
   </div>
 {/snippet}
 
-<main class="viewer" style:--face-margin={margin}>
+<main style:--face-margin={margin} class="viewer">
   <h1>Mahjong Tiles</h1>
   <div class="scale">
     <label>
       <span>Drawing area <strong>{percent}%</strong></span>
-      <input type="range" min="50" max="100" step="1" bind:value={percent} />
+      <input max="100" min="50" step="1" type="range" bind:value={percent} />
     </label>
     <div class="presets">
       {#each PRESETS as preset (preset.label)}
         <button
-          type="button"
           class="btn"
           aria-pressed={percent === preset.percent}
           onclick={() => (percent = preset.percent)}
+          type="button"
         >
           {preset.label}
           {preset.percent}%
@@ -195,10 +195,10 @@
     <div class="presets">
       {#each CHOICES.mahjongArt as choice (choice)}
         <button
-          type="button"
           class="btn"
           aria-pressed={art === choice}
           onclick={() => (art = choice)}
+          type="button"
         >
           {ART_NAMES[choice]}
         </button>

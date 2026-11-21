@@ -10,8 +10,8 @@ export const center = (g: Game, i: number): Point => ({
 });
 
 /** The island under a point, if it's within `reach` of an island's center. */
-export function islandAt(g: Game, p: Point, reach = 0.5): number | null {
-  let best: number | null = null;
+export function islandAt(g: Game, p: Point, reach = 0.5): null | number {
+  let best: null | number = null;
   let bestD = reach;
   g.islands.forEach((_, i) => {
     const c = center(g, i);

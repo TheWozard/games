@@ -4,14 +4,14 @@
 // Shift + wheel) pans too. Call from an $effect and return what it returns, to clean up.
 
 export interface PanOptions {
-  /** How far the content can pan, in pixels (0: it fits, nothing pans). */
-  max: () => number;
   /** The current pan offset. */
   get: () => number;
-  /** Sets the pan offset (already clamped to 0..max). */
-  set: (x: number) => void;
+  /** How far the content can pan, in pixels (0: it fits, nothing pans). */
+  max: () => number;
   /** Told when a pan starts and ends, e.g. to turn card transitions off while it follows the finger. */
   onPanning?: (panning: boolean) => void;
+  /** Sets the pan offset (already clamped to 0..max). */
+  set: (x: number) => void;
   /** Whether a press may start a pan (FreeCell: not on a card that can be dragged). */
   startsPan?: (e: PointerEvent) => boolean;
 }
@@ -23,7 +23,7 @@ export function attachPan(
   // An SVG board (Nonogram) gets the same pointer and wheel events; typed as one for the listeners.
   const el = board as HTMLElement;
   const clamp = (x: number) => Math.min(Math.max(0, x), max());
-  let pan: { id: number; x0: number; start: number; moved: boolean } | null = null;
+  let pan: null | { id: number; moved: boolean; start: number; x0: number } = null;
   let justPanned = false;
 
   const down = (e: PointerEvent) => {

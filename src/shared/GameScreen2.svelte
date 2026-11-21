@@ -51,43 +51,43 @@
   import ZoomStage from './ZoomStage.svelte';
 
   interface Props extends Omit<NewOptions, 'onstart'> {
-    /** Starts the picked game (Play): made in a worker, so it settles once the game is ready. */
-    onstart: (value: string) => Promise<unknown>;
-    title: string;
-    /** The current setting, shown small under the title (the difficulty, layout...). */
-    subtitle: string;
-    /** Header extras between the title and Undo, like a count of what's left. */
-    status?: Snippet;
-    /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
-    onundo?: () => void;
-    canUndo?: boolean;
-    /** The game's own sections of the menu, between Customize and Details. */
-    menu?: Snippet;
-    /** The Display dialog's content: PickGroups of Choices for how the game looks, each taking effect as it's tapped. */
-    settings?: Snippet;
-    /** Menu entries for the dev server only (`just dev`), left out of a build: MenuItems (ui/MenuItem.svelte). */
-    dev?: Snippet;
-    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Details, copies it. */
-    puzzle?: string;
-    /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
-    onopennew?: () => void;
-    /** Won, completed or lost: show Next. */
-    finished: boolean;
-    /** Starts another puzzle with the same settings (Next, and the menu's New): made in a worker. */
-    onnext: () => Promise<unknown>;
-    /** How long the current setting takes to make: Next turns orange or red. */
-    nextWait?: Wait;
-    /** The game's controls, floating over the bottom of the board. */
-    controls?: Snippet;
     /** The board's size at zoom 1, in pixels: the stage then pans and zooms it. */
     board?: Size;
     /** Changes for a new board (a new deal), so it opens on the starting view even at the same size. */
     boardKey?: unknown;
-    /** The stage's size (bindable), for a game that sizes its board from it. */
-    stageWidth?: number;
-    stageHeight?: number;
+    canUndo?: boolean;
     /** The game board: the stage's only content. */
     children: Snippet;
+    /** The game's controls, floating over the bottom of the board. */
+    controls?: Snippet;
+    /** Menu entries for the dev server only (`just dev`), left out of a build: MenuItems (ui/MenuItem.svelte). */
+    dev?: Snippet;
+    /** Won, completed or lost: show Next. */
+    finished: boolean;
+    /** The game's own sections of the menu, between Customize and Details. */
+    menu?: Snippet;
+    /** How long the current setting takes to make: Next turns orange or red. */
+    nextWait?: Wait;
+    /** Starts another puzzle with the same settings (Next, and the menu's New): made in a worker. */
+    onnext: () => Promise<unknown>;
+    /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
+    onopennew?: () => void;
+    /** Starts the picked game (Play): made in a worker, so it settles once the game is ready. */
+    onstart: (value: string) => Promise<unknown>;
+    /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
+    onundo?: () => void;
+    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Details, copies it. */
+    puzzle?: string;
+    /** The Display dialog's content: PickGroups of Choices for how the game looks, each taking effect as it's tapped. */
+    settings?: Snippet;
+    stageHeight?: number;
+    /** The stage's size (bindable), for a game that sizes its board from it. */
+    stageWidth?: number;
+    /** Header extras between the title and Undo, like a count of what's left. */
+    status?: Snippet;
+    /** The current setting, shown small under the title (the difficulty, layout...). */
+    subtitle: string;
+    title: string;
   }
 
   let {
@@ -153,17 +153,17 @@
   <h1>{title} <small>{subtitle}</small></h1>
   {@render status?.()}
   {#if onundo}<IconButton
-      icon={Undo2}
-      strokeWidth={2.2}
-      label="Undo"
       disabled={!canUndo}
+      icon={Undo2}
+      label="Undo"
       onclick={onundo}
+      strokeWidth={2.2}
     />{/if}
   <IconButton
+    aria-expanded={menuOpen}
+    aria-haspopup="dialog"
     icon={MenuIcon}
     label="Menu"
-    aria-haspopup="dialog"
-    aria-expanded={menuOpen}
     onclick={() => (menuOpen = true)}
   />
 </header>
@@ -181,11 +181,11 @@
   </div>
 </main>
 
-<NextButton show={finished} onclick={next} wait={nextWait} busy={nexting} />
+<NextButton busy={nexting} onclick={next} show={finished} wait={nextWait} />
 
-<Dialog class="game-menu" label="Menu" open={menuOpen} onclose={closeMenu}>
+<Dialog class="game-menu" label="Menu" onclose={closeMenu} open={menuOpen}>
   <MenuSection>
-    <MenuItem icon={ChevronRight} label="New" value="next" disabled={nexting || starting} />
+    <MenuItem disabled={nexting || starting} icon={ChevronRight} label="New" value="next" />
     <MenuItem icon={SlidersHorizontal} label="Customize" value="new" />
     {#if settings}<MenuItem icon={Palette} label="Display" value="settings" />{/if}
   </MenuSection>
@@ -199,20 +199,20 @@
 </Dialog>
 
 {#if settings}
-  <Dialog open={showingSettings} onclose={() => (showingSettings = false)}>
+  <Dialog onclose={() => (showingSettings = false)} open={showingSettings}>
     <h2>Display</h2>
     {@render settings()}
     <!-- Drawn in the top corner. -->
-    <button class="dialog-close" value="" aria-label="Close">
-      <X strokeWidth={2.4} aria-hidden="true" />
+    <button class="dialog-close" aria-label="Close" value="">
+      <X aria-hidden="true" strokeWidth={2.4} />
     </button>
   </Dialog>
 {/if}
 
 <NewDialog
-  title="Customize"
-  open={askingNew}
-  bind:busy={starting}
   onclose={() => (askingNew = false)}
+  open={askingNew}
+  title="Customize"
+  bind:busy={starting}
   {...newOptions}
 />

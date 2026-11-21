@@ -56,7 +56,7 @@ export function shuffle<T>(a: T[], random: () => number): T[] {
 }
 
 /** The empty cell with the fewest candidates: index -1 when the grid is full, null at a dead end. */
-function pickCell(grid: Grid, peers: Peers): { index: number; mask: number } | null {
+function pickCell(grid: Grid, peers: Peers): null | { index: number; mask: number } {
   let best = -1;
   let bestMask = 0;
   let bestCount = 10;
@@ -119,7 +119,7 @@ export function dig(
   difficulty: Difficulty,
   random: () => number,
   regions: readonly number[] = BOXES,
-): { puzzle: Grid; needs: number } {
+): { needs: number; puzzle: Grid } {
   const { tier, clues } = DIFFICULTIES[difficulty];
   const puzzle = solution.slice();
   let left = 81;

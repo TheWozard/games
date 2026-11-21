@@ -17,22 +17,22 @@ export const STORAGE_KEY = 'games.bridges.v1';
 const HISTORY_LIMIT = 500;
 
 export interface Game {
-  difficulty: Difficulty;
-  cols: number;
-  rows: number;
-  rules: Rules;
-  islands: Island[];
   blocks: number[]; // cells
   bridges: number[]; // per edge of edgesFor(game): 0, 1 or 2
-  solution: number[];
-  history: number[][]; // earlier `bridges`, for undo
+  cols: number;
+  difficulty: Difficulty;
   done: boolean;
+  history: number[][]; // earlier `bridges`, for undo
+  islands: Island[];
+  rows: number;
+  rules: Rules;
+  solution: number[];
 }
 
 export type Action =
-  | { type: 'build'; edge: number } // one more bridge (a drag from island to island), at most 2
-  | { type: 'remove'; edge: number } // one fewer (a swipe across the bridge)
-  | { type: 'cycle'; edge: number } // a tap on the gap: 0 → 1 → 2 → 0
+  | { edge: number; type: 'build' } // one more bridge (a drag from island to island), at most 2
+  | { edge: number; type: 'cycle' } // a tap on the gap: 0 → 1 → 2 → 0
+  | { edge: number; type: 'remove' } // one fewer (a swipe across the bridge)
   | { type: 'undo' };
 
 export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
@@ -53,8 +53,8 @@ export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
 }
 
 /** Possible bridges for a game's islands (cached: islands never change during a game). */
-const cache = new WeakMap<Island[], { edges: Edge[]; crosses: number[][] }>();
-export function edgesFor(g: Pick<Game, 'islands' | 'cols' | 'rows' | 'blocks' | 'rules'>) {
+const cache = new WeakMap<Island[], { crosses: number[][]; edges: Edge[] }>();
+export function edgesFor(g: Pick<Game, 'blocks' | 'cols' | 'islands' | 'rows' | 'rules'>) {
   let found = cache.get(g.islands);
   if (!found) {
     found = edgesOf(g.islands, g.cols, g.rows, { blocks: g.blocks, diagonals: g.rules.diagonals });
@@ -65,7 +65,7 @@ export function edgesFor(g: Pick<Game, 'islands' | 'cols' | 'rows' | 'blocks' | 
 
 /** Validates a save. Saves from before the optional rules play with none. */
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isDifficulty(g?.difficulty) || !Array.isArray(g.islands) || !Array.isArray(g.history))
     return false;
   const { cols, rows } = DIFFICULTIES[g.difficulty];

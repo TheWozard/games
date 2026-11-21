@@ -72,7 +72,7 @@ describe('generate', () => {
 describe('conflicts', () => {
   it('flags lamps that see each other and walls with too many lamps', () => {
     // 2×2: three white cells and a wall "0" at the bottom right.
-    const p = { size: 2, walls: [null, null, null, 0] as (number | null)[] };
+    const p = { size: 2, walls: [null, null, null, 0] as (null | number)[] };
     // Two lamps in the top row see each other, and the right one is beside the "0".
     expect(conflicts(p, [true, true, false, false]).flatMap((b, i) => (b ? [i] : []))).toEqual([
       0, 1, 3,

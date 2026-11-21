@@ -23,16 +23,16 @@ const HISTORY_LIMIT = 500;
 
 export interface Game {
   difficulty: Difficulty;
-  rules: Rules;
-  tubes: Tubes;
-  hidden: boolean[][]; // per layer, as tubes; all false without the mystery rule
-  selected: number | null; // the tube picked up to pour from
-  history: { tubes: Tubes; hidden: boolean[][] }[];
   done: boolean;
+  hidden: boolean[][]; // per layer, as tubes; all false without the mystery rule
+  history: { hidden: boolean[][]; tubes: Tubes }[];
+  rules: Rules;
+  selected: null | number; // the tube picked up to pour from
+  tubes: Tubes;
 }
 
 export type Action =
-  | { type: 'tap'; tube: number } // pick up, put down, or pour into
+  | { tube: number; type: 'tap' } // pick up, put down, or pour into
   | { type: 'undo' };
 
 /** Every layer but each tube's top one hidden, with the mystery rule; none without. */
@@ -57,7 +57,7 @@ export function newGame(difficulty: Difficulty, rules: Rules = NO_RULES): Game {
  * and their undo history (plain tubes then) read the same way.
  */
 export function isGame(value: unknown): value is Game {
-  const g = value as (Partial<Game> & { history?: unknown[] }) | null;
+  const g = value as null | (Partial<Game> & { history?: unknown[] });
   if (!isDifficulty(g?.difficulty) || !Array.isArray(g.tubes) || !Array.isArray(g.history))
     return false;
   g.rules ??= { ...NO_RULES };

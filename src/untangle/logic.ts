@@ -50,8 +50,8 @@ export type Edge = [a: number, b: number];
  * with the shorter side 100 units long (dot sizes are in the same units).
  */
 export interface Board {
-  width: number;
   height: number;
+  width: number;
 }
 /** Until the screen has been measured: a phone in portrait. */
 export const DEFAULT_BOARD: Board = { width: 100, height: 130 };
@@ -135,9 +135,9 @@ export function distanceToSegment(p: Point, a: Point, b: Point): number {
 }
 
 export interface Tangle {
+  count: number; // edge crossings plus dots on lines
   crossed: boolean[]; // per edge: crosses another edge, or has a dot sitting on it
   touching: boolean[]; // per dot: sits on a line it isn't part of
-  count: number; // edge crossings plus dots on lines
 }
 
 /** Everything still tangled: pairs of edges that cross, and dots lying on others' lines. */
@@ -274,14 +274,14 @@ export function settle(
 
 export interface Settings {
   size: Size;
-  style: Style;
   start: Start;
+  style: Style;
 }
 
 export interface Puzzle {
   edges: Edge[];
-  solution: Point[]; // an untangled layout, inside the board
   points: Point[]; // the scrambled start
+  solution: Point[]; // an untangled layout, inside the board
 }
 
 export function generate(
@@ -309,7 +309,7 @@ export function generate(
  * meet), for a made puzzle's answer. Returns the repaired layout, or null if it still has real
  * crossings.
  */
-function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): Point[] | null {
+function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): null | Point[] {
   const points = settle(start, edges, board, touchDistance(start.length) + 0.3);
   return crossings(points, edges).count === 0 ? points.slice() : null;
 }
@@ -326,7 +326,7 @@ function fromLines(n: number, board: Board, random: Random): { edges: Edge[]; so
 
   // Each pair of lines meets once: that's a dot, at parameter t along each line.
   const dots: Point[] = [];
-  const along: { t: number; dot: number }[][] = lines.map(() => []);
+  const along: { dot: number; t: number }[][] = lines.map(() => []);
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const { p: p1, d: d1 } = lines[i];
@@ -354,10 +354,10 @@ function fromLines(n: number, board: Board, random: Random): { edges: Edge[]; so
 /** Well-spaced random dots joined into triangles, then thinned: a little for mesh, a lot for loops. */
 function fromMesh(
   n: number,
-  style: 'mesh' | 'loops',
+  style: 'loops' | 'mesh',
   board: Board,
   random: Random,
-): { edges: Edge[]; solution: Point[] } | null {
+): null | { edges: Edge[]; solution: Point[] } {
   const solution = spread(n, board, random);
   if (!solution) return null;
   const edges = delaunay(solution);
@@ -403,7 +403,7 @@ function connected(n: number, edges: readonly Edge[]): boolean {
 }
 
 /** `n` random dots on the board, each at least a comfortable distance from the others. */
-function spread(n: number, { width, height }: Board, random: Random): Point[] | null {
+function spread(n: number, { width, height }: Board, random: Random): null | Point[] {
   const area = (width - 2 * MARGIN) * (height - 2 * MARGIN);
   const spacing = Math.sqrt(area / n) * 0.62;
   const out: Point[] = [];

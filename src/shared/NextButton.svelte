@@ -13,22 +13,22 @@
     onclick,
     wait = 'quick',
     busy = false,
-  }: { show: boolean; onclick: () => void; wait?: Wait; busy?: boolean } = $props();
+  }: { busy?: boolean; onclick: () => void; show: boolean; wait?: Wait } = $props();
 </script>
 
 {#if show}
   <button
-    type="button"
     class={['btn primary next-fab', wait]}
     aria-busy={busy}
     {onclick}
+    type="button"
     transition:fly={{ y: 24, duration: 200 }}
   >
     Next
     {#if busy}
       <span class="spinner" aria-hidden="true"></span>
     {:else}
-      <ChevronRight strokeWidth={2.4} aria-hidden="true" />
+      <ChevronRight aria-hidden="true" strokeWidth={2.4} />
     {/if}
   </button>
 {/if}

@@ -34,9 +34,9 @@
   });
 </script>
 
-<svg class="mj-thumb" viewBox={drawn.view} aria-hidden="true">
+<svg class="mj-thumb" aria-hidden="true" viewBox={drawn.view}>
   {#each drawn.layers as { d, ink }, z (z)}
-    <path {d} style:fill="color-mix(in srgb, var(--thumb) {ink}%, var(--surface))" />
+    <path style:fill="color-mix(in srgb, var(--thumb) {ink}%, var(--surface))" {d} />
   {/each}
 </svg>
 

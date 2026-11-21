@@ -43,7 +43,7 @@
       k,
       { label: d.label, detail: `${d.cols}×${d.rows}` },
     ]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
+  ) as Record<Difficulty, { detail: string; label: string }>;
 
   // The New dialog's picks, starting from the current game's settings.
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
@@ -67,11 +67,11 @@
 
   const START = 0.3; // board units a press must travel before it counts as a gesture
   let svg: SVGSVGElement;
-  let press: { id: number; start: Point; from: number | null } | null = null;
+  let press: null | { from: null | number; id: number; start: Point } = null;
   let gesture = $state<
-    | { kind: 'build'; from: number; to: Point; edge: number }
-    | { kind: 'swipe'; last: Point; trail: Point[]; cut: Set<number> }
     | null
+    | { cut: Set<number>; kind: 'swipe'; last: Point; trail: Point[] }
+    | { edge: number; from: number; kind: 'build'; to: Point }
   >(null);
   let swallowClick = false;
 
@@ -132,32 +132,32 @@
 </script>
 
 <GameScreen
-  title="Bridges"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={askNew}
-  onstart={start}
   finished={game.done}
   onnext={() => (game = newGame(game.difficulty, game.rules))}
+  onopennew={askNew}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Bridges"
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    <RulesPicker rules={RULES} {sizes} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
   <div class="board-area">
     <svg
       bind:this={svg}
-      class="bridges-board"
-      viewBox="-0.25 -0.25 {game.cols + 0.5} {game.rows + 0.5}"
       style:--cols={game.cols}
       style:--rows={game.rows}
-      role="group"
+      class="bridges-board"
       aria-label="Bridges board"
+      onpointercancel={pointerCancel}
       onpointerdown={pointerDown}
       onpointermove={pointerMove}
       onpointerup={pointerUp}
-      onpointercancel={pointerCancel}
+      role="group"
+      viewBox="-0.25 -0.25 {game.cols + 0.5} {game.rows + 0.5}"
     >
       <!-- Faint dots on every cell, to make rows and columns easy to follow. -->
       {#each { length: game.rows } as _, r (r)}
@@ -169,7 +169,7 @@
       {#each game.blocks as x (x)}
         {@const r = Math.floor(x / game.cols)}
         {@const c = x % game.cols}
-        <rect class="block" x={c + 0.2} y={r + 0.2} width="0.6" height="0.6" rx="0.06" />
+        <rect class="block" height="0.6" rx="0.06" width="0.6" x={c + 0.2} y={r + 0.2} />
       {/each}
 
       {#each edges as e, k (k)}
@@ -177,27 +177,27 @@
         {@const b = at(e.b)}
         {@const n = game.bridges[k]}
         {#if n === 1}
-          <line class="bridge" x1={a.x} y1={a.y} x2={b.x} y2={b.y} />
+          <line class="bridge" x1={a.x} x2={b.x} y1={a.y} y2={b.y} />
         {:else if n === 2}
           <!-- Two bridges side by side, 0.1 either side of the line between the islands. -->
           {@const len = Math.hypot(e.dr, e.dc)}
           {@const dx = (e.dr / len) * 0.1}
           {@const dy = (-e.dc / len) * 0.1}
-          <line class="bridge" x1={a.x - dx} y1={a.y - dy} x2={b.x - dx} y2={b.y - dy} />
-          <line class="bridge" x1={a.x + dx} y1={a.y + dy} x2={b.x + dx} y2={b.y + dy} />
+          <line class="bridge" x1={a.x - dx} x2={b.x - dx} y1={a.y - dy} y2={b.y - dy} />
+          <line class="bridge" x1={a.x + dx} x2={b.x + dx} y1={a.y + dy} y2={b.y + dy} />
         {/if}
         <!-- Wide invisible target: tap the gap between two islands to cycle its bridges. -->
         <line
           class="hit"
-          x1={a.x}
-          y1={a.y}
-          x2={b.x}
-          y2={b.y}
-          role="button"
-          tabindex="-1"
           aria-label="Bridge between islands, {n} built"
           onclick={() => tapEdge(k)}
           onkeydown={() => {}}
+          role="button"
+          tabindex="-1"
+          x1={a.x}
+          x2={b.x}
+          y1={a.y}
+          y2={b.y}
         />
       {/each}
 
@@ -207,9 +207,9 @@
         {@const e = edges[gesture.edge]}
         {#if e}
           {@const to = center(game, e.a === gesture.from ? e.b : e.a)}
-          <line class="preview" x1={from.x} y1={from.y} x2={to.x} y2={to.y} />
+          <line class="preview" x1={from.x} x2={to.x} y1={from.y} y2={to.y} />
         {:else}
-          <line class="preview loose" x1={from.x} y1={from.y} x2={gesture.to.x} y2={gesture.to.y} />
+          <line class="preview loose" x1={from.x} x2={gesture.to.x} y1={from.y} y2={gesture.to.y} />
         {/if}
       {:else if gesture?.kind === 'swipe'}
         <polyline class="trail" points={gesture.trail.map((p) => `${p.x},${p.y}`).join(' ')} />
@@ -222,8 +222,8 @@
             s.color !== undefined && `color-${s.color}`,
             { full: have[i] === s.n, over: have[i] > s.n },
           ]}
-          role="img"
           aria-label="Island {s.n}, {have[i]} bridges"
+          role="img"
         >
           <circle class="hit-island" cx={s.c + 0.5} cy={s.r + 0.5} r="0.5" />
           <circle class="ring" cx={s.c + 0.5} cy={s.r + 0.5} r="0.37" />

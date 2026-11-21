@@ -59,7 +59,7 @@
       k,
       { label: d.label, detail: `${d.cols}×${d.rows}` },
     ]),
-  ) as Record<Difficulty, { label: string; detail: string }>;
+  ) as Record<Difficulty, { detail: string; label: string }>;
 
   // The New dialog's picks, starting from the current game's settings.
   let choice = $state<{ difficulty: Difficulty; rules: Rules }>({
@@ -71,7 +71,7 @@
   }
 
   /** A new game; for a slow setting it's made in the background, and the promise says when it's ready. */
-  function make(difficulty: Difficulty, rules: Rules): void | Promise<void> {
+  function make(difficulty: Difficulty, rules: Rules): Promise<void> | void {
     if (!isSlow(difficulty)) {
       game = newGame(difficulty, rules);
       return;
@@ -89,41 +89,41 @@
 </script>
 
 <GameScreen
-  title="Loop"
-  subtitle={label}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  nextWait={wait(game.difficulty)}
+  onnext={() => make(game.difficulty, game.rules)}
   onopennew={askNew}
   onstart={start}
-  finished={game.done}
-  onnext={() => make(game.difficulty, game.rules)}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle={label}
+  title="Loop"
   wait={wait(choice.difficulty)}
-  nextWait={wait(game.difficulty)}
 >
   {#snippet picker()}
-    <RulesPicker {sizes} rules={RULES} bind:size={choice.difficulty} bind:on={choice.rules} />
+    <RulesPicker rules={RULES} {sizes} bind:size={choice.difficulty} bind:on={choice.rules} />
   {/snippet}
 
   <div class="board-area">
     <svg
-      class={['loop-board', { done: game.done }]}
-      viewBox="-0.45 -0.45 {game.cols + 0.9} {game.rows + 0.9}"
       style:--cols={game.cols}
       style:--rows={game.rows}
-      role="group"
+      class={['loop-board', { done: game.done }]}
       aria-label="Loop board"
       oncontextmenu={(e) => e.preventDefault()}
+      role="group"
+      viewBox="-0.45 -0.45 {game.cols + 0.9} {game.rows + 0.9}"
     >
       {#each game.clues as clue, i (i)}
         {#if clue !== null}
           {#if around[i] > clue}
             <rect
               class="over"
-              x={(i % game.cols) + 0.2}
-              y={Math.floor(i / game.cols) + 0.2}
-              width="0.6"
               height="0.6"
               rx="0.12"
+              width="0.6"
+              x={(i % game.cols) + 0.2}
+              y={Math.floor(i / game.cols) + 0.2}
             />
           {/if}
           <text
@@ -141,18 +141,18 @@
         {#if kind !== null}
           <rect
             class={['square', { dark: kind === DARK }]}
-            x={(i % game.cols) + 0.32}
-            y={Math.floor(i / game.cols) + 0.32}
-            width="0.36"
             height="0.36"
             rx="0.07"
+            width="0.36"
+            x={(i % game.cols) + 0.32}
+            y={Math.floor(i / game.cols) + 0.32}
           />
         {/if}
       {/each}
 
       {#each edges as [[r1, c1], [r2, c2]], e (e)}
         {#if game.marks[e] === LINE}
-          <line class="line" x1={c1} y1={r1} x2={c2} y2={r2} />
+          <line class="line" x1={c1} x2={c2} y1={r1} y2={r2} />
         {:else if game.marks[e] === CROSS}
           {@const x = (c1 + c2) / 2}
           {@const y = (r1 + r2) / 2}
@@ -164,15 +164,15 @@
         <!-- Wide invisible target: a tap cycles the side through empty, line and cross. -->
         <line
           class="hit"
-          x1={c1}
-          y1={r1}
-          x2={c2}
-          y2={r2}
-          role="button"
-          tabindex="-1"
           aria-label="Side"
           onclick={() => dispatch({ type: 'cycle', edge: e })}
           onkeydown={() => {}}
+          role="button"
+          tabindex="-1"
+          x1={c1}
+          x2={c2}
+          y1={r1}
+          y2={r2}
         />
       {/each}
 

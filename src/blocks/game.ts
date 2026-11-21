@@ -26,9 +26,9 @@ const VARIANT_KEYS = Object.keys(VARIANTS) as Variant[];
 const LEVEL_KEYS = Object.keys(LEVELS) as Difficulty[];
 
 export interface Level {
+  code: string; // its blocks (encode in logic.ts)
   difficulty: Difficulty;
   fewest: number; // the fewest moves that finish it
-  code: string; // its blocks (encode in logic.ts)
 }
 
 /** Per variant, every level in order: Easy, then Medium, then Hard. */
@@ -55,21 +55,21 @@ const FIRST_OF = Object.fromEntries(
 export type Progress = Record<Variant, number>;
 
 export interface Game {
-  variant: Variant;
-  level: number; // which of LEVEL_LIST (from 0)
   blocks: Block[];
+  done: boolean;
   fewest: number; // the fewest moves that finish it
   history: Block[][]; // layouts before each move, for undo
+  level: number; // which of LEVEL_LIST (from 0)
   moves: number;
-  done: boolean;
   upNext: Progress;
+  variant: Variant;
 }
 
-export type Action = { type: 'slide'; index: number; to: number } | { type: 'undo' };
+export type Action = { index: number; to: number; type: 'slide' } | { type: 'undo' };
 
 export const FIRST: Progress = Object.fromEntries(VARIANT_KEYS.map((v) => [v, 0])) as Progress;
 
-export const difficultyOf = (g: Pick<Game, 'variant' | 'level'>): Difficulty =>
+export const difficultyOf = (g: Pick<Game, 'level' | 'variant'>): Difficulty =>
   LEVEL_LIST[g.variant][g.level].difficulty;
 
 /** A level of a variant: the next one, or the one numbered `pick`. That variant moves on to the level after it. */
@@ -122,7 +122,7 @@ function fromOld(variant: Variant, old: OldProgress): number {
  */
 export function isGame(value: unknown): value is Game {
   const g = value as
-    (Partial<Game> & { difficulty?: unknown; number?: unknown; upNext?: unknown }) | null;
+    null | (Partial<Game> & { difficulty?: unknown; number?: unknown; upNext?: unknown });
   if (typeof g !== 'object' || g === null) return false;
   if (g.variant === undefined && isOldProgress(g.upNext)) {
     g.variant = 'classic';

@@ -57,11 +57,11 @@ export type Path = number[];
 
 /** The grid and what the rules add to it. */
 export interface Board {
-  size: number;
-  wrap: boolean;
-  holes: number[];
-  walls: [number, number][]; // pairs of neighboring squares with a wall between them
   bridges: number[];
+  holes: number[];
+  size: number;
+  walls: [number, number][]; // pairs of neighboring squares with a wall between them
+  wrap: boolean;
 }
 
 export const plainBoard = (size: number): Board => ({
@@ -109,7 +109,7 @@ export function step(i: number, d: number, board: Board): number {
 const edgeKey = (a: number, b: number) => (a < b ? `${a},${b}` : `${b},${a}`);
 
 /** Per board: open neighbors of every square, and which squares are holes or bridges. */
-const cache = new WeakMap<Board, { open: number[][]; hole: Set<number>; bridge: Set<number> }>();
+const cache = new WeakMap<Board, { bridge: Set<number>; hole: Set<number>; open: number[][] }>();
 function info(board: Board) {
   let found = cache.get(board);
   if (!found) {
@@ -171,9 +171,9 @@ export function bridgeWay(path: Path, j: number, board: Board): 'across' | 'down
 // ---- Generation ----
 
 export interface Puzzle {
+  board: Board;
   dots: [number, number][]; // per color, the two squares to join
   solution: Path[];
-  board: Board;
 }
 
 /** Whether a path runs alongside itself: two squares adjacent on the grid but not on the path. */
@@ -268,7 +268,7 @@ function holes(board: Board, random: Random): number[] {
  * Up to `count` bridges, each with all four neighbors open and not shared with another bridge. Each
  * starts as two straight three-square paths crossing it; every other open square is a path of its own.
  */
-function bridges(board: Board, count: number, random: Random): Path[] | null {
+function bridges(board: Board, count: number, random: Random): null | Path[] {
   const used = new Set<number>();
   const start: Path[] = [];
   const n = board.size * board.size;
@@ -314,7 +314,7 @@ function walls(board: Board, paths: Path[], random: Random): [number, number][] 
   return shuffle(free, random).slice(0, Math.round(size * size * WALLS));
 }
 
-function merge(board: Board, start: Path[], target: number, random: Random): Path[] | null {
+function merge(board: Board, start: Path[], target: number, random: Random): null | Path[] {
   const n = board.size * board.size;
   let paths = start.map((p) => p.slice());
   const owner = new Array<number>(n); // path index for each path end, else -1
@@ -332,7 +332,7 @@ function merge(board: Board, start: Path[], target: number, random: Random): Pat
     const order = paths
       .map((_, k) => k)
       .sort((a, b) => paths[a].length - paths[b].length || random() - 0.5);
-    let joined: { a: number; b: number; path: Path } | null = null;
+    let joined: null | { a: number; b: number; path: Path } = null;
     for (const a of order.slice(0, 12)) {
       const p = paths[a];
       const options: { a: number; b: number; path: Path }[] = [];
@@ -476,7 +476,7 @@ export function isSolved(
 ): boolean {
   if (!dots.every((_, k) => connected(dots, paths, k))) return false;
   const n = board.size * board.size;
-  const uses: { k: number; j: number }[][] = Array.from({ length: n }, () => []);
+  const uses: { j: number; k: number }[][] = Array.from({ length: n }, () => []);
   paths.forEach((p, k) => p.forEach((cell, j) => uses[cell].push({ k, j })));
   for (let i = 0; i < n; i++) {
     if (isHole(i, board)) {

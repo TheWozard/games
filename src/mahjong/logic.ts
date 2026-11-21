@@ -673,10 +673,10 @@ export function freePairs(
 
 /** How the dealer pairs things up: what makes a deal lean easy or hard (see `deal`). */
 interface Style {
-  /** Deal both pairs of a group one after the other, so all four copies are free about together. */
-  together: boolean;
   /** Take the free tiles that had the most resting on them, rather than any free tiles. */
   covered: boolean;
+  /** Deal both pairs of a group one after the other, so all four copies are free about together. */
+  together: boolean;
 }
 
 const PLAIN: Style = { together: false, covered: true };
@@ -886,7 +886,7 @@ export function deal(
     difficulty === 'hard' ?
       { together: true, covered: true }
     : { together: false, covered: difficulty === 'medium' };
-  let best: { dealt: Dealt; off: number } | null = null;
+  let best: null | { dealt: Dealt; off: number } = null;
   let steps = 0;
   // A quick grade, then, once that looks inside the tier, a closer one to confirm it: a deal picked
   // for a quick grade inside the tier is often one that got lucky near its edge.

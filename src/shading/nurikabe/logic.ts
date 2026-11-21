@@ -23,8 +23,8 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export interface Puzzle {
+  clues: (null | number)[]; // per cell: an island's size, or null
   size: number;
-  clues: (number | null)[]; // per cell: an island's size, or null
   solution: boolean[]; // per cell: shaded (sea)
 }
 
@@ -33,10 +33,10 @@ export interface Puzzle {
 /** Every island the clue at `at` could be: connected shapes of its size, holding no other clue or touching one. */
 function shapesOf(
   n: number,
-  clues: (number | null)[],
+  clues: (null | number)[],
   at: number,
   budget: { left: number },
-): number[][] | null {
+): null | number[][] {
   const size = clues[at]!;
   const banned = new Uint8Array(n * n);
   clues.forEach((v, i) => {
@@ -88,7 +88,7 @@ function shapesOf(
  * is sea, and four such cells in a block end that branch.
  */
 export function solutions(
-  p: Pick<Puzzle, 'size' | 'clues'>,
+  p: Pick<Puzzle, 'clues' | 'size'>,
   limit = 2,
   budget = 300_000,
 ): boolean[][] | null {
@@ -183,7 +183,7 @@ function seaCanJoin(n: number, used: Int16Array, maybe: Uint8Array): boolean {
   return reached === sure;
 }
 
-export function isUnique(p: Pick<Puzzle, 'size' | 'clues'>): boolean {
+export function isUnique(p: Pick<Puzzle, 'clues' | 'size'>): boolean {
   const found = solutions(p);
   return found !== null && found.length === 1;
 }
@@ -235,7 +235,7 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
   for (;;) {
     const land = answer(n, biggest, share, random);
     if (!land) continue;
-    const clues = new Array<number | null>(n * n).fill(null);
+    const clues = new Array<null | number>(n * n).fill(null);
     const seen = new Set<number>();
     land.forEach((l, i) => {
       if (!l || seen.has(i)) return;
@@ -287,7 +287,7 @@ export function conflicts(p: Pick<Puzzle, 'size'>, shaded: boolean[]): boolean[]
 }
 
 export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzle {
-  const p = value as Puzzle | null;
+  const p = value as null | Puzzle;
   const n = DIFFICULTIES[difficulty].size;
   return (
     typeof p === 'object' &&

@@ -58,8 +58,8 @@ function shuffle<T>(a: T[], random: Random): T[] {
 // c in 0..cols-1; then verticals: v(r, c) joins dot (r, c) to (r + 1, c), r in 0..rows-1, c in 0..cols.
 
 export interface Grid {
-  rows: number;
   cols: number;
+  rows: number;
 }
 
 export const edgeCount = ({ rows, cols }: Grid) => (rows + 1) * cols + rows * (cols + 1);
@@ -119,13 +119,13 @@ export function edgeBetween(
 /** The two kinds of square. */
 export const LIGHT = 0;
 export const DARK = 1;
-export type Square = typeof LIGHT | typeof DARK;
+export type Square = typeof DARK | typeof LIGHT;
 
 /** Everything a puzzle shows. `squares` is per cell; `rings` is per dot, row by row (rows + 1 by cols + 1). */
 export interface Clues {
-  clues: readonly (number | null)[];
-  squares: readonly (Square | null)[];
+  clues: readonly (null | number)[];
   rings: readonly boolean[];
+  squares: readonly (null | Square)[];
 }
 
 export const dotIndex = (g: Grid, r: number, c: number) => r * (g.cols + 1) + c;
@@ -146,7 +146,7 @@ export function insideCells(g: Grid, on: readonly boolean[]): boolean[] {
 /** Whether no light square shares a side of the loop with a dark one. */
 export function squaresSorted(
   g: Grid,
-  squares: readonly (Square | null)[],
+  squares: readonly (null | Square)[],
   on: readonly boolean[],
 ): boolean {
   const inside = insideCells(g, on);
@@ -205,10 +205,10 @@ export function isSolved(
 // ---- Generation ----
 
 export interface Puzzle extends Clues {
-  clues: (number | null)[]; // per cell, row by row
-  squares: (Square | null)[];
+  clues: (null | number)[]; // per cell, row by row
   rings: boolean[];
   solution: boolean[]; // per edge
+  squares: (null | Square)[];
 }
 
 /** A random blob of cells: connected, no holes, and no two cells touching only at a corner. */
@@ -319,7 +319,7 @@ export function generate(
 
     // Squares: light inside and dark outside, or the other way round; at least one of each.
     const lightInside = random() < 0.5;
-    const squares = new Array<Square | null>(rows * cols).fill(null);
+    const squares = new Array<null | Square>(rows * cols).fill(null);
     const want = rules.squares ? Math.max(2, Math.round(rows * cols * squareShare)) : 0;
     const pickIn = shuffle(
       [...inside.keys()].filter((i) => inside[i]),
@@ -349,7 +349,7 @@ export function generate(
     const ringCount = rules.rings ? Math.max(1, Math.round(onLoop.length * ringShare)) : 0;
     for (const d of shuffle(onLoop, random).slice(0, ringCount)) rings[d] = true;
 
-    const clues: (number | null)[] = [];
+    const clues: (null | number)[] = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++)
         clues.push(
@@ -399,7 +399,7 @@ export function solve(
     return r1 === r2 ? [cell(r1 - 1, c1), cell(r1, c1)] : [cell(r1, c1 - 1), cell(r1, c1)];
   });
   const squareCells = [...squares.keys()].filter((i) => squares[i] !== null);
-  const cells: { edges: number[]; clue: number }[] = [];
+  const cells: { clue: number; edges: number[] }[] = [];
   for (let r = 0; r < g.rows; r++) {
     for (let c = 0; c < g.cols; c++) {
       const clue = clues[r * g.cols + c];

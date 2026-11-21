@@ -21,28 +21,28 @@
   import type { Wait } from './wait';
 
   export interface NewOptions {
-    /** New Game choices, one tile each (a name, and an optional detail line), starting on `current`... */
-    options?: { value: string; label: string; detail?: string }[];
+    /** Whether the picks make a game: Play is disabled while not (Mahjong with no layout picked). */
+    canPlay?: boolean;
     current?: string;
+    /** Starts the picked game; a returned promise means it's still being made. */
+    onstart: (value: string) => unknown;
+    /** New Game choices, one tile each (a name, and an optional detail line), starting on `current`... */
+    options?: { detail?: string; label: string; value: string }[];
     /** The heading over `options`. */
     optionsTitle?: string;
     /** ...or the dialog's own content, for games with several settings to pick. */
     picker?: Snippet;
-    /** Whether the picks make a game: Play is disabled while not (Mahjong with no layout picked). */
-    canPlay?: boolean;
-    /** Starts the picked game; a returned promise means it's still being made. */
-    onstart: (value: string) => unknown;
     /** How long the setting picked takes to make: Play turns orange or red. */
     wait?: Wait;
   }
 
   interface Props extends NewOptions {
-    open: boolean;
-    onclose: () => void;
-    /** The dialog's title: GameScreen2 calls it Customize, since its menu's New starts one. */
-    title?: string;
     /** Whether a new game is being made: true from Play until it's ready. */
     busy?: boolean;
+    onclose: () => void;
+    open: boolean;
+    /** The dialog's title: GameScreen2 calls it Customize, since its menu's New starts one. */
+    title?: string;
   }
 
   let {
@@ -82,14 +82,14 @@
   }
 </script>
 
-<Dialog {open} locked={busy} {onclose}>
+<Dialog locked={busy} {onclose} {open}>
   <h2>{title}</h2>
   {#if picker}
     {@render picker()}
   {:else}
     <PickGroup title={optionsTitle}>
       {#each options as { value, label, detail } (value)}
-        <Choice {label} {detail} pressed={picked === value} onclick={() => (picked = value)} />
+        <Choice {detail} {label} onclick={() => (picked = value)} pressed={picked === value} />
       {/each}
     </PickGroup>
   {/if}
@@ -104,11 +104,11 @@
     {#if busy}
       <span class="spinner" aria-hidden="true"></span>
     {:else}
-      <ChevronRight strokeWidth={2.4} aria-hidden="true" />
+      <ChevronRight aria-hidden="true" strokeWidth={2.4} />
     {/if}
   </button>
   <!-- Drawn in the top corner. -->
-  <button class="dialog-close" value="" aria-label="Close" disabled={busy}>
-    <X strokeWidth={2.4} aria-hidden="true" />
+  <button class="dialog-close" aria-label="Close" disabled={busy} value="">
+    <X aria-hidden="true" strokeWidth={2.4} />
   </button>
 </Dialog>

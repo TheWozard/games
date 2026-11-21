@@ -7,17 +7,17 @@ export type Change = [index: number, value: number, notes: number];
 
 export interface GridState {
   difficulty: string;
+  done: boolean;
+  history: Change[][];
+  notes: number[]; // bitmask of pencil marks per cell (bit d = digit d)
   puzzle: number[]; // givens; 0 = player fills it
   solution: number[];
   values: number[];
-  notes: number[]; // bitmask of pencil marks per cell (bit d = digit d)
-  history: Change[][];
-  done: boolean;
 }
 
 export interface GridShape {
-  size: number; // digits run 1..size, the grid is size × size
   peers: readonly (readonly number[])[]; // cells that may not share a digit with each cell
+  size: number; // digits run 1..size, the grid is size × size
 }
 
 /**
@@ -25,9 +25,9 @@ export interface GridShape {
  * takes away a pencil mark across the cells it passes, and erasing clears what a cell holds.
  */
 export type GridAction =
-  | { type: 'place'; index: number; digit: number }
-  | { type: 'note'; indices: number[]; digit: number; on: boolean }
-  | { type: 'erase'; indices: number[] }
+  | { digit: number; index: number; type: 'place' }
+  | { digit: number; indices: number[]; on: boolean; type: 'note' }
+  | { indices: number[]; type: 'erase' }
   | { type: 'undo' };
 
 const HISTORY_LIMIT = 500;
@@ -59,7 +59,7 @@ export function linePeers(size: number): number[][] {
 
 /** Whether saved JSON has the shape of a grid game with `cells` cells. */
 export function isGridState(value: unknown, cells: number): value is GridState {
-  const g = value as Partial<GridState> | null;
+  const g = value as null | Partial<GridState>;
   return (
     typeof g === 'object' &&
     g !== null &&
@@ -154,10 +154,10 @@ export function gridReducer<G extends GridState>(
 }
 
 /** What a tap on the board does: set the pad's digit, add or take away its note, or erase. */
-export type Mode = 'set' | 'notes' | 'erase';
+export type Mode = 'erase' | 'notes' | 'set';
 
 /** What a key picks: a digit for the pad, or a mode (S to set, N for notes, Backspace/Delete/0 to erase). (GameScreen does Ctrl/Cmd+Z.) */
-export function gridKey(e: KeyboardEvent): { digit: number } | { mode: Mode } | null {
+export function gridKey(e: KeyboardEvent): null | { digit: number } | { mode: Mode } {
   if (e.ctrlKey || e.metaKey || e.altKey) return null;
   if (/^[1-9]$/.test(e.key)) return { digit: Number(e.key) };
   if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') return { mode: 'erase' };

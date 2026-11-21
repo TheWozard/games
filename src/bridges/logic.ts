@@ -45,10 +45,10 @@ export const isRules = (value: unknown): value is Rules =>
 export const GRAY = 0;
 
 export interface Island {
-  r: number;
   c: number;
-  n: number; // bridges it needs
   color?: number; // with the colors rule: GRAY, 1 or 2
+  n: number; // bridges it needs
+  r: number;
 }
 
 /** Whether two islands' colors let a bridge join them. */
@@ -66,9 +66,9 @@ export const OPEN: Terrain = { blocks: [], diagonals: false };
 export interface Edge {
   a: number; // island indices: b is a step of (dr, dc) at a time from a, with dr > 0, or dr = 0 and dc > 0
   b: number;
-  dr: number;
-  dc: number;
   cells: number[]; // grid cells strictly between them (r * cols + c)
+  dc: number;
+  dr: number;
 }
 
 type Random = () => number;
@@ -98,7 +98,7 @@ export function edgesOf(
   cols: number,
   rows: number,
   terrain: Terrain = OPEN,
-): { edges: Edge[]; crosses: number[][] } {
+): { crosses: number[][]; edges: Edge[] } {
   const at = new Map(islands.map((s, k) => [s.r * cols + s.c, k]));
   const blocks = new Set(terrain.blocks);
   const edges: Edge[] = [];
@@ -145,8 +145,8 @@ const DIAGONAL_DIRS = [
 ] as const;
 
 export interface Puzzle {
-  islands: Island[];
   blocks: number[];
+  islands: Island[];
   solution: number[]; // bridges per edge of edgesOf(islands, cols, rows, { blocks, diagonals })
 }
 
@@ -275,7 +275,7 @@ function grow(
   target: number,
   diagonals: boolean,
   random: Random,
-): { islands: Island[]; links: Map<string, number>; used: Set<number> } | null {
+): null | { islands: Island[]; links: Map<string, number>; used: Set<number> } {
   const ISLAND = -1;
   // Per cell: 0 empty, ISLAND, or 1 for a bridge passing through.
   const grid = new Array<number>(cols * rows).fill(0);
@@ -373,7 +373,7 @@ export function solve(
   crosses: readonly (readonly number[])[],
   limit: number,
   budget = Infinity,
-): number[][] | null {
+): null | number[][] {
   const of: number[][] = islands.map(() => []);
   edges.forEach((e, k) => {
     of[e.a].push(k);

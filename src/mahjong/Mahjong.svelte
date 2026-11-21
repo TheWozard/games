@@ -51,7 +51,7 @@
   const inset = $derived(prefs.mahjongFaces === 'inset');
   const dim = $derived(prefs.mahjongBlocked === 'dimmed');
   const SETTINGS: {
-    key: Setting & `mahjong${string}`;
+    key: `mahjong${string}` & Setting;
     label: string;
     names: Record<string, [string, string]>;
   }[] = [
@@ -124,7 +124,7 @@
   const puzzle = $derived([formatSeed(game.seed), game.layout, game.difficulty].join(' · '));
 
   // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
-  const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
+  const LEVELS: Record<Difficulty, { detail: string; label: string }> = {
     easy: { label: 'Zen', detail: 'forgiving' },
     medium: { label: 'Balance', detail: 'a few traps' },
     hard: { label: 'Focus', detail: 'plan ahead' },
@@ -206,34 +206,34 @@
 <TileFaces art={prefs.mahjongArt} />
 
 <GameScreen2
-  title="Mahjong"
-  subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
-  onundo={() => dispatch({ type: 'undo' })}
-  canUndo={!game.done && game.history.length > 0}
-  onopennew={openNew}
-  onstart={start}
-  canPlay={playable.length > 0}
-  finished={game.done}
-  onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
-  {puzzle}
   {board}
   boardKey="{game.layout} {game.seed}"
+  canPlay={playable.length > 0}
+  canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
+  onopennew={openNew}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  {puzzle}
+  subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
+  title="Mahjong"
   bind:stageWidth={stageW}
   bind:stageHeight={stageH}
 >
   {#snippet status()}
     {#if !game.done}
       <span class="mj-count" aria-label="{tilesLeft} tiles left">
-        <svg viewBox="0 0 16 16" aria-hidden="true">
+        <svg aria-hidden="true" viewBox="0 0 16 16">
           <rect
-            x="3.5"
-            y="2"
-            width="9"
+            fill="none"
             height="12"
             rx="2"
-            fill="none"
             stroke="currentColor"
             stroke-width="1.6"
+            width="9"
+            x="3.5"
+            y="2"
           />
         </svg>
         {tilesLeft}
@@ -244,7 +244,7 @@
     {#if !game.done && moves === 0}
       <!-- Stuck: the only time Shuffle appears. -->
       <p class="status">No matching pairs are free.</p>
-      <Button primary onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</Button>
+      <Button onclick={() => dispatch({ type: 'shuffle' })} primary>Shuffle</Button>
     {/if}
   {/snippet}
   {#snippet settings()}
@@ -252,10 +252,10 @@
       <PickGroup title={label}>
         {#each CHOICES[key] as value (value)}
           <Choice
-            label={names[value][0]}
             detail={names[value][1]}
-            pressed={prefs[key] === value}
+            label={names[value][0]}
             onclick={() => pickSetting(key, value as Settings[typeof key])}
+            pressed={prefs[key] === value}
           />
         {/each}
       </PickGroup>
@@ -267,24 +267,24 @@
     </MenuSection>
   {/snippet}
   {#snippet dev()}
-    {#if DevMenu}<DevMenu {game} set={(g) => (game = g)} {deal} />{/if}
+    {#if DevMenu}<DevMenu {deal} {game} set={(g) => (game = g)} />{/if}
   {/snippet}
   {#snippet picker()}
     <PickGroup title="Difficulty">
       {#each DIFFICULTIES as d (d)}
         <Choice
-          label={LEVELS[d].label}
           detail={LEVELS[d].detail}
-          pressed={level === d}
+          label={LEVELS[d].label}
           onclick={() => (level = d)}
+          pressed={level === d}
         />
       {/each}
     </PickGroup>
-    <PickList title="Layouts" count={playable.length}>
+    <PickList count={playable.length} title="Layouts">
       {#snippet actions()}
         <span class="pick-select">Select</span>
-        <Button small disabled={!shownIds.length} onclick={() => pickShown(shownIds)}>All</Button>
-        <Button small disabled={!shownIds.length} onclick={() => pickShown([])}>None</Button>
+        <Button disabled={!shownIds.length} onclick={() => pickShown(shownIds)} small>All</Button>
+        <Button disabled={!shownIds.length} onclick={() => pickShown([])} small>None</Button>
       {/snippet}
       {#snippet chips()}
         {#each FILTERS as f, i (f.key)}
@@ -296,8 +296,8 @@
       {#each shownIds as id (id)}
         {@const l = layoutOf(id)}
         <Toggle
-          label={l.name}
           detail="{l.slots.length} tiles"
+          label={l.name}
           on={chosen.includes(id)}
           onclick={() => toggle(id)}
         >
@@ -310,28 +310,28 @@
   {/snippet}
 
   <div
-    class="mj-board"
     style:width="{board.width}px"
     style:height="{board.height}px"
     style:--u="{u}px"
-    role="group"
+    class="mj-board"
     aria-label="Mahjong tiles"
+    role="group"
   >
     {#each order as s (s.i)}
       {#if !game.gone[s.i]}
         <button
-          type="button"
-          class={[
-            'mj-tile',
-            { blocked: dim && !free(game, s.i), selected: game.selected === s.i, inset },
-          ]}
           style:left="{((leftOf(s, box.maxZ) - box.x0) / box.w) * 100}%"
           style:top="{((topOf(s, box.maxZ) - box.y0) / box.h) * 100}%"
           style:width="{(3 / box.w) * 100}%"
           style:height="{(4 / box.h) * 100}%"
-          data-slot={s.i}
+          class={[
+            'mj-tile',
+            { blocked: dim && !free(game, s.i), selected: game.selected === s.i, inset },
+          ]}
           aria-label="Tile"
+          data-slot={s.i}
           onclick={() => dispatch({ type: 'tap', slot: s.i })}
+          type="button"
           transition:scale={{ duration: 180, start: 0.7 }}
         >
           <TileBody href="mj-k{game.kinds[s.i]}" />
@@ -341,7 +341,7 @@
   </div>
 </GameScreen2>
 
-<Dialog class="mj-credits" open={showingCredits} onclose={() => (showingCredits = false)}>
+<Dialog class="mj-credits" onclose={() => (showingCredits = false)} open={showingCredits}>
   <h2>Credits</h2>
   <h3 class="pick-title">This Layout</h3>
   {#if layout.archive}
@@ -357,39 +357,39 @@
   <p>
     The classics come from <a
       href="https://github.com/KDE/kmahjongg/tree/master/layouts/"
-      target="_blank"
       rel="noopener"
+      target="_blank"
     >
       KMahjongg
     </a>
     (KDE, GPL-2.0-or-later; most by Alexey Charkov) and
     <a
       href="https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/"
-      target="_blank"
       rel="noopener"
+      target="_blank"
     >
       GNOME Mahjongg
     </a>
     (GPL-3.0-or-later), collected by the
-    <a href="https://ffalt.github.io/mahseum/" target="_blank" rel="noopener">
+    <a href="https://ffalt.github.io/mahseum/" rel="noopener" target="_blank">
       Mahjong Solitaire Layout Museum
     </a>. The rest were made for this game.
   </p>
   <h3 class="pick-title">Tile Art</h3>
   <p>
     Classic was drawn for this game. Riichi is
-    <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles" target="_blank" rel="noopener">
+    <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles" rel="noopener" target="_blank">
       FluffyStuff
     </a>’s (public domain), with flowers and seasons by
-    <a href="https://github.com/xhokir/riichi-mahjong-tiles" target="_blank" rel="noopener">
+    <a href="https://github.com/xhokir/riichi-mahjong-tiles" rel="noopener" target="_blank">
       xhokir
     </a>
-    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">
+    (<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener" target="_blank">
       CC BY 4.0
     </a>).
   </p>
   <!-- Drawn in the top corner. -->
-  <button class="dialog-close" value="" aria-label="Close">
-    <X strokeWidth={2.4} aria-hidden="true" />
+  <button class="dialog-close" aria-label="Close" value="">
+    <X aria-hidden="true" strokeWidth={2.4} />
   </button>
 </Dialog>

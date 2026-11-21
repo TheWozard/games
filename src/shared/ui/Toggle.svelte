@@ -13,11 +13,11 @@
     on,
     onclick,
     aside,
-  }: { label: string; detail?: string; on: boolean; onclick: () => void; aside?: Snippet } =
+  }: { aside?: Snippet; detail?: string; label: string; on: boolean; onclick: () => void } =
     $props();
 </script>
 
-<button type="button" class="btn toggle" aria-pressed={on} {onclick}>
+<button class="btn toggle" aria-pressed={on} {onclick} type="button">
   <span class="check" aria-hidden="true">
     <Check strokeWidth={3.5} />
   </span>

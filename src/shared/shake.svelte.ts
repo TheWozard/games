@@ -5,7 +5,7 @@
 const SHAKE_MS = 300;
 
 export function createShake<T>() {
-  let current = $state<T | null>(null);
+  let current = $state<null | T>(null);
   let timer: ReturnType<typeof setTimeout> | undefined;
   return {
     /** The piece shaking now, if any. */

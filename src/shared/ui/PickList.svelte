@@ -15,12 +15,12 @@
     chips,
     children,
   }: {
-    title: string;
+    actions?: Snippet;
+    children: Snippet;
+    chips?: Snippet;
     /** How many are on, shown beside the heading (left out at 0). */
     count?: number;
-    actions?: Snippet;
-    chips?: Snippet;
-    children: Snippet;
+    title: string;
   } = $props();
 </script>
 

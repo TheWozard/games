@@ -19,19 +19,19 @@ export const STORAGE_KEY = 'games.flow.v1';
 const HISTORY_LIMIT = 300;
 
 export interface Game {
+  board: Board;
   difficulty: Difficulty;
+  done: boolean;
+  dots: [number, number][];
+  history: Path[][];
+  paths: Path[]; // per color, from one of its dots
   rules: Rules;
   size: number;
-  board: Board;
-  dots: [number, number][];
-  paths: Path[]; // per color, from one of its dots
-  history: Path[][];
-  done: boolean;
 }
 
 export type Action =
-  | { type: 'draw'; paths: Path[] } // live, during a drag
-  | { type: 'commit'; before: Path[] } // end of a drag: one undo step
+  | { before: Path[]; type: 'commit' } // end of a drag: one undo step
+  | { paths: Path[]; type: 'draw' } // live, during a drag
   | { type: 'undo' };
 
 /** A game of a puzzle made for these settings (here, or in the background: see background.ts). */
@@ -57,7 +57,7 @@ const cells = (value: unknown, n: number) =>
 
 /** Validates a save. Saves from before the rules carry on on a plain board. */
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isDifficulty(g?.difficulty)) return false;
   const size = DIFFICULTIES[g.difficulty].size;
   g.rules ??= { ...NO_RULES };

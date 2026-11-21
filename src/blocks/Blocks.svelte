@@ -32,7 +32,7 @@
 
   // The New Game picks: a variant (tabs), and which of its levels (the next one unless another is
   // picked). Play starts them.
-  let choice = $state<{ variant: Variant; level: number }>({ variant: 'classic', level: 0 });
+  let choice = $state<{ level: number; variant: Variant }>({ variant: 'classic', level: 0 });
 
   function pick(variant: Variant) {
     choice = { variant, level: game.upNext[variant] % LEVEL_LIST[variant].length };
@@ -61,15 +61,15 @@
   let svg: SVGSVGElement;
   // Per key block, how far past the edge it was let go, so it carries on out from there.
   let pastEdge = $state<Record<number, number>>({});
-  let held = $state<{
+  let held = $state<null | {
+    at: number;
+    from: number;
+    hi: number;
     id: number;
     index: number;
-    from: number;
-    at: number;
     lo: number;
-    hi: number;
     offset: number;
-  } | null>(null);
+  }>(null);
 
   function along(e: PointerEvent, across: boolean): number {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
@@ -144,24 +144,24 @@
 </script>
 
 <GameScreen
-  title="Sliding Blocks"
-  subtitle="{VARIANTS[game.variant].label} · {LEVELS[difficultyOf(game)].label} · No. {game.level +
-    1}"
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => pick(game.variant)}
-  onstart={start}
   finished={game.done}
   onnext={() => begin(newGame(game.variant, game.upNext))}
+  onopennew={() => pick(game.variant)}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle="{VARIANTS[game.variant].label} · {LEVELS[difficultyOf(game)].label} · No. {game.level +
+    1}"
+  title="Sliding Blocks"
 >
   {#snippet picker()}
-    <div class="pick-tabs" role="tablist" aria-label="Variant">
+    <div class="pick-tabs" aria-label="Variant" role="tablist">
       {#each Object.entries(VARIANTS) as [key, v] (key)}
         <button
-          type="button"
-          role="tab"
           aria-selected={choice.variant === key}
           onclick={() => pick(key as Variant)}
+          role="tab"
+          type="button"
         >
           {v.label}
         </button>
@@ -172,11 +172,11 @@
       <div class="blocks-levels">
         {#each levels as level (level)}
           <button
-            type="button"
             class="btn"
-            aria-pressed={choice.level === level}
             aria-label="No. {level + 1}, {label}"
+            aria-pressed={choice.level === level}
             onclick={() => (choice = { ...choice, level })}
+            type="button"
           >
             {level + 1}
           </button>
@@ -187,14 +187,14 @@
   {#snippet status()}
     <!-- Just the fewest moves it can be done in (a flag: the mark to aim for), no count of the player's own. -->
     <span class="blocks-count" aria-label="It can be done in {game.fewest} moves">
-      <svg viewBox="0 0 16 16" aria-hidden="true">
+      <svg aria-hidden="true" viewBox="0 0 16 16">
         <path
           d="M4 14V2.5M4 3h8l-2 3 2 3H4"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.6"
           stroke-linecap="round"
           stroke-linejoin="round"
+          stroke-width="1.6"
         />
       </svg>
       {game.fewest}
@@ -205,12 +205,12 @@
     <svg
       bind:this={svg}
       class={['blocks-board', { done: game.done, holding: held !== null }]}
-      viewBox="-0.3 -0.3 {size + 0.6} {size + 0.6}"
-      role="group"
       aria-label="Sliding blocks board"
+      onpointercancel={pointerUp}
       onpointermove={pointerMove}
       onpointerup={pointerUp}
-      onpointercancel={pointerUp}
+      role="group"
+      viewBox="-0.3 -0.3 {size + 0.6} {size + 0.6}"
     >
       {#each { length: size * size } as _, sq (sq)}
         <circle class="spot" cx={(sq % size) + 0.5} cy={Math.floor(sq / size) + 0.5} r="0.05" />
@@ -218,15 +218,15 @@
       <!-- Exits: an arrow past the right-hand edge on the first key block's row, and (Two Keys) one
            under the bottom edge in the second's column, each in its key block's color. -->
       <path
+        style:stroke={s.keys > 1 ? keyColor(0) : undefined}
         class="exit-mark"
         d="M{size + EDGE + 0.1} {s.exitRow + 0.36}l0.14 0.14l-0.14 0.14"
-        style:stroke={s.keys > 1 ? keyColor(0) : undefined}
       />
       {#if s.keys > 1}
         <path
+          style:stroke={keyColor(1)}
           class="exit-mark"
           d="M{s.exitCol + 0.36} {size + EDGE + 0.1}l0.14 0.14l0.14 -0.14"
-          style:stroke={keyColor(1)}
         />
       {/if}
 
@@ -239,26 +239,26 @@
             : out ? (pastEdge[i] ?? 0)
             : 0}
           {#if b.fixed}
-            <rect class="pillar" x={b.c + 0.2} y={b.r + 0.2} width="0.6" height="0.6" rx="0.12" />
+            <rect class="pillar" height="0.6" rx="0.12" width="0.6" x={b.c + 0.2} y={b.r + 0.2} />
           {:else}
             <g
-              class={['block', { key: i < s.keys, moving, out }]}
               style:transform="translate({b.c + (b.across ? shift : 0)}px, {b.r +
                 (b.across ? 0 : shift)}px)"
               style:--away={b.across ? '2.4px 0' : '0 2.4px'}
               style:--tint={tint(i)}
-              role="button"
-              tabindex="-1"
+              class={['block', { key: i < s.keys, moving, out }]}
               aria-label={i < s.keys ? 'Key block' : `Block ${b.across ? 'across' : 'down'}`}
               onpointerdown={(e) => pointerDown(e, i)}
+              role="button"
+              tabindex="-1"
             >
               <rect
-                x={INSET}
-                y={INSET}
-                width={(b.across ? b.len : 1) - INSET * 2}
+                style:fill={i < s.keys ? keyColor(i) : undefined}
                 height={(b.across ? 1 : b.len) - INSET * 2}
                 rx="0.2"
-                style:fill={i < s.keys ? keyColor(i) : undefined}
+                width={(b.across ? b.len : 1) - INSET * 2}
+                x={INSET}
+                y={INSET}
               />
             </g>
           {/if}

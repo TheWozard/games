@@ -29,10 +29,10 @@ const ACROSS = (d: number) => d >= 2;
 const lowBit = (m: number) => 31 - Math.clz32(m & -m);
 
 interface Graph {
-  /** Per node: the nodes a path can step to. Nodes 0..n-1 are squares (a bridge's across path), n..2n-1 a bridge's down path. */
-  next: number[][];
   /** Per node: whether it's on the board at all (not a hole, and only bridges have a down node). */
   live: boolean[];
+  /** Per node: the nodes a path can step to. Nodes 0..n-1 are squares (a bridge's across path), n..2n-1 a bridge's down path. */
+  next: number[][];
 }
 
 function graph(board: Board): Graph {
@@ -65,7 +65,7 @@ export function countSolutions(
   board: Board,
   limit = 2,
   budget = Infinity,
-): number | null {
+): null | number {
   const n = board.size * board.size;
   const { next, live } = graph(board);
   const nodes = 2 * n;

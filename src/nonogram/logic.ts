@@ -51,14 +51,14 @@ type Random = () => number;
 /** One clue number: the run's color (1 when there are no colors) and its length, or null if hidden. */
 export interface Run {
   color: number;
-  length: number | null;
+  length: null | number;
 }
 
 export interface Puzzle {
-  size: number;
   colors: number; // 1 without the colors rule
-  rows: Run[][];
   cols: Run[][];
+  rows: Run[][];
+  size: number;
   solution: number[]; // per cell, row by row: 0 empty, 1..colors a color
 }
 
@@ -82,7 +82,7 @@ export const rowOf = (cells: number[], size: number, r: number) =>
 export const colOf = (cells: number[], size: number, c: number) =>
   Array.from({ length: size }, (_, r) => cells[r * size + c]);
 
-export function cluesOf(solution: number[], size: number): { rows: Run[][]; cols: Run[][] } {
+export function cluesOf(solution: number[], size: number): { cols: Run[][]; rows: Run[][] } {
   return {
     rows: Array.from({ length: size }, (_, r) => runsOf(rowOf(solution, size, r))),
     cols: Array.from({ length: size }, (_, c) => runsOf(colOf(solution, size, c))),
@@ -102,7 +102,7 @@ export function fits(line: number[], clue: Run[]): boolean {
 }
 
 /** Whether every line fits its clue. With the line solver's uniqueness, that's the solution. */
-export const isSolved = (p: Pick<Puzzle, 'size' | 'rows' | 'cols'>, cells: number[]) =>
+export const isSolved = (p: Pick<Puzzle, 'cols' | 'rows' | 'size'>, cells: number[]) =>
   p.rows.every((clue, r) => fits(rowOf(cells, p.size, r), clue)) &&
   p.cols.every((clue, c) => fits(colOf(cells, p.size, c), clue));
 
@@ -116,7 +116,7 @@ export const isSolved = (p: Pick<Puzzle, 'size' | 'rows' | 'cols'>, cells: numbe
 // from the start, backward those that can still reach the end; the moves between two such states
 // are the ones some arrangement makes, and they say what each cell can be.
 
-export function solveLine(masks: number[], clue: Run[]): number[] | null {
+export function solveLine(masks: number[], clue: Run[]): null | number[] {
   const n = masks.length;
   const k = clue.length;
   const W = n + 1;
@@ -203,10 +203,10 @@ export function solveLine(masks: number[], clue: Run[]): number[] | null {
  * `budget` caps the line solves, so a check can't run long.
  */
 export function solve(
-  p: Pick<Puzzle, 'size' | 'colors' | 'rows' | 'cols'>,
+  p: Pick<Puzzle, 'colors' | 'cols' | 'rows' | 'size'>,
   stuck?: number[],
   budget = 20_000,
-): number[] | null {
+): null | number[] {
   const { size } = p;
   const all = (1 << (p.colors + 1)) - 1;
   const masks = new Array<number>(size * size).fill(all);
@@ -346,7 +346,7 @@ export function generate(
 }
 
 /** The share of cells that one look at each line, on its own and from blank, decides. Lower is harder. */
-export function firstLook(p: Pick<Puzzle, 'size' | 'colors' | 'rows' | 'cols'>): number {
+export function firstLook(p: Pick<Puzzle, 'colors' | 'cols' | 'rows' | 'size'>): number {
   const { size } = p;
   const blank = new Array<number>(size).fill((1 << (p.colors + 1)) - 1);
   const known = new Array<boolean>(size * size).fill(false);

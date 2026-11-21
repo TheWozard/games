@@ -132,8 +132,8 @@ describe('reducer', () => {
 describe('saves', () => {
   /** A save as it was before each variant was one list: a difficulty and a number in it. */
   const oldSave = (
-    variant: 'classic' | 'big',
-    difficulty: 'easy' | 'medium' | 'hard',
+    variant: 'big' | 'classic',
+    difficulty: 'easy' | 'hard' | 'medium',
     number: number,
   ) => {
     const {

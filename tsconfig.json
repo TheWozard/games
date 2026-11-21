@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "isolatedModules": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "types": ["vite/client", "vite-plugin-pwa/client", "node"]
+    "strict": true,
+    "target": "ES2022",
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"],
+    "verbatimModuleSyntax": true
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts"]
 }

@@ -26,7 +26,7 @@
   $effect(() => saveJSON(STORAGE_KEY, game));
 
   // The New Game picks, starting from the current game's; Play starts them.
-  let choice = $state<{ size: Size; density: Density }>({ size: 'small', density: 'few' });
+  let choice = $state<{ density: Density; size: Size }>({ size: 'small', density: 'few' });
   function start(value: string) {
     if (value === 'start' && isSize(choice.size) && isDensity(choice.density))
       game = newGame(choice.size, choice.density);
@@ -78,8 +78,8 @@
 </script>
 
 {#snippet flagIcon()}
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <path d="M4 2v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /><path
+  <svg aria-hidden="true" viewBox="0 0 16 16">
+    <path d="M4 2v12" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" /><path
       d="M4.8 2.5h7.4l-2 3 2 3H4.8z"
       fill="currentColor"
     />
@@ -87,42 +87,42 @@
 {/snippet}
 
 {#snippet mineIcon()}
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <circle cx="8" cy="8" r="4.2" fill="currentColor" /><path
+  <svg aria-hidden="true" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" fill="currentColor" r="4.2" /><path
       d="M8 1.5v13M1.5 8h13M3.4 3.4l9.2 9.2M12.6 3.4l-9.2 9.2"
       stroke="currentColor"
-      stroke-width="1.3"
       stroke-linecap="round"
+      stroke-width="1.3"
     />
   </svg>
 {/snippet}
 
 <GameScreen
-  title="Mines"
-  subtitle={label}
-  onopennew={() => (choice = { size: game.size, density: game.density })}
-  onstart={start}
   finished={game.status !== 'playing'}
   onnext={() => (game = newGame(game.size, game.density))}
+  onopennew={() => (choice = { size: game.size, density: game.density })}
+  onstart={start}
+  subtitle={label}
+  title="Mines"
 >
   {#snippet picker()}
     <PickGroup title="Board">
       {#each Object.entries(SIZES) as [key, s] (key)}
         <Choice
-          label={s.label}
           detail="{s.cols}×{s.rows}"
-          pressed={choice.size === key}
+          label={s.label}
           onclick={() => (choice.size = key as Size)}
+          pressed={choice.size === key}
         />
       {/each}
     </PickGroup>
     <PickGroup title="Mines">
       {#each Object.entries(DENSITIES) as [key, d] (key)}
         <Choice
-          label={d.label}
           detail="{mineCount(choice.size, key as Density)} mines"
-          pressed={choice.density === key}
+          label={d.label}
           onclick={() => (choice.density = key as Density)}
+          pressed={choice.density === key}
         />
       {/each}
     </PickGroup>
@@ -137,9 +137,9 @@
 
   <div class="board-area">
     <div
-      class="mine-board"
       style:--rows={game.rows}
       style:--cols={game.cols}
+      class="mine-board"
       aria-label="Mine field"
     >
       {#each game.revealed as open, i (i)}
@@ -148,7 +148,6 @@
         {@const lost = game.status === 'lost'}
         {@const n = near?.[i] ?? 0}
         <button
-          type="button"
           class={[
             'tile',
             {
@@ -159,20 +158,21 @@
               'wrong-flag': lost && flagged && !mine,
             },
           ]}
-          data-n={open && !mine ? n : undefined}
           aria-label={open ?
             mine ? 'Mine'
             : n ? `${n}`
             : 'Empty'
           : flagged ? 'Flagged'
           : 'Hidden'}
-          onpointerdown={(e) => pointerDown(e, i)}
-          onpointermove={pointerMove}
-          onpointerup={cancelPress}
-          onpointerleave={cancelPress}
-          onpointercancel={cancelPress}
+          data-n={open && !mine ? n : undefined}
           onclick={() => click(i)}
           oncontextmenu={(e) => contextMenu(e, i)}
+          onpointercancel={cancelPress}
+          onpointerdown={(e) => pointerDown(e, i)}
+          onpointerleave={cancelPress}
+          onpointermove={pointerMove}
+          onpointerup={cancelPress}
+          type="button"
         >
           {#if open && mine}{@render mineIcon()}
           {:else if open}{n || ''}

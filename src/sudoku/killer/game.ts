@@ -9,8 +9,8 @@ import { cageSatisfied, generate, isDifficulty, type Cage, type Difficulty } fro
 export const STORAGE_KEY = 'games.killer.v1';
 
 export interface Game extends GridState {
-  difficulty: Difficulty;
   cages: Cage[];
+  difficulty: Difficulty;
 }
 
 export function newGame(difficulty: Difficulty): Game {
@@ -19,14 +19,14 @@ export function newGame(difficulty: Difficulty): Game {
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   return isDifficulty(g?.difficulty) && Array.isArray(g.cages) && isGridState(g, 81);
 }
 
 /** Layout derived from the cages, cached per game (cages never change during a game). */
 const cache = new WeakMap<
   Cage[],
-  { cageOf: number[]; peers: number[][]; sumAt: Map<number, number>; colorOf: number[] }
+  { cageOf: number[]; colorOf: number[]; peers: number[][]; sumAt: Map<number, number> }
 >();
 
 export const ZONES = 5;

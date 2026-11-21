@@ -65,19 +65,19 @@ export const EMPTY = 0;
 export const CROSS = -1;
 
 export interface Game {
+  cells: number[]; // EMPTY, CROSS or a color 1..colors
+  colors: number;
+  cols: Run[][];
   difficulty: Difficulty;
+  done: boolean;
+  history: number[][];
+  palette?: number[]; // color k is PALETTE[palette[k - 1]]; empty without colors (missing in older saves)
+  rows: Run[][];
   rules: Rules;
   size: number;
-  colors: number;
-  rows: Run[][];
-  cols: Run[][];
-  palette?: number[]; // color k is PALETTE[palette[k - 1]]; empty without colors (missing in older saves)
-  cells: number[]; // EMPTY, CROSS or a color 1..colors
-  history: number[][];
-  done: boolean;
 }
 
-export type Action = { type: 'paint'; indices: number[]; value: number } | { type: 'undo' };
+export type Action = { indices: number[]; type: 'paint'; value: number } | { type: 'undo' };
 
 export function gameOf(
   difficulty: Difficulty,
@@ -114,7 +114,7 @@ export const shading = (cells: number[]) => cells.map((v) => (v === CROSS ? EMPT
 const isRun =
   (colors: number) =>
   (run: unknown): boolean => {
-    const r = run as Run | null;
+    const r = run as null | Run;
     return (
       typeof r === 'object' &&
       r !== null &&
@@ -138,7 +138,7 @@ const isPalette = (palette: unknown, colors: number) =>
     palette.every((i) => Number.isInteger(i) && i >= 0 && i < PALETTE.length));
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isDifficulty(g?.difficulty) || !isRules(g.rules)) return false;
   const { size, colors } = DIFFICULTIES[g.difficulty];
   const k = g.rules.colors ? colors : 1;

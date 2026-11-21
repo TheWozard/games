@@ -20,7 +20,7 @@ export function starsValid(n: number, k: number, regions: number[], stars: boole
   return stars.every((s, i) => !s || around(n, i).every((j) => !stars[j]));
 }
 
-export function nurikabeValid(n: number, clues: (number | null)[], sea: boolean[]): boolean {
+export function nurikabeValid(n: number, clues: (null | number)[], sea: boolean[]): boolean {
   if (clues.some((v, i) => v !== null && sea[i])) return false;
   for (let r = 0; r < n - 1; r++)
     for (let c = 0; c < n - 1; c++) {
@@ -67,7 +67,7 @@ export function hitoriValid(n: number, numbers: number[], shaded: boolean[]): bo
   return true;
 }
 
-export function lightupValid(n: number, walls: (number | null)[], lamps: boolean[]): boolean {
+export function lightupValid(n: number, walls: (null | number)[], lamps: boolean[]): boolean {
   const p = { size: n, walls };
   for (let i = 0; i < n * n; i++) {
     if (walls[i] !== null) {

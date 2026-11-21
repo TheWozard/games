@@ -14,8 +14,8 @@
 //   jump. A board too small for the reach to move it (at 0.25, under half the stage) stays centered.
 
 export interface Size {
-  width: number;
   height: number;
+  width: number;
 }
 
 export interface View {
@@ -30,9 +30,9 @@ export const ZOOM_IN = 2;
 export interface Limits {
   /** Zoom at which the whole board just fits the stage. */
   fit: number;
+  max: number;
   min: number;
   start: number;
-  max: number;
 }
 
 export function limits(stage: Size, board: Size): Limits {

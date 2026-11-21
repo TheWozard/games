@@ -267,7 +267,7 @@ export function solve(
   givens: readonly number[],
   limit: number,
   budget = Infinity,
-): number[][] | null {
+): null | number[][] {
   // Every constraint is "these cells hold distinct digits adding to this sum": the real cages,
   // plus the ones the 45 rule implies.
   const groups = [...cages, ...virtualCages(cages)];

@@ -24,11 +24,11 @@
 </script>
 
 {#if variant === 'stars'}
-  <Stars {variants} {first} />
+  <Stars {first} {variants} />
 {:else if variant === 'nurikabe'}
-  <Nurikabe {variants} {first} />
+  <Nurikabe {first} {variants} />
 {:else if variant === 'hitori'}
-  <Hitori {variants} {first} />
+  <Hitori {first} {variants} />
 {:else}
-  <LightUp {variants} {first} />
+  <LightUp {first} {variants} />
 {/if}

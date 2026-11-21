@@ -27,18 +27,18 @@ export const STORAGE_KEY = 'games.untangle.v1';
 const HISTORY_LIMIT = 300;
 
 export interface Game extends Settings, Board {
-  points: Point[];
+  done: boolean;
   edges: Edge[];
   history: Point[][]; // layouts before each move, for undo
   moves: number;
-  done: boolean;
+  points: Point[];
 }
 
 export type Action =
-  | { type: 'drag'; index: number; to: Point }
-  | { type: 'drop'; index: number; before: Point[] }
-  | { type: 'undo' }
-  | { type: 'resize'; board: Board };
+  | { before: Point[]; index: number; type: 'drop' }
+  | { board: Board; type: 'resize' }
+  | { index: number; to: Point; type: 'drag' }
+  | { type: 'undo' };
 
 export const DEFAULT: Settings = { size: 'd10', style: 'lines', start: 'circle' };
 
@@ -64,7 +64,7 @@ export function newGame(settings: Settings, board: Board = DEFAULT_BOARD): Game 
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   return (
     isSize(g?.size) &&
     isStyle(g.style) &&

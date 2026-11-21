@@ -20,24 +20,24 @@
   import type { Wait } from './wait';
 
   interface Props extends NewOptions {
-    title: string;
-    /** The current setting, shown small under the title (the difficulty, layout...). */
-    subtitle: string;
-    /** Header extras between the title and Undo, like a count of what's left. */
-    status?: Snippet;
-    /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
-    onundo?: () => void;
     canUndo?: boolean;
-    /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
-    onopennew?: () => void;
+    children: Snippet;
     /** Won, completed or lost: show Next. */
     finished: boolean;
-    onnext: () => unknown;
     /** How long the current setting takes to make: Next turns orange or red. */
     nextWait?: Wait;
+    onnext: () => unknown;
+    /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
+    onopennew?: () => void;
+    /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
+    onundo?: () => void;
+    /** Header extras between the title and Undo, like a count of what's left. */
+    status?: Snippet;
+    /** The current setting, shown small under the title (the difficulty, layout...). */
+    subtitle: string;
+    title: string;
     /** Let the board use the full width of a big screen, not the usual centered column. */
     wide?: boolean;
-    children: Snippet;
   }
 
   let {
@@ -89,11 +89,11 @@
   <h1>{title} <small>{subtitle}</small></h1>
   {@render status?.()}
   {#if onundo}<IconButton
-      icon={Undo2}
-      strokeWidth={2.2}
-      label="Undo"
       disabled={!canUndo}
+      icon={Undo2}
+      label="Undo"
       onclick={onundo}
+      strokeWidth={2.2}
     />{/if}
   <IconButton icon={Plus} label="New Game" onclick={askNew} />
 </header>
@@ -102,11 +102,11 @@
   {@render children()}
 </main>
 
-<NextButton show={finished} onclick={next} wait={nextWait} busy={nexting} />
+<NextButton busy={nexting} onclick={next} show={finished} wait={nextWait} />
 
 <NewDialog
+  onclose={() => (askingNew = false)}
   open={askingNew}
   bind:busy={starting}
-  onclose={() => (askingNew = false)}
   {...newOptions}
 />

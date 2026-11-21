@@ -8,19 +8,19 @@
   import type { GridShape } from './grid';
 
   export interface GridLayout extends GridShape {
-    /** Thick line on the cell's right / bottom edge (box or cage boundaries). */
-    wallRight?: (i: number) => boolean;
-    wallBottom?: (i: number) => boolean;
-    /** A color (0–4, 0 blank) filling the cell's zone, e.g. its cage, inset from the zone's outline. Touching zones must differ. */
-    zone?: (i: number) => number;
-    /** Small text in the cell's top-left corner (cage clues). */
-    label?: (i: number) => string;
     /** Extra error highlighting beyond repeated digits (e.g. a full cage that doesn't add up). */
     error?: (i: number) => boolean;
+    /** Small text in the cell's top-left corner (cage clues). */
+    label?: (i: number) => string;
+    wallBottom?: (i: number) => boolean;
+    /** Thick line on the cell's right / bottom edge (box or cage boundaries). */
+    wallRight?: (i: number) => boolean;
+    /** A color (0–4, 0 blank) filling the cell's zone, e.g. its cage, inset from the zone's outline. Touching zones must differ. */
+    zone?: (i: number) => number;
   }
 </script>
 
-<script lang="ts" generics="G extends GridState">
+<script generics="G extends GridState" lang="ts">
   import Eraser from '@lucide/svelte/icons/eraser';
   import NotebookPen from '@lucide/svelte/icons/notebook-pen';
   import Pencil from '@lucide/svelte/icons/pencil';
@@ -39,19 +39,19 @@
   import './grid.css';
 
   interface Props {
-    title: string;
-    storageKey: string;
-    difficulties: Record<string, { label: string }>;
-    isValid: (value: unknown) => value is G;
     create: (difficulty: string) => G;
+    difficulties: Record<string, { label: string }>;
+    /** Start a new game at this difficulty instead of resuming the saved one. */
+    first?: string;
+    isValid: (value: unknown) => value is G;
     layout: (game: G) => GridLayout;
+    storageKey: string;
+    title: string;
     /**
      * For a page holding several such games (Sudoku: Classic and Killer): all of them, this one's
      * key, and what to do when the New Game dialog plays another ("<game>:<difficulty>").
      */
-    variants?: { games: Games; current: string; onswitch: (pick: string) => void };
-    /** Start a new game at this difficulty instead of resuming the saved one. */
-    first?: string;
+    variants?: { current: string; games: Games; onswitch: (pick: string) => void };
   }
 
   let { title, storageKey, difficulties, isValid, create, layout, variants, first }: Props =
@@ -156,14 +156,14 @@
   // move for Undo.
 
   interface Stroke {
-    pointer: number;
-    mode: Mode;
     digit: number;
+    mode: Mode;
     on: boolean; // Notes: add the note (or take it away)
     path: number[];
+    pointer: number;
   }
 
-  let stroke = $state.raw<Stroke | null>(null);
+  let stroke = $state.raw<null | Stroke>(null);
   let board = $state<HTMLElement>();
 
   function action({ mode, digit, on, path }: Stroke): GridAction {
@@ -177,7 +177,7 @@
     return { pointer, mode, digit, on, path: [i] };
   }
 
-  function cellAt(e: PointerEvent): number | null {
+  function cellAt(e: PointerEvent): null | number {
     const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-cell]');
     return el && board?.contains(el) ? Number(el.dataset.cell) : null;
   }
@@ -237,17 +237,10 @@
 {/snippet}
 
 <GameScreen
-  {title}
-  subtitle={[variants?.games[variants.current].label, difficulties[game.difficulty]?.label]
-    .filter(Boolean)
-    .join(' · ')}
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  options={variants ?
-    []
-  : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
   current={game.difficulty}
-  picker={variants ? variantPicker : undefined}
+  finished={game.done}
+  onnext={() => (game = create(game.difficulty))}
   onopennew={() => {
     if (variants) {
       pick = `${variants.current}:${game.difficulty}`;
@@ -255,23 +248,30 @@
     }
   }}
   onstart={start}
-  finished={game.done}
-  onnext={() => (game = create(game.difficulty))}
+  onundo={() => dispatch({ type: 'undo' })}
+  options={variants ?
+    []
+  : Object.entries(difficulties).map(([value, { label }]) => ({ value, label }))}
+  picker={variants ? variantPicker : undefined}
+  subtitle={[variants?.games[variants.current].label, difficulties[game.difficulty]?.label]
+    .filter(Boolean)
+    .join(' · ')}
+  {title}
 >
   <div class="board-area">
     <div
       bind:this={board}
-      class="board grid-board"
-      role="group"
-      onpointerdown={down}
-      onpointermove={move}
-      onpointerup={up}
-      onpointercancel={cancel}
-      onlostpointercapture={cancel}
       style:--n={shape.size}
       style:--note-cols={shape.size <= 4 ? 2 : 3}
       style:--note-rows={Math.ceil(shape.size / (shape.size <= 4 ? 2 : 3))}
+      class="board grid-board"
       aria-label="{title} board"
+      onlostpointercapture={cancel}
+      onpointercancel={cancel}
+      onpointerdown={down}
+      onpointermove={move}
+      onpointerup={up}
+      role="group"
     >
       {#each shown.values as v, i (i)}
         {@const r = Math.floor(i / shape.size)}
@@ -280,7 +280,6 @@
         {@const mask = v ? 0 : shown.notes[i]}
         {@const label = shape.label?.(i)}
         <button
-          type="button"
           class={[
             'cell',
             {
@@ -301,8 +300,9 @@
           aria-label="{label ? `${label}, ` : ''}row {r + 1}, column {c + 1}: {v || 'empty'}"
           data-cell={i}
           onclick={(e) => keyTap(e, i)}
+          type="button"
         >
-          {#if shape.zone}<span class="zone-fill" style={zoneFill(i)}></span>{/if}
+          {#if shape.zone}<span style={zoneFill(i)} class="zone-fill"></span>{/if}
           {#if label}<span class="label">{label}</span>{/if}
           <span class="value">{v || ''}</span>
           <span class="notes">
@@ -318,28 +318,28 @@
   <div class="tools grid-tools">
     {#each [['erase', 'Erase', Eraser], ['notes', 'Notes', NotebookPen], ['set', 'Set', Pencil]] as const as [m, name, Icon] (m)}
       <button
-        type="button"
         class="btn"
-        aria-pressed={mode === m}
         aria-label={name}
-        title={name}
+        aria-pressed={mode === m}
         onclick={() => setMode(m)}
+        title={name}
+        type="button"
       >
-        <Icon size={22} aria-hidden="true" />
+        <Icon aria-hidden="true" size={22} />
       </button>
     {/each}
   </div>
 
   <div
-    class={['pad', { 'notes-mode': mode === 'notes' || (mode === 'erase' && writing === 'notes') }]}
     style:--n={shape.size}
+    class={['pad', { 'notes-mode': mode === 'notes' || (mode === 'erase' && writing === 'notes') }]}
   >
     {#each digits as d, k (d)}
       <button
-        type="button"
         class={['digit', { complete: remaining[k] <= 0 }]}
         aria-pressed={mode !== 'erase' && d === digit}
         onclick={() => pickDigit(d)}
+        type="button"
       >
         <span class="digit-n">{d}</span>
         <span class="digit-left">{remaining[k] > 0 ? remaining[k] : ''}</span>

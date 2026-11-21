@@ -29,7 +29,7 @@ export function isRegions(value: unknown): value is number[] {
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   return isDifficulty(g?.difficulty) && isRegions(g.regions) && isGridState(g, 81);
 }
 

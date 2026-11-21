@@ -16,7 +16,7 @@ import {
   type Grid,
 } from '../classic/logic';
 
-export { DIFFICULTIES, isDifficulty, type Difficulty } from '../classic/logic';
+export { DIFFICULTIES, type Difficulty, isDifficulty } from '../classic/logic';
 
 type Random = () => number;
 
@@ -169,8 +169,8 @@ const FILL_BUDGET = 200;
 const DIGS = 5;
 
 export interface Puzzle {
-  regions: number[];
   puzzle: Grid;
+  regions: number[];
   solution: Grid;
 }
 

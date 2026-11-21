@@ -19,8 +19,8 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export interface Puzzle {
-  size: number;
   numbers: number[]; // per cell, 1..size
+  size: number;
   solution: boolean[]; // per cell: shaded
 }
 
@@ -37,7 +37,7 @@ const SHADED = 2;
 
 /** Up to `limit` answers (shaded cells), or null if `budget` steps run out first. */
 export function solutions(
-  p: Pick<Puzzle, 'size' | 'numbers'>,
+  p: Pick<Puzzle, 'numbers' | 'size'>,
   limit = 2,
   budget = 100_000,
 ): boolean[][] | null {
@@ -105,7 +105,7 @@ export function solutions(
   return out ? null : found;
 }
 
-export function isUnique(p: Pick<Puzzle, 'size' | 'numbers'>): boolean {
+export function isUnique(p: Pick<Puzzle, 'numbers' | 'size'>): boolean {
   const found = solutions(p);
   return found !== null && found.length === 1;
 }
@@ -172,7 +172,7 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
 
 /** Shaded cells side by side, and kept (circled) cells repeating a kept number in their row or column. */
 export function conflicts(
-  p: Pick<Puzzle, 'size' | 'numbers'>,
+  p: Pick<Puzzle, 'numbers' | 'size'>,
   shaded: boolean[],
   kept: boolean[],
 ): boolean[] {
@@ -193,7 +193,7 @@ export function conflicts(
 }
 
 export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzle {
-  const p = value as Puzzle | null;
+  const p = value as null | Puzzle;
   const n = DIFFICULTIES[difficulty].size;
   return (
     typeof p === 'object' &&
