@@ -1,6 +1,6 @@
 <!--
   What's inside a tile (.mj-tile): its body (face, ivory edge, green back; body.ts) and a face
-  symbol from TileFaces.svelte, with an optional second symbol laid over it, and a tint over all of it for a picked tile.
+  symbol from TileFaces.svelte, with an optional second symbol laid over it.
 -->
 <script lang="ts">
   import { DEPTH, H, R, SIDE, W } from './body';
@@ -16,9 +16,4 @@
 <svg class="mj-face" viewBox="0 0 300 400" aria-hidden="true">
   <use href="#{href}" />
   {#if overlay}<use href="#{overlay}" />{/if}
-</svg>
-<!-- Over everything, symbol included: the whole tile's outline, dyed the accent color when it's
-     picked (mahjong.css). -->
-<svg class="mj-tint" viewBox="0 0 {W + DEPTH} {H + DEPTH}" aria-hidden="true">
-  <path d={SIDE.back} />
 </svg>
