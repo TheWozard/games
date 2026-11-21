@@ -54,3 +54,7 @@
 .mj-tile.selected .mj-body { filter: url(#mj-pick-outline); }
 .mj-tile.selected .mj-face { filter: url(#mj-pick); }
 
+
+/* Credits (from the menu): links in the text's own color, underlined. */
+.mj-credits p { font-size: 0.9rem; line-height: 1.45; }
+.mj-credits a { color: var(--text); }

@@ -1,11 +1,16 @@
 <script lang="ts">
+  import Info from '@lucide/svelte/icons/info';
+  import X from '@lucide/svelte/icons/x';
   import { untrack } from 'svelte';
   import { scale } from 'svelte/transition';
+  import Dialog from '../shared/Dialog.svelte';
   import GameScreen2 from '../shared/GameScreen2.svelte';
   import Button from '../shared/ui/Button.svelte';
   import Choice from '../shared/ui/Choice.svelte';
   import PickGroup from '../shared/ui/PickGroup.svelte';
   import Toggle from '../shared/ui/Toggle.svelte';
+  import MenuItem from '../shared/ui/MenuItem.svelte';
+  import MenuSection from '../shared/ui/MenuSection.svelte';
   import Chip from '../shared/ui/Chip.svelte';
   import PickList from '../shared/ui/PickList.svelte';
   import { formatSeed } from '../shared/seed';
@@ -137,6 +142,9 @@
   // Every deal is made in a worker (background.ts); the stage opens it on its starting view (boardKey).
   const deal = (next: Deal) => dealInBackground(next).then((g) => (game = g));
 
+  // Credits (from the menu): where the tile art and the layouts come from, and who made the one being played.
+  let showingCredits = $state(false);
+
   // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
   let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
   if (import.meta.env.DEV) import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
@@ -194,6 +202,11 @@
         {/each}
       </PickGroup>
     {/each}
+  {/snippet}
+  {#snippet menu()}
+    <MenuSection>
+      <MenuItem icon={Info} label="Credits" onclick={() => (showingCredits = true)} />
+    </MenuSection>
   {/snippet}
   {#snippet dev()}
     {#if DevMenu}<DevMenu {game} set={(g) => (game = g)} {deal} />{/if}
@@ -259,3 +272,37 @@
     {/each}
   </div>
 </GameScreen2>
+
+<Dialog class="mj-credits" open={showingCredits} onclose={() => (showingCredits = false)}>
+  <h2>Credits</h2>
+  <h3 class="pick-title">This Layout</h3>
+  {#if layout.archive}
+    <p>
+      {layout.name}{#if layout.archive.by}, by {layout.archive.by}{/if}, from {layout.archive.source}
+      ({layout.archive.source === 'KMahjongg' ? 'GPL-2.0-or-later' : 'GPL-3.0-or-later'}).
+    </p>
+  {:else}
+    <p>{layout.name}, made for this game.</p>
+  {/if}
+  <h3 class="pick-title">Layouts</h3>
+  <p>
+    The classics come from <a href="https://github.com/KDE/kmahjongg/tree/master/layouts/" target="_blank" rel="noopener">KMahjongg</a>
+    (KDE, GPL-2.0-or-later; most by Alexey Charkov) and
+    <a href="https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/" target="_blank" rel="noopener">GNOME Mahjongg</a>
+    (GPL-3.0-or-later), collected by the
+    <a href="https://ffalt.github.io/mahseum/" target="_blank" rel="noopener">Mahjong Solitaire Layout Museum</a>.
+    The rest were made for this game.
+  </p>
+  <h3 class="pick-title">Tile Art</h3>
+  <p>
+    Classic was drawn for this game. Riichi is
+    <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles" target="_blank" rel="noopener">FluffyStuff</a>’s
+    (public domain), with flowers and seasons by
+    <a href="https://github.com/xhokir/riichi-mahjong-tiles" target="_blank" rel="noopener">xhokir</a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
+  </p>
+  <!-- Drawn in the top corner. -->
+  <button class="dialog-close" value="" aria-label="Close">
+    <X strokeWidth={2.4} aria-hidden="true" />
+  </button>
+</Dialog>
