@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
   import { flagsLeft, isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
@@ -82,22 +84,16 @@
   onnext={() => (game = newGame(game.size, game.density))}
 >
   {#snippet picker()}
-    <h3 class="pick-title">Board</h3>
-    <div class="pick">
+    <PickGroup title="Board">
       {#each Object.entries(SIZES) as [key, s] (key)}
-        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
-          <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
-        </button>
+        <Choice label={s.label} detail="{s.cols}×{s.rows}" pressed={choice.size === key} onclick={() => (choice.size = key as Size)} />
       {/each}
-    </div>
-    <h3 class="pick-title">Mines</h3>
-    <div class="pick">
+    </PickGroup>
+    <PickGroup title="Mines">
       {#each Object.entries(DENSITIES) as [key, d] (key)}
-        <button type="button" class="btn" aria-pressed={choice.density === key} onclick={() => (choice.density = key as Density)}>
-          <strong>{d.label}</strong><span>{mineCount(choice.size, key as Density)} mines</span>
-        </button>
+        <Choice label={d.label} detail="{mineCount(choice.size, key as Density)} mines" pressed={choice.density === key} onclick={() => (choice.density = key as Density)} />
       {/each}
-    </div>
+    </PickGroup>
   {/snippet}
 
   {#snippet status()}

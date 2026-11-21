@@ -1,9 +1,13 @@
 <script lang="ts">
-  import Check from '@lucide/svelte/icons/check';
   import { scale } from 'svelte/transition';
-  import GameScreen from '../shared/GameScreen.svelte';
+  import GameScreen2 from '../shared/GameScreen2.svelte';
+  import Button from '../shared/ui/Button.svelte';
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
+  import Toggle from '../shared/ui/Toggle.svelte';
   import { attachPan } from '../shared/pan';
   import { createShake } from '../shared/shake.svelte';
+  import { formatSeed } from '../shared/seed';
   import { loadSettings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
   import TileFaces from './TileFaces.svelte';
@@ -67,6 +71,14 @@
 
   $effect(() => saveJSON(STORAGE_KEY, game));
 
+  // The menu's puzzle line: what deals these tiles again (no seed in saves from before there was one).
+  // Seed first, since a long line is cut short on a phone (a tap still copies all of it).
+  const puzzle = $derived(
+    [game.seed !== undefined && formatSeed(game.seed), game.layout, game.difficulty, game.turned && 'turned']
+      .filter(Boolean)
+      .join(' · '),
+  );
+
   // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
   const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
     easy: { label: 'Easy', detail: 'forgiving' },
@@ -114,6 +126,10 @@
     scrollX = null; // a new deal opens centered
   }
 
+  // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
+  let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
+  if (import.meta.env.DEV) import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
+
   // A tap on a blocked tile gives it a little shake instead of doing nothing at all.
   const shake = createShake<number>();
   function tap(i: number) {
@@ -124,8 +140,7 @@
 
 <TileFaces art={settings.mahjongArt} />
 
-<GameScreen
-  wide
+<GameScreen2
   title="Mahjong"
   subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
   onundo={() => dispatch({ type: 'undo' })}
@@ -135,6 +150,7 @@
   canPlay={chosen.length > 0}
   finished={game.done}
   onnext={() => deal(dealFrom(poolOf(game), game.difficulty, game.layout, upright()))}
+  {puzzle}
 >
   {#snippet status()}
     {#if !game.done}
@@ -144,23 +160,30 @@
       </span>
     {/if}
   {/snippet}
+  {#snippet controls()}
+    {#if !game.done && moves === 0}
+      <!-- Stuck: the only time Shuffle appears. -->
+      <p class="status">No matching pairs are free.</p>
+      <Button primary onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</Button>
+    {/if}
+  {/snippet}
+  {#snippet dev()}
+    {#if DevMenu}<DevMenu {game} set={deal} />{/if}
+  {/snippet}
   {#snippet picker()}
-    <h3 class="pick-title">Difficulty</h3>
-    <div class="pick">
+    <PickGroup title="Difficulty">
       {#each DIFFICULTIES as d (d)}
-        <button type="button" class="btn" aria-pressed={level === d} onclick={() => (level = d)}>
-          <strong>{LEVELS[d].label}</strong><span>{LEVELS[d].detail}</span>
-        </button>
+        <Choice label={LEVELS[d].label} detail={LEVELS[d].detail} pressed={level === d} onclick={() => (level = d)} />
       {/each}
-    </div>
+    </PickGroup>
     <div class="mj-layouts-head">
       <h3 class="pick-title">Layouts</h3>
-      <button type="button" class="btn" onclick={() => pickOnTab(TABS[tab].ids)}>All</button>
+      <Button small onclick={() => pickOnTab(TABS[tab].ids)}>All</Button>
       {#if tab === 'own'}
         <!-- Just the ones that fit a phone upright, with no panning. -->
-        <button type="button" class="btn" onclick={() => pickOnTab(SLIM_IDS)}>Slim</button>
+        <Button small onclick={() => pickOnTab(SLIM_IDS)}>Slim</Button>
       {/if}
-      <button type="button" class="btn" onclick={() => pickOnTab([])}>None</button>
+      <Button small onclick={() => pickOnTab([])}>None</Button>
     </div>
     <div class="pick-tabs" role="tablist" aria-label="Layouts">
       {#each Object.entries(TABS) as [key, t] (key)}
@@ -174,12 +197,7 @@
       {#each TABS[tab].ids as id (id)}
         {@const l = layoutOf(id)}
         <!-- Any number can be on, so each shows a check box (like the rules in other games). -->
-        <button type="button" class="btn toggle" aria-pressed={chosen.includes(id)} onclick={() => toggle(id)}>
-          <span class="check" aria-hidden="true">
-            <Check strokeWidth={3.5} />
-          </span>
-          <span class="mj-layout-name"><strong>{l.name}</strong><span>{l.slots.length} tiles</span></span>
-        </button>
+        <Toggle label={l.name} detail="{l.slots.length} tiles" on={chosen.includes(id)} onclick={() => toggle(id)} />
       {/each}
     </div>
   {/snippet}
@@ -219,12 +237,4 @@
       {/each}
     </div>
   </div>
-
-  {#if !game.done && moves === 0}
-    <!-- Stuck: the only time Shuffle appears. -->
-    <p class="status">No matching pairs are free.</p>
-    <div class="tools">
-      <button type="button" class="btn primary" onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</button>
-    </div>
-  {/if}
-</GameScreen>
+</GameScreen2>

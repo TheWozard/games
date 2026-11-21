@@ -7,7 +7,16 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { open, locked = false, onclose, children }: { open: boolean; locked?: boolean; onclose: (value: string) => void; children: Snippet } = $props();
+  let { open, locked = false, onclose, class: className, label, children }: {
+    open: boolean;
+    locked?: boolean;
+    onclose: (value: string) => void;
+    /** A class for the dialog, for one placed or drawn differently (GameScreen2's menu). */
+    class?: string;
+    /** A name for a dialog with no heading to name it. */
+    label?: string;
+    children: Snippet;
+  } = $props();
 
   let dialog: HTMLDialogElement;
 
@@ -25,6 +34,8 @@
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
   bind:this={dialog}
+  class={className}
+  aria-label={label}
   onclose={() => onclose(dialog.returnValue)}
   oncancel={(e) => { if (locked) e.preventDefault(); }}
   onclick={(e) => { if (e.target === dialog && !locked) dialog.close(''); }}

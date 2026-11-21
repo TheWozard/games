@@ -2,10 +2,9 @@
      as the hash (../#sudoku), so the launcher can scroll to that game's card. -->
 <script lang="ts">
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import IconButton from './ui/IconButton.svelte';
 
   const game = location.pathname.split('/').filter(Boolean).at(-1) ?? '';
 </script>
 
-<a class="icon-btn back" href="../#{game}" aria-label="All games" title="All games">
-  <ChevronLeft strokeWidth={2.4} aria-hidden="true" />
-</a>
+<IconButton class="back" href="../#{game}" icon={ChevronLeft} label="All games" />

@@ -8,6 +8,8 @@
   smoothly as another is tapped.
 -->
 <script lang="ts" module>
+  import Choice from './ui/Choice.svelte';
+  import PickGroup from './ui/PickGroup.svelte';
   /** Each game's tab name, and its choices under a heading. Choice values are "<game>:<setting>". */
   export type Games = Record<string, { label: string; title: string; options: { value: string; label: string; detail?: string }[] }>;
 
@@ -56,11 +58,8 @@
     <button type="button" role="tab" aria-selected={shown === key} onclick={() => show(key)}>{g.label}</button>
   {/each}
 </div>
-<h3 class="pick-title">{games[shown].title}</h3>
-<div class="pick">
+<PickGroup title={games[shown].title}>
   {#each games[shown].options as option (option.value)}
-    <button type="button" class="btn" aria-pressed={value === option.value} onclick={() => (value = option.value)}>
-      <strong>{option.label}</strong>{#if option.detail}<span>{option.detail}</span>{/if}
-    </button>
+    <Choice label={option.label} detail={option.detail} pressed={value === option.value} onclick={() => (value = option.value)} />
   {/each}
-</div>
+</PickGroup>

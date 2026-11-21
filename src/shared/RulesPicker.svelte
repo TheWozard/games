@@ -5,7 +5,9 @@
   `sizes`, only the rules.
 -->
 <script lang="ts" generics="S extends string, R extends string">
-  import Check from '@lucide/svelte/icons/check';
+  import Choice from './ui/Choice.svelte';
+  import PickGroup from './ui/PickGroup.svelte';
+  import Toggle from './ui/Toggle.svelte';
 
   interface Props {
     sizes?: Record<S, { label: string; detail: string }>;
@@ -21,16 +23,12 @@
 </script>
 
 {#if sizes}
-  <h3 class="pick-title">Difficulty</h3>
-  <div class="pick">
+  <PickGroup title="Difficulty">
     {#each Object.entries(sizes) as [key, s] (key)}
       {@const { label, detail } = s as { label: string; detail: string }}
-      <button type="button" class="btn" aria-pressed={size === key} onclick={() => (size = key as S)}>
-        <strong>{label}</strong>
-        <span>{detail}</span>
-      </button>
+      <Choice {label} {detail} pressed={size === key} onclick={() => (size = key as S)} />
     {/each}
-  </div>
+  </PickGroup>
 {/if}
 
 <h3 class="pick-title">Rules</h3>
@@ -39,12 +37,7 @@
     {@const { label, info } = r as { label: string; info: string }}
     <div class="rule">
       <!-- Each rule turns on or off by itself (not one of a set), so it shows a check box. -->
-      <button type="button" class="btn toggle" aria-pressed={on[key as R]} onclick={() => (on = { ...on, [key]: !on[key as R] })}>
-        <span class="check" aria-hidden="true">
-          <Check strokeWidth={3.5} />
-        </span>
-        <strong>{label}</strong>
-      </button>
+      <Toggle {label} on={on[key as R]} onclick={() => (on = { ...on, [key]: !on[key as R] })} />
       <button
         type="button"
         class="rule-info"

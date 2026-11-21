@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import { untrack } from 'svelte';
   import { cubicOut } from 'svelte/easing';
   import { Tween } from 'svelte/motion';
@@ -118,33 +120,28 @@
     {/if}
   {/snippet}
   {#snippet picker()}
-    <h3 class="pick-title">Dots</h3>
-    <div class="pick">
+    <PickGroup title="Dots">
       {#each Object.entries(SIZES) as [key, s] (key)}
-        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
-          <strong>{s.label}</strong>
-        </button>
+        <Choice label={s.label} pressed={choice.size === key} onclick={() => (choice.size = key as Size)} />
       {/each}
-    </div>
+    </PickGroup>
 
-    <h3 class="pick-title">Style</h3>
-    <div class="pick">
+    <PickGroup title="Style">
       {#each Object.entries(STYLES) as [key, s] (key)}
-        <button type="button" class="btn" aria-pressed={choice.style === key} onclick={() => (choice.style = key as Style)}>
-          <strong>{s.label}</strong>
-          <span>{key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}</span>
-        </button>
+        <Choice
+          label={s.label}
+          detail={key === 'lines' ? 'straight lines' : key === 'mesh' ? 'dense' : 'sparse'}
+          pressed={choice.style === key}
+          onclick={() => (choice.style = key as Style)}
+        />
       {/each}
-    </div>
+    </PickGroup>
 
-    <h3 class="pick-title">Layout</h3>
-    <div class="pick starts">
+    <PickGroup title="Layout" class="starts">
       {#each Object.entries(STARTS) as [key, s] (key)}
-        <button type="button" class="btn" aria-pressed={choice.start === key} onclick={() => (choice.start = key as Start)}>
-          <strong>{s.label}</strong>
-        </button>
+        <Choice label={s.label} pressed={choice.start === key} onclick={() => (choice.start = key as Start)} />
       {/each}
-    </div>
+    </PickGroup>
   {/snippet}
 
   <div class="board-area" bind:clientWidth={areaW} bind:clientHeight={areaH}>

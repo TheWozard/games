@@ -26,6 +26,7 @@
      (viewport-fit=cover); env() says how far (the max- inset is the bar's full height, Chrome
      135+), but some Android builds report 0 there, so never less than 16px. */
   --safe-bottom: max(16px, env(safe-area-inset-bottom, 0px), env(safe-area-max-inset-bottom, 0px));
+  --bar-height: 62px; /* GameScreen2's header */
 }
 
 * { box-sizing: border-box; }
@@ -144,6 +145,8 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 .tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+/* A little one beside a heading (Mahjong's All / None). */
+.btn.small { padding: 3px 10px; font-size: 0.75rem; border-radius: 8px; }
 /* Play or Next for a setting that takes a while to make (wait.ts), or likely over a second. */
 .btn.primary.slow { background: var(--warn); border-color: var(--warn); }
 .btn.primary.slower { background: var(--danger); border-color: var(--danger); }
@@ -257,6 +260,9 @@ dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color:
 }
 .btn.toggle .check svg { width: 12px; height: 12px; }
 .btn.toggle[aria-pressed="true"] .check { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+/* A name over a detail line ("82 tiles"). */
+.toggle-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.toggle-name span { color: var(--muted); font-size: 0.75rem; }
 /* The same round i as on the launcher's cards. */
 .rule-info {
   flex: none;
@@ -347,3 +353,87 @@ dialog p.rule-text { margin: 0 0 4px; padding: 0 4px; font-size: 0.85rem; line-h
   box-shadow: 0 6px 24px rgb(0 0 0 / 0.5);
 }
 .next-fab svg { width: 18px; height: 18px; }
+
+/* GameScreen2 (src/shared/GameScreen2.svelte): a header of fixed height, then the stage, which
+   holds only the board and runs on to the bottom of the screen, with the control layer floating
+   over it. */
+body.game:has(> #root > .stage) { padding-bottom: 0; }
+.screen-bar { flex: none; height: var(--bar-height); padding-block: 0; }
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* Over the stage, controls at the bottom. Only the controls take taps: the board gets the rest. */
+.control-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px calc(20px + var(--safe-bottom));
+  pointer-events: none;
+}
+.control-layer > * { pointer-events: auto; }
+.control-layer .status {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(22 24 29 / 0.8); /* --bg, see-through */
+}
+
+/* The menu (☰): a box under its button at the right of the header, not centered. Its right edge
+   lines up with the button's, inside the header's centered column on a wide screen. */
+dialog.game-menu { padding-top: max(0px, env(safe-area-inset-top, 0px)); }
+dialog.game-menu::backdrop { background: rgb(0 0 0 / 0.3); }
+dialog.game-menu form {
+  width: min(280px, 100%);
+  margin: calc(var(--bar-height) - 4px) max(0px, (100vw - 520px) / 2) auto auto;
+  padding: 6px;
+  gap: 0;
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.5);
+}
+.menu-section { display: flex; flex-direction: column; padding: 4px 0; }
+.menu-section + .menu-section, .menu-section + .menu-puzzle { border-top: 1px solid var(--line); }
+.menu-section h3 { margin: 6px 10px 2px; color: var(--muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+/* Dev server only: set apart in orange, so it's never mistaken for the game's own. */
+.menu-section.dev h3, .menu-section.dev .menu-item svg { color: var(--warn); }
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  text-align: left;
+}
+.menu-item svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
+.menu-item:hover, .menu-item:focus-visible { background: var(--line); outline: none; }
+.menu-item:disabled { opacity: 0.4; background: none; cursor: default; }
+/* What the puzzle is, last: small, on one line (cut short if it must be), and a tap copies it. */
+.menu-puzzle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-align: left;
+}
+.menu-puzzle:hover, .menu-puzzle:focus-visible { background: var(--line); outline: none; }
+.menu-puzzle code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
+.menu-puzzle svg { flex: none; width: 14px; height: 14px; }

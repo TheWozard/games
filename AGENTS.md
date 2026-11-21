@@ -34,6 +34,16 @@ src/
     settings.ts         how games look, set from the launcher's gear (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
+    GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New Game, the game's
+                        sections, the puzzle's seed/id), a stage holding only the board, controls floating over it
+                        dev-only menu entries: a `dev` snippet, from a component loaded behind
+                        `import.meta.env.DEV` so builds leave it out (see src/mahjong/DevMenu.svelte)
+    NewDialog.svelte    the New Game dialog both frames open
+    ui/                 standard pieces; use them rather than writing the markup again:
+                        IconButton (round, header), MenuItem / MenuSection (GameScreen2's menu),
+                        Button (.btn, `primary`, `small`), PickGroup + Choice (a New Game group of
+                        tiles), Toggle (a check box tile, with an optional detail line)
+    seed.ts             seeded random numbers, so a puzzle can be made again from its seed
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
     GridPlay.svelte     the whole screen for a digit-grid game; a game supplies a `layout`
     grid.css            board / cell / number-pad styles for GridPlay

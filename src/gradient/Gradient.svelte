@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Choice from '../shared/ui/Choice.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import { flip } from 'svelte/animate';
   import GameScreen from '../shared/GameScreen.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
@@ -75,15 +77,13 @@
   onnext={() => (game = newGame({ size: game.size, pattern: game.pattern }))}
 >
   {#snippet picker()}
-    <h3 class="pick-title">Size</h3>
-    <div class="pick sizes">
+    <PickGroup title="Size" class="sizes">
       {#each Object.entries(SIZES) as [key, s] (key)}
-        <button type="button" class="btn" aria-pressed={choice.size === key} onclick={() => (choice.size = key as Size)}>
-          <strong>{s.label}</strong><span>{s.cols}×{s.rows}</span>
-        </button>
+        <Choice label={s.label} detail="{s.cols}×{s.rows}" pressed={choice.size === key} onclick={() => (choice.size = key as Size)} />
       {/each}
-    </div>
+    </PickGroup>
 
+    <!-- A preview over each name, which is small: its own tiles, not Choice's. -->
     <h3 class="pick-title">Fixed Tiles</h3>
     <div class="pick patterns">
       {#each Object.entries(PATTERNS) as [key, p] (key)}
