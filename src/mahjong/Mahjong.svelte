@@ -148,12 +148,6 @@
   // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
   let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
   if (import.meta.env.DEV) import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
-
-  // A tap on a blocked tile does nothing.
-  function tap(i: number) {
-    if (!free(game, i)) return;
-    dispatch({ type: 'tap', slot: i });
-  }
 </script>
 
 <TileFaces art={prefs.mahjongArt} />
@@ -263,7 +257,7 @@
           style:height="{(4 / box.h) * 100}%"
           data-slot={s.i}
           aria-label="Tile"
-          onclick={() => tap(s.i)}
+          onclick={() => dispatch({ type: 'tap', slot: s.i })}
           transition:scale={{ duration: 180, start: 0.7 }}
         >
           <TileBody href="mj-k{game.kinds[s.i]}" />
