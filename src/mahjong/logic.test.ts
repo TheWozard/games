@@ -147,7 +147,7 @@ describe('difficulty', () => {
       }
     }
     expect(inside / dealt).toBeGreaterThanOrEqual(0.85);
-  });
+  }, 30_000); // about 2s on a laptop, 3s on CI, which has run past the 5s default
 
   it('can be driven by a seeded random source', () => {
     const seeded = (seed: number) => () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
