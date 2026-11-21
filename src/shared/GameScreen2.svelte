@@ -13,23 +13,30 @@
      controls themselves take taps; the rest of the layer lets them through to the board.
 
   The menu opens under its button, and its buttons close it as they're tapped. From the top:
-  - New Game (the New dialog, NewDialog.svelte) and, if the game has `settings`, Settings: a dialog
-    like New Game (PickGroups of Choices for how the game looks) but with no Play, since each tap
+  - New (another puzzle with the same settings, as Next does, at any time, finished or not),
+    Customize (the New dialog, NewDialog.svelte, under that title) and, if the game has `settings`, Display: a dialog
+    like Customize (PickGroups of Choices for how the game looks) but with no Play, since each tap
     is saved and shown at once; the × closes it.
   - The game's own `menu` sections.
   - In the dev server only (never in a build), its `dev` entries, with orange icons: shortcuts
     for checking a screen, like winning at once.
-  - Last, Game Details, which copies `puzzle`: what the puzzle being played is (a seed, an id, an
+  - Last, Details, which copies `puzzle`: what the puzzle being played is (a seed, an id, an
     index, a version: whatever makes it again). It leaves the menu open.
 
   Next floats at the bottom once the game is over. Ctrl/Cmd+Z undoes when the game has undo.
+
+  A game on this frame never makes a puzzle on the main thread: it deals or generates every one in
+  a Web Worker (inBackground, background.ts), whatever the setting, so `onstart` and `onnext`
+  return promises, and Play and Next show a spinner until they settle. Its first game too, on a
+  first visit (see src/mahjong/App.svelte).
 -->
 <script lang="ts">
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import MenuIcon from '@lucide/svelte/icons/menu';
-  import Plus from '@lucide/svelte/icons/plus';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import X from '@lucide/svelte/icons/x';
-  import SettingsIcon from '@lucide/svelte/icons/settings';
+  import Palette from '@lucide/svelte/icons/palette';
   import type { Snippet } from 'svelte';
   import BackButton from './BackButton.svelte';
   import Dialog from './Dialog.svelte';
@@ -43,7 +50,9 @@
   import MenuSection from './ui/MenuSection.svelte';
   import type { Wait } from './wait';
 
-  interface Props extends NewOptions {
+  interface Props extends Omit<NewOptions, 'onstart'> {
+    /** Starts the picked game (Play): made in a worker, so it settles once the game is ready. */
+    onstart: (value: string) => Promise<unknown>;
     title: string;
     /** The current setting, shown small under the title (the difficulty, layout...). */
     subtitle: string;
@@ -52,19 +61,20 @@
     /** Shows the Undo button (and Ctrl/Cmd+Z) for games that have undo. */
     onundo?: () => void;
     canUndo?: boolean;
-    /** The game's own sections of the menu, between New Game and Game Details. */
+    /** The game's own sections of the menu, between Customize and Details. */
     menu?: Snippet;
-    /** The Settings dialog's content: PickGroups of Choices for how the game looks, each taking effect as it's tapped. */
+    /** The Display dialog's content: PickGroups of Choices for how the game looks, each taking effect as it's tapped. */
     settings?: Snippet;
     /** Menu entries for the dev server only (`just dev`), left out of a build: MenuItems (ui/MenuItem.svelte). */
     dev?: Snippet;
-    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Game Details, copies it. */
+    /** What the puzzle being played is (seed, id, index, version): the menu's last entry, Details, copies it. */
     puzzle?: string;
     /** Called as the New dialog opens, e.g. to start its picks from the current settings. */
     onopennew?: () => void;
     /** Won, completed or lost: show Next. */
     finished: boolean;
-    onnext: () => unknown;
+    /** Starts another puzzle with the same settings (Next, and the menu's New): made in a worker. */
+    onnext: () => Promise<unknown>;
     /** How long the current setting takes to make: Next turns orange or red. */
     nextWait?: Wait;
     /** The game's controls, floating over the bottom of the board. */
@@ -93,16 +103,15 @@
 
   function next() {
     if (nexting || starting) return;
-    const made = onnext();
-    if (made instanceof Promise) {
-      nexting = true;
-      made.finally(() => (nexting = false));
-    }
+    nexting = true;
+    onnext().finally(() => (nexting = false));
   }
 
   function closeMenu(value: string) {
     menuOpen = false;
-    if (value === 'new') {
+    if (value === 'next') {
+      next();
+    } else if (value === 'new') {
       onopennew?.();
       askingNew = true;
     } else if (value === 'settings') {
@@ -144,8 +153,9 @@
 
 <Dialog class="game-menu" label="Menu" open={menuOpen} onclose={closeMenu}>
   <MenuSection>
-    <MenuItem icon={Plus} label="New Game" value="new" />
-    {#if settings}<MenuItem icon={SettingsIcon} label="Settings" value="settings" />{/if}
+    <MenuItem icon={ChevronRight} label="New" value="next" disabled={nexting || starting} />
+    <MenuItem icon={SlidersHorizontal} label="Customize" value="new" />
+    {#if settings}<MenuItem icon={Palette} label="Display" value="settings" />{/if}
   </MenuSection>
   {@render menu?.()}
   {#if import.meta.env.DEV && dev}
@@ -158,7 +168,7 @@
 
 {#if settings}
   <Dialog open={showingSettings} onclose={() => (showingSettings = false)}>
-    <h2>Settings</h2>
+    <h2>Display</h2>
     {@render settings()}
     <!-- Drawn in the top corner. -->
     <button class="dialog-close" value="" aria-label="Close">
@@ -167,4 +177,4 @@
   </Dialog>
 {/if}
 
-<NewDialog open={askingNew} bind:busy={starting} onclose={() => (askingNew = false)} {...newOptions} />
+<NewDialog title="Customize" open={askingNew} bind:busy={starting} onclose={() => (askingNew = false)} {...newOptions} />

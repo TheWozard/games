@@ -17,7 +17,7 @@ Games:
 - [Color Sort](src/sort/): pour colored layers between tubes until each holds one color, with optional mystery layers and tall tubes; every deal is checked to be sortable.
 - [Solitaire](src/solitaire/): Klondike (draw 1 or 3) or FreeCell (two to four free cells), picked when you start a game; tap a card to send it to its best move, and every deal is checked winnable.
 - [Sliding Blocks](src/blocks/): slide blocks to free the red one; Classic, Pillars (fixed squares), Big (8×8) and Two Keys (a second block leaves through the bottom); 100 pre-made levels for each (10 Easy, then 30 Medium, then 60 Hard), chosen for how interesting their shortest solutions are, played in order or picked by number, with the fewest moves shown.
-- [Mahjong](src/mahjong/): tile-matching solitaire on twenty original layouts at three difficulties; deals are built by playing backwards, so every one can be cleared, and graded by how often careless play still clears them.
+- [Mahjong](src/mahjong/): tile-matching solitaire at three difficulties (Zen, Balance, Focus) on twenty original layouts and 66 classics from KMahjongg and GNOME Mahjongg, one or a pool of several; deals are built by playing backwards, so every one can be cleared, made in a Web Worker, and graded by how often careless play still clears them.
 
 ## Installing on a phone
 
@@ -87,7 +87,7 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 
 ## Mahjong tiles
 
-Mahjong has two sets of tile art, picked in the game menu's Settings: Classic, the default, drawn in
+Mahjong has two sets of tile art, picked in the game menu's Display: Classic, the default, drawn in
 [src/mahjong/ClassicFaces.svelte](src/mahjong/ClassicFaces.svelte), and Riichi.
 The Riichi faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
 ([scripts/mahjong-tiles.ts](scripts/mahjong-tiles.ts)), which fetches and cleans up two sets of vector tiles:
@@ -105,8 +105,11 @@ Besides its own layouts, Mahjong has layouts from the
 [KMahjongg](https://github.com/KDE/kmahjongg/tree/master/layouts/) (KDE, GPL-2.0-or-later; most
 layouts by Alexey Charkov) and [GNOME Mahjongg](https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/)
 (GPL-3.0-or-later). Layouts with more than 144 tiles (one set of faces) or too big for the board
-are left out. Bridges, tiles over a gap, are allowed. They're picked on the New Game dialog's
-Archive tab. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
+are left out. Bridges, tiles over a gap, are allowed. They're picked in the Customize dialog,
+listed after the game's own and narrowed by filter chips. A layout is offered only at the
+difficulties its deals can reach (Clubs's are too easy for Balance and Focus; `OUT_OF_REACH` in
+[src/mahjong/layouts.ts](src/mahjong/layouts.ts)). The game menu's Credits names the sources, and
+the author of the layout being played. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
 wheel) to zoom.
 
 ## Icons

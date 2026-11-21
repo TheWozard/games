@@ -1,5 +1,5 @@
 <!--
-  The Classic tile art (TileFaces.svelte draws it unless Riichi is picked in Settings): every
+  The Classic tile art (TileFaces.svelte draws it unless Riichi is picked in Display): every
   face as an SVG <symbol> (viewBox 30×40), defined once and drawn with <use>.
   Kinds: 0–8 dots, 9–17 bamboo, 18–26 characters, 27–30 winds E S W N, 31–33 dragons,
   34–37 flowers (plum, orchid, chrysanthemum, bamboo), 38–41 seasons (spring to winter).

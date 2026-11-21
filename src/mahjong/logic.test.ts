@@ -20,7 +20,7 @@ describe('layouts', () => {
       twinPeaks: 106, cross: 108, bridge: 112, pine: 116, steps: 122, fortress: 136, fish: 136,
       lanterns: 134, rampart: 124, turtle: 124, gate: 118, dragon: 144,
     });
-    // Listed (and so offered in the New dialog) smallest first.
+    // Listed (and so offered in the Customize dialog) smallest first.
     const counts = Object.values(sizes);
     expect(counts).toEqual([...counts].sort((a, b) => a - b));
     for (const [name, { slots }] of Object.entries(LAYOUTS)) {

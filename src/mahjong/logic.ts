@@ -33,8 +33,8 @@ function build(parts: (Block | Mask)[]): Slot[] {
 }
 
 // Original layouts, in order of tile count. Most fit a phone held upright (at most 8 tiles across,
-// 10 down); Gate, Rampart, Turtle and Lanterns are wider (up to 14 across) and pan sideways there
-// (Mahjong.svelte).
+// 10 down); Gate, Rampart, Turtle, Lanterns and Fish are wider (up to 14 across), and there the
+// stage pans and zooms them (ZoomStage.svelte), as it does any layout bigger than the screen.
 export const LAYOUTS = {
   arrow: {
     name: 'Arrow',
@@ -155,7 +155,6 @@ export const LAYOUTS = {
       [3, 4.5, 0.5, 3, 1],
     ]),
   },
-
   steps: {
     name: 'Steps',
     // Each layer half a tile in from the last.
@@ -403,9 +402,10 @@ export function facesFor(count: number, random: Random = Math.random): number[] 
 // ---- Difficulty ----
 //
 // A deal's difficulty is how forgiving it is: the share of games a careless player wins, one who
-// takes any free matching pair at random. Easy deals are won that way most of the time; Hard ones
-// almost never, since they hide traps (copies of a face buried so that the wrong pair taken
-// early strands one later) and need looking ahead. Every deal can still be cleared.
+// takes any free matching pair at random. Zen ('easy') deals are won that way most of the time;
+// Focus ('hard') ones almost never, since they hide traps (copies of a face buried so that the wrong pair taken
+// early strands one later) and need looking ahead; Balance ('medium') lies between. Every deal can
+// still be cleared. The names players see are in Mahjong.svelte (LEVELS).
 
 export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];

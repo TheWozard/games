@@ -1,6 +1,6 @@
 import '../shared/app';
 import './mahjong.css';
 import { mountGame } from '../shared/mount';
-import Mahjong from './Mahjong.svelte';
+import App from './App.svelte';
 
-mountGame(Mahjong);
+mountGame(App);

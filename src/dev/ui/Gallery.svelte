@@ -10,8 +10,10 @@
   import MenuIcon from '@lucide/svelte/icons/menu';
   import Pencil from '@lucide/svelte/icons/pencil';
   import Plus from '@lucide/svelte/icons/plus';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-  import SettingsIcon from '@lucide/svelte/icons/settings';
+  import Palette from '@lucide/svelte/icons/palette';
   import Trophy from '@lucide/svelte/icons/trophy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
   import Dialog from '../../shared/Dialog.svelte';
@@ -25,7 +27,11 @@
   import MenuPuzzle from '../../shared/ui/MenuPuzzle.svelte';
   import MenuSection from '../../shared/ui/MenuSection.svelte';
   import PickGroup from '../../shared/ui/PickGroup.svelte';
+  import PickList from '../../shared/ui/PickList.svelte';
+  import Chip from '../../shared/ui/Chip.svelte';
   import Toggle from '../../shared/ui/Toggle.svelte';
+  import LayoutThumb from '../../mahjong/LayoutThumb.svelte';
+  import { layoutOf } from '../../mahjong/layouts';
   import { slidePick } from '../../shared/ui/slide';
   import type { Wait } from '../../shared/wait';
 
@@ -58,8 +64,15 @@
   // Toggles: each on or off by itself
   let rules = $state({ squares: false, rings: true });
   let layouts = $state({ pyramid: true, turtle: false });
+  // PickList: Mahjong's layout rows, each with its shape, narrowed by chips (Original or
+  // Archive; with neither on, all show).
+  const SHAPES = ['pyramid', 'turtle', 'dragon', 'kmahjongg/arena', 'kmahjongg/altar'].map((id) => layoutOf(id));
+  let shaped = $state<Record<string, boolean>>({ pyramid: true });
+  let fromOwn = $state(false);
+  let fromArchive = $state(false);
+  const shapesShown = $derived(SHAPES.filter((l) => (!fromOwn && !fromArchive) || (l.archive ? fromArchive : fromOwn)));
 
-  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Game Details copies: one
+  // The menu, as a real dialog (GameScreen2's), and inline to look at. What Details copies: one
   // of Mahjong's.
   let menuOpen = $state(false);
   const PUZZLE = '60bc4843 · kmahjongg/arena · medium · turned';
@@ -150,11 +163,43 @@
     </div>
   </section>
 
+  <section class="dialog-like">
+    <h2>PickList</h2>
+    <p>
+      A long list of Toggles drawn like a PickGroup: a heading with a count and small buttons, then
+      one strip with a row of filter <code>chips</code> (Chip) at its top, which scrolls sideways,
+      and, scrolling by themselves under it, a toggle a row, with an <code>aside</code> at the
+      right (Mahjong's layouts show their shape).
+    </p>
+    <PickList title="Layouts" count={SHAPES.filter((l) => shaped[l.id]).length} >
+      {#snippet actions()}
+        <span class="pick-select">Select</span>
+        <Button small onclick={() => { for (const l of shapesShown) shaped[l.id] = true; note('Layouts: All'); }}>All</Button>
+        <Button small onclick={() => { for (const l of shapesShown) shaped[l.id] = false; note('Layouts: None'); }}>None</Button>
+      {/snippet}
+      {#snippet chips()}
+        <Chip label="Original" on={fromOwn} onclick={() => note(`Original: ${(fromOwn = !fromOwn)}`)} />
+        <Chip label="Archive" on={fromArchive} onclick={() => note(`Archive: ${(fromArchive = !fromArchive)}`)} />
+        <span class="chip-gap" aria-hidden="true"></span>
+        {#each ['Quick', 'Full Set', 'Flat', 'Tall', 'More', 'Chips'] as c (c)}
+          <Chip label={c} on={false} onclick={() => note(`${c} (scrolls sideways)`)} />
+        {/each}
+      {/snippet}
+      {#each shapesShown as l (l.id)}
+        <Toggle label={l.name} detail="{l.slots.length} tiles" on={!!shaped[l.id]} onclick={() => note(`${l.name}: ${(shaped[l.id] = !shaped[l.id])}`)}>
+          {#snippet aside()}<LayoutThumb slots={l.slots} />{/snippet}
+        </Toggle>
+      {:else}
+        <p class="pick-empty">No layouts match.</p>
+      {/each}
+    </PickList>
+  </section>
+
   <section>
     <h2>MenuSection + MenuItem + MenuPuzzle</h2>
     <p>
       GameScreen2's menu. The real one closes as an item is tapped, with its <code>value</code>. The
-      last entry, Game Details, copies what the puzzle is and leaves the menu open.
+      last entry, Details, copies what the puzzle is and leaves the menu open.
     </p>
     <div class="row">
       <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
@@ -195,8 +240,9 @@
 
 {#snippet menuItems()}
   <MenuSection>
-    <MenuItem icon={Plus} label="New Game" value="new" onclick={() => note('Menu: New Game')} />
-    <MenuItem icon={SettingsIcon} label="Settings" value="settings" onclick={() => note('Menu: Settings')} />
+    <MenuItem icon={ChevronRight} label="New" value="next" onclick={() => note('Menu: New')} />
+    <MenuItem icon={SlidersHorizontal} label="Customize" value="new" onclick={() => note('Menu: Customize')} />
+    <MenuItem icon={Palette} label="Display" value="settings" onclick={() => note('Menu: Display')} />
   </MenuSection>
   <MenuSection>
     <MenuItem icon={RotateCcw} label="Restart" onclick={() => note('Menu: Restart')} />

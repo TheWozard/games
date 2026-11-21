@@ -308,6 +308,69 @@ dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color:
 /* A name over a detail line ("82 tiles"). */
 .toggle-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .toggle-name span { color: var(--muted); font-size: 0.75rem; }
+.toggle-aside { flex: none; margin-left: auto; display: flex; }
+/* A long list of toggles drawn like a .pick strip (ui/PickList.svelte): a heading with a count
+   and small buttons at its right, then one darker strip no taller than --pick-list-height: a row
+   of filter chips at its top, held still, and under it the rows, which scroll by themselves (a
+   toggle a row, lit up while on). With chips the strip is always that tall, so the dialog doesn't
+   shrink and jump as they narrow the list. */
+.pick-head { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.pick-head .pick-title { flex: 1; margin: 0; }
+/* "Select", before a PickList's All and None. */
+.pick-select { color: var(--muted); font-size: 0.8rem; margin-right: 2px; }
+.pick-count { margin-left: 6px; color: var(--accent); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.pick.pick-list {
+  --pick-list-height: min(420px, 50dvh);
+  display: flex;
+  flex-direction: column;
+  max-height: var(--pick-list-height);
+}
+.pick.pick-list:has(> .pick-chips) { height: var(--pick-list-height); }
+/* The chips: one row that scrolls sideways under a finger, with no scrollbar, a small gap between
+   kinds of filter (.chip-gap). */
+.pick-chips {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  padding: 4px 4px 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+.pick-chips::-webkit-scrollbar { display: none; }
+.pick-chips:focus { outline: none; }
+.chip {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.chip:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.chip-gap { flex: none; width: 1px; margin: 4px 3px; background: var(--line); }
+.pick-list-rows {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.pick-list-rows > * { flex: none; }
+/* A row, as a toggle is anywhere else (a .pick's choices are stacked and centered). */
+.pick-list .btn.toggle { flex: none; flex-direction: row; align-items: center; gap: 10px; padding: 6px 8px 6px 10px; border: 0; border-radius: 8px; background: none; color: var(--muted); }
+.pick-list .btn.toggle[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); }
+.pick-list .btn.toggle:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+.pick-empty { margin: 0; padding: 10px; color: var(--muted); font-size: 0.9rem; }
 /* The same round i as on the launcher's cards. */
 .rule-info {
   flex: none;

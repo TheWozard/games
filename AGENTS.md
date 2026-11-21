@@ -30,10 +30,10 @@ src/
     wakelock.ts         game pages keep the screen on until an hour without a touch (started by app.ts)
     base.css            color tokens, header bar, buttons, dialogs, page layout, shared rows
     storage.ts          loadJSON / saveJSON: localStorage that never throws
-    settings.ts         how games look, set in the Settings dialog from a game's menu (key games.settings.v1)
+    settings.ts         how games look, set in the Display dialog from a game's menu (key games.settings.v1)
     Dialog.svelte       native modal <dialog>; buttons inside close it with their value
     GameScreen.svelte   every game's frame: header bar, <main class="play">, Next, New dialog, Ctrl+Z
-    GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New Game, the game's
+    GameScreen2.svelte  its next version (Mahjong so far): fixed header with a menu (New, Customize, the game's
                         sections, the puzzle's seed/id), a stage holding only the board, controls floating over it
     ZoomStage.svelte, zoom.ts   GameScreen2's stage for a game that gives a `board` size: drawn at that
                         size (comfortable, never shrunk to start), it pans both ways and zooms (drag,
@@ -46,7 +46,9 @@ src/
     ui/                 standard pieces; use them rather than writing the markup again:
                         IconButton (round, header), MenuItem / MenuSection (GameScreen2's menu),
                         Button (.btn, `primary`, `small`), PickGroup + Choice (a New Game group of
-                        tiles), Toggle (a check box tile, with an optional detail line)
+                        tiles), Toggle (a check box tile, with an optional detail line and `aside`),
+                        PickList (a long list of Toggles, any number on, drawn like a PickGroup,
+                        with a row of filter Chips at its top: Mahjong's layouts)
                         Try them all at /dev/ui/ (`just dev`; src/dev/ui/), which logs every tap
     seed.ts             seeded random numbers, so a puzzle can be made again from its seed
     grid.ts             moves for digit-grid games (select, place, notes, undo, win)
@@ -63,7 +65,7 @@ src/
     <game>.css          game-specific styles
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
-scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the card's i; mahjong-layouts.ts: Mahjong's archive layouts, src/mahjong/archive.ts)
+scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the game menu's Credits; mahjong-layouts.ts: Mahjong's archive layouts, src/mahjong/archive.ts)
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
 .github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
 ```
@@ -89,8 +91,9 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Saved games:** key `games.<name>.v1`. `isGame()` must reject anything that doesn't fit the
   current shape, so a stale save falls back to a new game instead of crashing. As a backstop,
   `mountGame` (`src/shared/mount.ts`) catches a save that passes the check but breaks the first
-  render: it drops the saves the page loaded and reloads once into a new game, with a toast. If you change the
-  saved shape of a game that's already deployed, either keep reading the old shape or bump the key.
+  render: it drops the saves the page loaded and reloads once into a new game, with a toast. No
+  backward compatibility: when the saved shape changes, `isGame()` checks only the new one, and an
+  older save just starts a new game (games are short). Don't keep code that reads or upgrades old shapes.
 - **Digit-grid games** (Sudoku-like) don't need their own component: use `GridPlay` with a
   `layout(game)` that gives size, peers (cells that can't share a digit), thick walls, zone colors
   (0–4, drawn inset from each zone's outline; touching zones must differ) and cage labels. See
@@ -107,7 +110,9 @@ only forwards old links), `blocks` (Sliding Blocks).
   not how many givens it has: `src/sudoku/classic/grade.ts` solves like a person, and the
   generator keeps only puzzles that need the difficulty's own tier. Mahjong's is how forgiving a
   deal is: the share of games won by taking any free pair at random (`grader` in
-  `src/mahjong/logic.ts`; Easy wins most, Hard almost none).
+  `src/mahjong/logic.ts`; Zen, its easiest, wins most, Focus, its hardest, almost none). A layout
+  whose deals can't reach a difficulty isn't offered at it (`OUT_OF_REACH` in `src/mahjong/layouts.ts`;
+  Clubs at Balance and Focus): `archive.test.ts` grades every layout at every difficulty it's offered at.
 - **Too slow to generate on a phone? Ship a list.** Sliding Blocks' puzzles are made ahead of time
   by `scripts/blocks.ts` (`just blocks`, one thread per variant, about a quarter of an hour) into
   `src/blocks/puzzles.ts`, and played in order; it makes twice what it needs (`KEEP`: 10 Easy,
@@ -127,6 +132,13 @@ only forwards old links), `blocks` (Sliding Blocks).
   `inBackground` from `src/shared/background.ts`; see `src/loop/`):
   `onstart` / `onnext` return a promise, and the button shows a spinner until it settles, with the
   New Game dialog held open meanwhile.
+- **On `GameScreen2`, every puzzle is made off the main thread,** quick setting or not: a game
+  moving to it gets a `worker.ts` and `background.ts` (see `src/mahjong/`), and its `onstart` /
+  `onnext` must return promises (GameScreen2's types require it). The first game on a first visit
+  is made there too: an `App.svelte` shows the saved game, or deals one in the background and
+  mounts the screen once it's ready (`src/mahjong/App.svelte`). Keep the inputs of a deal (seed
+  and settings) as a plain JSON message, picked on the page, so the same deal comes out in the
+  worker or in the fallback on the page.
 
 ## UI conventions
 
@@ -173,7 +185,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   `touch-action: manipulation` (or `none` while dragging) on boards. Long-press, drags and taps
   must not fire each other. No vibration: feedback is visual only.
 - **New Game dialog** (`GameScreen`; one shape in every game):
-  - Title "New Game", an × in the top corner to close it (Escape and the backdrop too), and one
+  - Title "New Game" (GameScreen2 calls it "Customize", as its menu entry is), an × in the top corner to close it (Escape and the backdrop too), and one
     **Play** button at the bottom. Nothing else in the dialog starts a game: choices only select.
   - Every group of choices has a `.pick-title` heading ("Difficulty" for Easy / Medium / Hard,
     "Size" for real sizes, "Rules" for optional rules, "Layout"...), over a `.pick` row of
@@ -187,14 +199,14 @@ only forwards old links), `blocks` (Sliding Blocks).
     Play then calls `onstart('start')`. Solitaire puts tabs (`.pick-tabs`) above its groups to pick
     the game.
   - A group where any number can be on (Mahjong's Layouts, a pool each deal draws from) shows a
-    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons (Mahjong adds **Slim**: the layouts that fit a phone upright)
+    check box on each tile (`.btn.toggle`, like the rules) and small **All** / **None** buttons
     beside its heading; pass `canPlay={false}` while nothing is picked, which disables Play.
   - The header's subtitle lists the picks in the same order, joined by " · ".
 - **Capitalization:** Title Case for names the player sees as labels: game titles, dialog titles,
   headings, tabs, choice names and buttons ("New Game", "Fixed Tiles", "Twin Peaks", "Play").
   Lowercase for detail lines and units ("10 mines", "straight lines"); a subtitle keeps each part's
   own case ("10 dots · Lines · Circle"). Sentence case for full sentences (how-to text, toasts).
-- **Settings** (Settings in a game's menu, which opens the Settings dialog: GameScreen2's
+- **Settings** (Display in a game's menu, which opens the Display dialog: GameScreen2's
   `settings`) are for how a game looks, never how it plays (that's the New Game dialog). The dialog
   looks like New Game (a `PickGroup` of `Choice` tiles per setting) but has no Play: a tap saves
   with `saveSetting()` and changes the game at once. Add a setting to `CHOICES` in
