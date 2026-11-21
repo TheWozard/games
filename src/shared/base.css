@@ -26,6 +26,7 @@
      (viewport-fit=cover); env() says how far (the max- inset is the bar's full height, Chrome
      135+), but some Android builds report 0 there, so never less than 16px. */
   --safe-bottom: max(16px, env(safe-area-inset-bottom, 0px), env(safe-area-max-inset-bottom, 0px));
+  --bar-height: 62px; /* GameScreen2's header */
 }
 
 * { box-sizing: border-box; }
@@ -144,14 +145,19 @@ body.game #root { flex: 1; min-height: 0; display: flex; flex-direction: column;
 .tools { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 8px; }
 
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+/* A little one beside a heading (Mahjong's All / None). */
+.btn.small { padding: 3px 10px; font-size: 0.75rem; border-radius: 8px; }
 /* Play or Next for a setting that takes a while to make (wait.ts), or likely over a second. */
 .btn.primary.slow { background: var(--warn); border-color: var(--warn); }
 .btn.primary.slower { background: var(--danger); border-color: var(--danger); }
 
-/* Turns in place of a button's arrow while its game is being made. */
+/* Turns in place of a button's arrow while its game is being made. It takes the arrow's exact
+   space (18px square, a 14px ring inside it), so the button keeps its size as one turns into the other. */
 .spinner {
-  width: 16px;
-  height: 16px;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 2px;
   border: 2.4px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -183,6 +189,7 @@ dialog {
   overscroll-behavior: contain;
 }
 dialog[open] { display: flex; flex-direction: column; }
+dialog:focus { outline: none; } /* focused itself as it opens (Dialog.svelte): no ring round the screen */
 
 dialog::backdrop { background: rgb(0 0 0 / 0.45); }
 
@@ -233,10 +240,51 @@ dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color:
 /* New-game dialogs with several choices: a small heading per group, then a row of
    aria-pressed buttons (a name, and an optional detail line in <span>). */
 .pick-title { margin: 6px 0 0; color: var(--muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.pick { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 6px; }
-.pick .btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; min-width: 0; }
+/* A .pick row is one segmented strip, darker than the dialog, with the picked choice lit up inside
+   it (filled with --accent-soft, no outline) rather than a row of separate buttons. */
+.pick {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.pick .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+}
 .pick .btn strong { font-size: 0.85rem; }
 .pick .btn span { font-size: 0.75rem; color: var(--muted); }
+.pick .btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); }
+/* With a sliding highlight (ui/slide.ts), the picked button stays clear and the slider behind it
+   is lit instead, moving from choice to choice. */
+.pick.sliding { position: relative; }
+.pick.sliding > .btn { position: relative; transition: color 0.2s ease; }
+.pick.sliding > .btn[aria-pressed="true"] { background: none; box-shadow: none; }
+.pick-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  pointer-events: none;
+  transition: translate 0.22s cubic-bezier(0.3, 0.7, 0.4, 1), width 0.22s cubic-bezier(0.3, 0.7, 0.4, 1), height 0.22s ease;
+}
+.pick-slider.jump { transition: none; }
+/* Keyboard focus on a choice: a ring the shape of the highlight, inside the strip. */
+.pick .btn:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .pick-slider { transition: none; } }
 .pick .btn[aria-pressed="true"] span { color: inherit; }
 
 /* Rules: one line each, an on/off toggle (a check box at the left, checked while on) and an i at the
@@ -257,6 +305,9 @@ dialog .btn[aria-pressed="true"] { background: var(--accent-soft); border-color:
 }
 .btn.toggle .check svg { width: 12px; height: 12px; }
 .btn.toggle[aria-pressed="true"] .check { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+/* A name over a detail line ("82 tiles"). */
+.toggle-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.toggle-name span { color: var(--muted); font-size: 0.75rem; }
 /* The same round i as on the launcher's cards. */
 .rule-info {
   flex: none;
@@ -347,3 +398,85 @@ dialog p.rule-text { margin: 0 0 4px; padding: 0 4px; font-size: 0.85rem; line-h
   box-shadow: 0 6px 24px rgb(0 0 0 / 0.5);
 }
 .next-fab svg { width: 18px; height: 18px; }
+
+/* GameScreen2 (src/shared/GameScreen2.svelte): a header of fixed height, then the stage, which
+   holds only the board and runs on to the bottom of the screen, with the control layer floating
+   over it. */
+body.game:has(> #root > .stage) { padding-bottom: 0; }
+.screen-bar { flex: none; height: var(--bar-height); padding-block: 0; }
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* A stage that pans and zooms (ZoomStage.svelte): fills the stage, and takes every touch itself
+   (one finger drags, two pinch), so the browser neither scrolls nor zooms the page. */
+.zoom-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.zoom-stage { cursor: grab; }
+.zoom-board { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+/* The part of the stage the board is centered and held in: above the home indicator. Only measured. */
+.zoom-frame { position: absolute; inset: 0 0 var(--safe-bottom); visibility: hidden; pointer-events: none; }
+/* Over the stage, controls at the bottom. Only the controls take taps: the board gets the rest. */
+.control-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px calc(20px + var(--safe-bottom));
+  pointer-events: none;
+}
+.control-layer > * { pointer-events: auto; }
+.control-layer .status {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(22 24 29 / 0.8); /* --bg, see-through */
+}
+
+/* The menu (☰): a box under its button at the right of the header, not centered. Its right edge
+   lines up with the button's, inside the header's centered column on a wide screen. */
+dialog.game-menu { padding-top: max(0px, env(safe-area-inset-top, 0px)); }
+dialog.game-menu::backdrop { background: rgb(0 0 0 / 0.3); }
+dialog.game-menu form {
+  width: min(280px, 100%);
+  margin: calc(var(--bar-height) - 4px) max(0px, (100vw - 520px) / 2) auto auto;
+  padding: 6px;
+  gap: 0;
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.5);
+}
+.menu-section { display: flex; flex-direction: column; padding: 4px 0; }
+/* The menu's own padding is the edge all round: no section padding above the first or below the last. */
+.menu-section:first-child { padding-top: 0; }
+.menu-section:last-child { padding-bottom: 0; }
+.menu-section + .menu-section { border-top: 1px solid var(--line); }
+/* Dev server only: set apart in orange, so it's never mistaken for the game's own. */
+.menu-section.dev .menu-item svg { color: var(--warn); }
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  text-align: left;
+}
+.menu-item svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
+.menu-item:hover, .menu-item:focus-visible { background: var(--line); outline: none; }
+.menu-item:disabled { opacity: 0.4; background: none; cursor: default; }

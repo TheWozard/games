@@ -87,7 +87,7 @@ Use root-relative URLs for files in `public/` (`/icons/icon.svg`) and relative l
 
 ## Mahjong tiles
 
-Mahjong has two sets of tile art, picked in the launcher's Settings: Classic, the default, drawn in
+Mahjong has two sets of tile art, picked in the game menu's Settings: Classic, the default, drawn in
 [src/mahjong/ClassicFaces.svelte](src/mahjong/ClassicFaces.svelte), and Riichi.
 The Riichi faces ([src/mahjong/faces.svg](src/mahjong/faces.svg)) are made by `just mahjong-tiles`
 ([scripts/mahjong-tiles.ts](scripts/mahjong-tiles.ts)), which fetches and cleans up two sets of vector tiles:
@@ -106,9 +106,8 @@ Besides its own layouts, Mahjong has layouts from the
 layouts by Alexey Charkov) and [GNOME Mahjongg](https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/)
 (GPL-3.0-or-later). Layouts with more than 144 tiles (one set of faces) or too big for the board
 are left out. Bridges, tiles over a gap, are allowed. They're picked on the New Game dialog's
-Archive tab. On an upright screen, any layout drawn wider than tall is dealt turned a quarter turn
-(`turn` in [logic.ts](src/mahjong/logic.ts)); the game keeps its turn, since turning changes which
-tiles are free.
+Archive tab. A layout too big for the screen keeps its tile size: drag to pan it, pinch (or Ctrl/⌘ +
+wheel) to zoom.
 
 ## Icons
 

@@ -24,7 +24,7 @@
   touch-action: manipulation;
 }
 
-/* Inset faces (the launcher's Settings): a 10% margin, leaving space between neighbors' faces. */
+/* Inset faces (Settings, from the menu): a 10% margin, leaving space between neighbors' faces. */
 .mj-tile.inset { padding: calc(var(--u) * 0.4) calc(var(--u) * 0.3); }
 
 /* The face, its ivory edge and green back (body.ts), from the tile's top left, a side's depth
@@ -59,18 +59,8 @@
 /* The Layouts heading, with small All and None buttons at its right. */
 .mj-layouts-head { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .mj-layouts-head .pick-title { flex: 1; margin: 0; }
-.mj-layouts-head .btn { padding: 3px 10px; font-size: 0.75rem; border-radius: 8px; }
 /* Layouts: check box toggles (any number can be on), a name over its tile count. */
 .mj-layouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mj-layouts .btn.toggle { gap: 8px; padding: 7px 10px; }
-.mj-layout-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.mj-layout-name span { color: var(--muted); font-size: 0.75rem; }
 /* How many layouts are picked on a Layouts tab, beside its name. */
 .mj-tab-count { margin-left: 6px; color: var(--accent); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
-
-/* A board wider than its space overflows it evenly on both sides (one column the area's width),
-   and is then panned into place. */
-.mj-area { grid-template-columns: minmax(0, 1fr); }
-/* Wide layouts pan sideways (src/shared/pan.ts); keep the browser from panning too. Not clipped:
-   like the card games, tiles run on to the screen's edges (the page itself never scrolls). */
-.mj-area.pannable { touch-action: none; }

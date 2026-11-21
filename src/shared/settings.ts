@@ -1,5 +1,5 @@
-// How the player has customized the games' look, set from the launcher's gear (src/launcher.ts)
-// and read by each game as it opens. One save for every game, so a missing or stale one only
+// How the player has customized the games' look, set in the Settings dialog that each game's menu
+// opens (GameScreen2's `settings`). One save for every game, so a missing or stale one only
 // falls back to the defaults, field by field.
 import { loadJSON, saveJSON } from './storage';
 

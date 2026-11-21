@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dealFrom, free, fromSaved, isGame, newGame, pairsLeft, pickLayout, poolOf, reducer, slotsOf, type Game } from './game';
-import { isWide, layoutProblems, turn } from './logic';
+import { dealFrom, free, fromSaved, isGame, newGame, pairsLeft, pickLayout, poolOf, reducer, type Game } from './game';
 import { ARCHIVE_IDS, isArchive, layoutOf, OWN_IDS } from './layouts';
 
 /** A game played with random free pairs until no match is left (common in Mahjong). */
@@ -111,6 +110,21 @@ describe('reducer', () => {
     expect(isGame({ ...old, pool: ['moon'] })).toBe(false);
   });
 
+  it('deals the same tiles again from the same seed, and saves the seed', () => {
+    for (const difficulty of ['easy', 'hard'] as const) {
+      const a = newGame('pyramid', difficulty, ['pyramid'], 0x1234abcd);
+      expect(a.seed).toBe(0x1234abcd);
+      expect(newGame('pyramid', difficulty, ['pyramid'], 0x1234abcd).kinds).toEqual(a.kinds);
+      expect(isGame(JSON.parse(JSON.stringify(a)))).toBe(true);
+    }
+    expect(newGame('pyramid', 'medium', ['pyramid'], 1).kinds).not.toEqual(newGame('pyramid', 'medium', ['pyramid'], 2).kinds);
+    const { seed: _, ...old } = newGame('pyramid');
+    expect(isGame(old)).toBe(true); // saved before deals had a seed
+    expect(isGame({ ...old, seed: -1 })).toBe(false);
+    expect(isGame({ ...old, seed: 1.5 })).toBe(false);
+    expect(isGame({ ...old, seed: '1' })).toBe(false);
+  });
+
   it('plays archive layouts, alone or in a pool with its own', () => {
     const g = newGame('gnome-mahjongg/overpass', 'easy');
     expect(g.kinds).toHaveLength(layoutOf('gnome-mahjongg/overpass').slots.length);
@@ -124,32 +138,11 @@ describe('reducer', () => {
     expect(isGame({ ...mixed, pool: ['pyramid', 'kmahjongg/nope'] })).toBe(false);
   });
 
-  it('deals a layout wider than tall turned on an upright screen, and keeps the turn', () => {
-    expect(isWide(layoutOf('turtle').slots)).toBe(true);
-    expect(isWide(layoutOf('pyramid').slots)).toBe(false);
-    // Upright: the wide one is turned, the tall one isn't; sideways, neither is.
-    const turned = newGame('turtle', 'easy', ['turtle'], true);
-    expect(turned.turned).toBe(true);
-    expect(isWide(slotsOf(turned))).toBe(false);
-    expect(newGame('pyramid', 'easy', ['pyramid'], true).turned).toBeUndefined();
-    expect(newGame('turtle', 'easy', ['turtle'], false).turned).toBeUndefined();
-    expect(dealFrom(['kmahjongg/arena'], 'easy', undefined, true).turned).toBe(true);
-    // It saves and loads turned, and a turned deal plays out like any other.
-    expect(isGame(JSON.parse(JSON.stringify(turned)))).toBe(true);
-    expect(isGame({ ...turned, turned: 'yes' })).toBe(false);
-    expect(pairsLeft(turned).length).toBeGreaterThan(0);
-  });
-
-  it('turns a layout a quarter turn clockwise, keeping its rules', () => {
-    // An L of three tiles on the floor and one on top: the left column becomes the top row.
-    const slots = [{ x: 0, y: 0, z: 0 }, { x: 0, y: 2, z: 0 }, { x: 2, y: 2, z: 0 }, { x: 1, y: 1, z: 1 }];
-    expect(turn(slots)).toEqual([{ x: 2, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 2, z: 0 }, { x: 1, y: 1, z: 1 }]);
-    for (const id of [...OWN_IDS, ...ARCHIVE_IDS]) {
-      const t = turn(layoutOf(id).slots);
-      expect(layoutProblems(t), id).toEqual([]);
-      expect(Math.min(...t.map((s) => s.x)), id).toBe(0);
-      expect(Math.min(...t.map((s) => s.y)), id).toBe(0);
-    }
+  it('reads a game dealt turned (layouts no longer are) as no game, so a new one starts', () => {
+    const g = newGame('turtle', 'easy');
+    expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
+    expect(isGame({ ...g, turned: true })).toBe(false);
+    expect(fromSaved({ ...g, turned: true })).toBeNull();
   });
 
   it('names every layout, numbering archive names that repeat', () => {

@@ -244,23 +244,6 @@ export function drawOrder(slots: readonly Slot[]): number[] {
 /** Layouts at most 8 tiles across: they fit a phone held upright, with no panning (Mahjong.svelte). */
 export const SLIM = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => Math.max(...LAYOUTS[k].slots.map((s) => s.x)) + 2 <= 16);
 
-/** Whether a layout is drawn wider than tall (a tile is 3 × 4, so a half-tile step is 1.5 across, 2 down). */
-export function isWide(slots: readonly Slot[]): boolean {
-  const w = Math.max(...slots.map((s) => s.x)) + 2;
-  const h = Math.max(...slots.map((s) => s.y)) + 2;
-  return w * 1.5 > h * 2;
-}
-
-/**
- * The layout turned a quarter turn clockwise, its left column now its top row. A tile covers 2 × 2
- * half tiles either way, so the slots stay on the grid; layers keep their order. It's a different
- * puzzle, though: which tiles are free depends on their left and right sides.
- */
-export function turn(slots: readonly Slot[]): Slot[] {
-  const h = Math.max(...slots.map((s) => s.y)) + 2;
-  return slots.map(({ x, y, z }) => ({ x: h - 2 - y, y: x, z }));
-}
-
 /** The full set: the most tiles a layout can have, since every deal uses one set of faces. */
 export const MAX_TILES = 144;
 
