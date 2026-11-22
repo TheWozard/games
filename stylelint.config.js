@@ -14,7 +14,8 @@ export default {
     // iOS Safari still needs -webkit-user-select and -webkit-text-size-adjust.
     'property-no-vendor-prefix': [
       true,
-      { ignoreProperties: ['user-select', 'text-size-adjust', 'touch-callout'] },
+      // Matched against the whole name, prefix included.
+      { ignoreProperties: ['-webkit-user-select', '-webkit-text-size-adjust'] },
     ],
     // currentColor, as SVG attributes spell it.
     'value-keyword-case': ['lower', { ignoreKeywords: ['currentColor'] }],

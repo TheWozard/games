@@ -5,6 +5,7 @@
 /* The whole page under the header pans the board (see Nonogram.svelte). */
 .play:has(.nonogram-area) {
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
@@ -12,6 +13,7 @@
   display: block;
   justify-self: center;
   touch-action: none; /* a press may become a drag at any moment */
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }

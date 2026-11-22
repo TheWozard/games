@@ -16,6 +16,7 @@
   aspect-ratio: 1;
   overflow: visible; /* room for the key block to slide out when it's free */
   touch-action: none; /* dragging a block must not pan the page */
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }

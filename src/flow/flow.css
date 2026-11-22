@@ -5,6 +5,7 @@
   width: min(100cqw - 2 * var(--edge), 100cqh - 2 * var(--edge));
   aspect-ratio: 1;
   touch-action: none; /* drawing must not scroll the page */
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }

@@ -14,6 +14,7 @@
   container-type: inline-size;
   /* A drag across the cells writes notes or erases; it must not pan or zoom. */
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
   background: var(--grid-line);
   border: var(--grid-thick) solid var(--line-strong);

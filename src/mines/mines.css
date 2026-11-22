@@ -19,6 +19,7 @@
   aspect-ratio: var(--cols) / var(--rows);
   padding: 2px;
   container-type: inline-size;
+  -webkit-user-select: none;
   user-select: none;
   background: var(--bg);
   border-radius: 6px;

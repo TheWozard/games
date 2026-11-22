@@ -34,6 +34,7 @@
 }
 
 html {
+  -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
@@ -300,6 +301,8 @@ dialog form {
 }
 
 dialog h2 {
+  /* Clear of the close button in the corner. */
+  padding-right: 40px;
   margin: 0 0 8px;
   font-size: 1.2rem;
 }
@@ -329,7 +332,6 @@ dialog p {
   height: 18px;
 }
 .dialog-close:hover {
-  padding-right: 40px;
   color: var(--text);
   background: var(--line);
 }
@@ -767,6 +769,7 @@ body.game:has(> #root > .stage) {
   overflow: hidden;
   touch-action: none;
   cursor: grab;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }

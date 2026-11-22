@@ -23,6 +23,7 @@
   height: 100cqh;
   overflow: visible;
   touch-action: none; /* dragging a dot must not scroll the page */
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }

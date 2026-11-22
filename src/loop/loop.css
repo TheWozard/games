@@ -2,6 +2,7 @@
   width: min(100cqw, 100cqh * (var(--cols) + 0.9) / (var(--rows) + 0.9));
   aspect-ratio: calc(var(--cols) + 0.9) / calc(var(--rows) + 0.9);
   touch-action: manipulation;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
