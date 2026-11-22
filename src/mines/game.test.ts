@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { flagsLeft, isGame, newGame, reducer, type Game } from './game';
 
 function playToEnd(g: Game, pick: (g: Game) => number): Game {
-  for (let k = 0; k < 1000 && g.status === 'playing'; k++) g = reducer(g, { type: 'tap', index: pick(g) });
+  for (let k = 0; k < 1000 && g.status === 'playing'; k++)
+    g = reducer(g, { type: 'tap', index: pick(g) });
   return g;
 }
 
@@ -46,10 +47,21 @@ describe('reducer', () => {
   it('opens the neighbors of a number whose mines are flagged', () => {
     let g = reducer(newGame('small', 'few'), { type: 'tap', index: 40 });
     // Find a revealed number touching exactly its mines, flag them, then tap it.
-    const cell = g.revealed.findIndex((r, i) => r && g.mines!.some((m, j) => m && Math.abs(Math.floor(j / 9) - Math.floor(i / 9)) <= 1 && Math.abs((j % 9) - (i % 9)) <= 1));
+    const cell = g.revealed.findIndex(
+      (r, i) =>
+        r &&
+        g.mines!.some(
+          (m, j) =>
+            m &&
+            Math.abs(Math.floor(j / 9) - Math.floor(i / 9)) <= 1 &&
+            Math.abs((j % 9) - (i % 9)) <= 1,
+        ),
+    );
     expect(cell).toBeGreaterThanOrEqual(0);
     for (let j = 0; j < 81; j++) {
-      const near = Math.abs(Math.floor(j / 9) - Math.floor(cell / 9)) <= 1 && Math.abs((j % 9) - (cell % 9)) <= 1;
+      const near =
+        Math.abs(Math.floor(j / 9) - Math.floor(cell / 9)) <= 1 &&
+        Math.abs((j % 9) - (cell % 9)) <= 1;
       if (near && g.mines![j]) g = reducer(g, { type: 'flag', index: j });
     }
     const before = g.revealed.filter(Boolean).length;
@@ -59,7 +71,11 @@ describe('reducer', () => {
   });
 
   it('loads games saved with one difficulty, as its size and density', () => {
-    const { size: _s, density: _d, ...rest } = reducer(newGame('medium', 'some'), { type: 'tap', index: 40 });
+    const {
+      size: _s,
+      density: _d,
+      ...rest
+    } = reducer(newGame('medium', 'some'), { type: 'tap', index: 40 });
     const save = JSON.parse(JSON.stringify({ ...rest, difficulty: 'medium' }));
     expect(isGame(save)).toBe(true);
     expect([save.size, save.density, save.mineCount]).toEqual(['medium', 'some', 22]);

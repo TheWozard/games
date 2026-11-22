@@ -1,16 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import {
-  boardFor, crossings, DEFAULT_BOARD, delaunay, distanceToSegment, dotGap, dotRadius, generate, MARGIN, nudge, rescale, segmentsCross, settle,
-  SIZES, STARTS, STYLES, type Board, type Size, type Start, type Style,
+  boardFor,
+  crossings,
+  DEFAULT_BOARD,
+  delaunay,
+  distanceToSegment,
+  dotGap,
+  dotRadius,
+  generate,
+  MARGIN,
+  nudge,
+  rescale,
+  segmentsCross,
+  settle,
+  SIZES,
+  STARTS,
+  STYLES,
+  type Board,
+  type Size,
+  type Start,
+  type Style,
 } from './logic';
 
 function isConnected(n: number, edges: [number, number][]): boolean {
   const seen = new Set([0]);
   const queue = [0];
-  for (let q = 0; q < queue.length; q++) {
+  for (const here of queue) {
     for (const [a, b] of edges) {
-      const j = a === queue[q] ? b : b === queue[q] ? a : -1;
-      if (j >= 0 && !seen.has(j)) { seen.add(j); queue.push(j); }
+      const j =
+        a === here ? b
+        : b === here ? a
+        : -1;
+      if (j >= 0 && !seen.has(j)) {
+        seen.add(j);
+        queue.push(j);
+      }
     }
   }
   return seen.size === n;
@@ -41,7 +65,9 @@ describe('generate', () => {
             expect(y).toBeLessThanOrEqual(height - MARGIN + 1e-9);
           }
           expect(isConnected(n, edges)).toBe(true);
-          expect(new Set(edges.map(([a, b]) => `${Math.min(a, b)},${Math.max(a, b)}`)).size).toBe(edges.length);
+          expect(new Set(edges.map(([a, b]) => `${Math.min(a, b)},${Math.max(a, b)}`)).size).toBe(
+            edges.length,
+          );
           const degree = points.map((_, i) => edges.filter(([a, b]) => a === i || b === i).length);
           if (style === 'lines') {
             expect(edges).toHaveLength(SIZES[size].lines * (SIZES[size].lines - 2));
@@ -71,8 +97,16 @@ describe('generate', () => {
 describe('crossings', () => {
   it('counts a dot sitting on a line it isn’t part of', () => {
     // A line from 0 to 1, and dot 2 (joined only to 3) right on top of it.
-    const points: [number, number][] = [[10, 50], [90, 50], [50, 50.5], [50, 90]];
-    const edges: [number, number][] = [[0, 1], [2, 3]];
+    const points: [number, number][] = [
+      [10, 50],
+      [90, 50],
+      [50, 50.5],
+      [50, 90],
+    ];
+    const edges: [number, number][] = [
+      [0, 1],
+      [2, 3],
+    ];
     const t = crossings(points, edges);
     expect(t.count).toBe(1);
     expect(t.touching).toEqual([false, false, true, false]);
@@ -82,16 +116,33 @@ describe('crossings', () => {
   });
 
   it('doesn’t count a dot touching its own lines', () => {
-    const points: [number, number][] = [[10, 10], [50, 50], [90, 10]];
-    expect(crossings(points, [[0, 1], [1, 2]]).count).toBe(0);
+    const points: [number, number][] = [
+      [10, 10],
+      [50, 50],
+      [90, 10],
+    ];
+    expect(
+      crossings(points, [
+        [0, 1],
+        [1, 2],
+      ]).count,
+    ).toBe(0);
   });
 });
 
 describe('settle', () => {
   it('moves a dot off a line it sits on, to the side it was on, and nothing else', () => {
     // Dot 2 (joined only to 3) just below the line from 0 to 1.
-    const points: [number, number][] = [[10, 50], [90, 50], [50, 50.5], [50, 90]];
-    const edges: [number, number][] = [[0, 1], [2, 3]];
+    const points: [number, number][] = [
+      [10, 50],
+      [90, 50],
+      [50, 50.5],
+      [50, 90],
+    ];
+    const edges: [number, number][] = [
+      [0, 1],
+      [2, 3],
+    ];
     const out = settle(points, edges, DEFAULT_BOARD);
     expect(crossings(out, edges).count).toBe(0);
     expect(out[2][0]).toBeCloseTo(50);
@@ -102,15 +153,38 @@ describe('settle', () => {
 
   it('with a dot to settle around, leaves dots on other lines alone', () => {
     // Dot 2 sits on line 0–1; dot 4 is free. Settling around dot 4 changes nothing; around 0, dot 2 moves.
-    const points: [number, number][] = [[10, 50], [90, 50], [50, 50.5], [50, 90], [20, 20]];
-    const edges: [number, number][] = [[0, 1], [2, 3]];
+    const points: [number, number][] = [
+      [10, 50],
+      [90, 50],
+      [50, 50.5],
+      [50, 90],
+      [20, 20],
+    ];
+    const edges: [number, number][] = [
+      [0, 1],
+      [2, 3],
+    ];
     expect(settle(points, edges, DEFAULT_BOARD, undefined, 4)).toBe(points);
     expect(settle(points, edges, DEFAULT_BOARD, undefined, 0)[2]).not.toEqual(points[2]);
   });
 
   it('returns the same layout when no dot sits on a line', () => {
-    const points: [number, number][] = [[10, 50], [90, 50], [50, 70], [50, 90]];
-    expect(settle(points, [[0, 1], [2, 3]], DEFAULT_BOARD)).toBe(points);
+    const points: [number, number][] = [
+      [10, 50],
+      [90, 50],
+      [50, 70],
+      [50, 90],
+    ];
+    expect(
+      settle(
+        points,
+        [
+          [0, 1],
+          [2, 3],
+        ],
+        DEFAULT_BOARD,
+      ),
+    ).toBe(points);
   });
 });
 
@@ -121,10 +195,14 @@ describe('segmentsCross', () => {
     expect(segmentsCross([0, 0], [10, 0], [10, 0], [10, 10])).toBe(false); // touching at an end
     // Two pieces of one straight line never cross, even with rounding in the coordinates
     // (this exact pair once came out of the generator and was counted as a crossing).
-    expect(segmentsCross(
-      [6.7115136673934135, 30.11355397154393], [25.996608724756022, 42.95188483922837],
-      [31.14734732026596, 46.38079644715239], [62.72319729728594, 67.40123778942015],
-    )).toBe(false);
+    expect(
+      segmentsCross(
+        [6.7115136673934135, 30.11355397154393],
+        [25.996608724756022, 42.95188483922837],
+        [31.14734732026596, 46.38079644715239],
+        [62.72319729728594, 67.40123778942015],
+      ),
+    ).toBe(false);
   });
 
   it('measures distance to a segment', () => {
@@ -140,15 +218,25 @@ describe('nudge', () => {
     const out = nudge(points, 3, DEFAULT_BOARD);
     const gap = dotGap(10);
     out.forEach((p, j) => {
-      if (j !== 3) expect(Math.hypot(p[0] - out[3][0], p[1] - out[3][1])).toBeGreaterThanOrEqual(gap - 1e-9);
+      if (j !== 3)
+        expect(Math.hypot(p[0] - out[3][0], p[1] - out[3][1])).toBeGreaterThanOrEqual(gap - 1e-9);
     });
-    out.forEach((p, j) => { if (j !== 3) expect(p).toEqual(points[j]); }); // nothing else moves
+    out.forEach((p, j) => {
+      if (j !== 3) expect(p).toEqual(points[j]);
+    }); // nothing else moves
   });
 });
 
 describe('delaunay', () => {
   it('joins points into non-crossing triangles', () => {
-    const pts: [number, number][] = [[10, 10], [90, 12], [50, 60], [15, 110], [85, 115], [45, 30]];
+    const pts: [number, number][] = [
+      [10, 10],
+      [90, 12],
+      [50, 60],
+      [15, 110],
+      [85, 115],
+      [45, 30],
+    ];
     const edges = delaunay(pts);
     expect(crossings(pts, edges).count).toBe(0);
     expect(edges.length).toBe(3 * pts.length - 3 - 4); // 3n − 3 − (points on the hull = 4)
@@ -164,7 +252,11 @@ describe('board', () => {
 
   it('stretches a layout to a new board without changing its crossings', () => {
     for (let run = 0; run < 10; run++) {
-      const { edges, solution, points } = generate({ size: 'd21', style: 'lines', start: 'scatter' });
+      const { edges, solution, points } = generate({
+        size: 'd21',
+        style: 'lines',
+        start: 'scatter',
+      });
       const wide = { width: 170, height: 100 };
       const moved = rescale(points, DEFAULT_BOARD, wide);
       for (const [x, y] of moved) {
@@ -174,11 +266,20 @@ describe('board', () => {
       }
       // Lines that truly cross (a dot near a line is a distance, which a stretch can change).
       const proper = (p: typeof points) =>
-        edges.flatMap(([a, b], i) => edges.slice(i + 1).filter(([c, d]) =>
-          a !== c && a !== d && b !== c && b !== d && segmentsCross(p[a], p[b], p[c], p[d]))).length;
+        edges.flatMap(([a, b], i) =>
+          edges
+            .slice(i + 1)
+            .filter(
+              ([c, d]) =>
+                a !== c && a !== d && b !== c && b !== d && segmentsCross(p[a], p[b], p[c], p[d]),
+            ),
+        ).length;
       expect(proper(moved)).toBe(proper(points));
-      expect(rescale(rescale(solution, DEFAULT_BOARD, wide), wide, DEFAULT_BOARD).map((p) => p.map((v) => +v.toFixed(6))))
-        .toEqual(solution.map((p) => p.map((v) => +v.toFixed(6))));
+      expect(
+        rescale(rescale(solution, DEFAULT_BOARD, wide), wide, DEFAULT_BOARD).map((p) =>
+          p.map((v) => +v.toFixed(6)),
+        ),
+      ).toEqual(solution.map((p) => p.map((v) => +v.toFixed(6))));
     }
   });
 });

@@ -44,9 +44,17 @@ describe('reducer', () => {
     games.push([gameOf('medium', l), (i) => l.walls[i] !== null]);
     for (let [g, fixed] of games) {
       const answer = g.puzzle.solution;
-      g = reducer(g, { type: 'paint', indices: answer.flatMap((a, i) => (a ? [] : [i])), value: NOTE }, fixed);
+      g = reducer(
+        g,
+        { type: 'paint', indices: answer.flatMap((a, i) => (a ? [] : [i])), value: NOTE },
+        fixed,
+      );
       expect(g.done).toBe(false);
-      g = reducer(g, { type: 'paint', indices: answer.flatMap((a, i) => (a ? [i] : [])), value: MAIN }, fixed);
+      g = reducer(
+        g,
+        { type: 'paint', indices: answer.flatMap((a, i) => (a ? [i] : [])), value: MAIN },
+        fixed,
+      );
       expect(g.done).toBe(true);
       expect(reducer(g, { type: 'paint', indices: [0], value: EMPTY }, fixed)).toBe(g);
       expect(reducer(g, { type: 'undo' }, fixed)).toBe(g);
@@ -63,7 +71,12 @@ describe('isGame', () => {
       [lightup.generate('easy'), lightup.isDifficulty, lightup.isPuzzle],
     ] as const;
     for (const [p, isDifficulty, isPuzzle] of cases) {
-      const check = (v: unknown) => isGame(v, isDifficulty, (q, d) => isDifficulty(d) && (isPuzzle as (q: unknown, d: string) => boolean)(q, d));
+      const check = (v: unknown) =>
+        isGame(
+          v,
+          isDifficulty,
+          (q, d) => isDifficulty(d) && (isPuzzle as (q: unknown, d: string) => boolean)(q, d),
+        );
       const g = reducer(gameOf('easy', p), { type: 'paint', indices: [1], value: NOTE }, none);
       expect(check(JSON.parse(JSON.stringify(g)))).toBe(true);
       expect(check({ ...g, marks: g.marks.map((m, i) => (i === 0 ? 3 : m)) })).toBe(false);

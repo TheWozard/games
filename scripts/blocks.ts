@@ -11,7 +11,18 @@
 import { writeFileSync } from 'node:fs';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import {
-  decode, DIFFICULTIES, encode, explore, generate, interest, isVariant, LEVELS, shape, VARIANTS, type Difficulty, type Variant,
+  decode,
+  DIFFICULTIES,
+  encode,
+  explore,
+  generate,
+  interest,
+  isVariant,
+  LEVELS,
+  shape,
+  VARIANTS,
+  type Difficulty,
+  type Variant,
 } from '../src/blocks/logic.ts';
 import { PUZZLES } from '../src/blocks/puzzles.ts';
 
@@ -41,40 +52,72 @@ function score(variant: Variant, code: string): Scored[number] {
 /** Makes the puzzles of each variant in a thread of its own. */
 async function makeAll(variants: Variant[]): Promise<[Variant, Found][]> {
   const progress: Record<string, string> = {};
-  const show = () => process.stdout.write(`\r${variants.map((v) => `${v} ${progress[v] ?? ''}`).join('  ')}   `);
-  const results = await Promise.all(variants.map((variant) => new Promise<[Variant, Found]>((resolve, reject) => {
-    const worker = new Worker(new URL(import.meta.url), { workerData: variant, execArgv: ['--experimental-strip-types'] });
-    worker.on('message', (m: { progress?: string; done?: Found }) => {
-      if (m.progress) {
-        progress[variant] = m.progress;
-        show();
-      }
-      if (m.done) resolve([variant, m.done]);
-    });
-    worker.on('error', reject);
-  })));
+  const show = () =>
+    process.stdout.write(`\r${variants.map((v) => `${v} ${progress[v] ?? ''}`).join('  ')}   `);
+  const results = await Promise.all(
+    variants.map(
+      (variant) =>
+        new Promise<[Variant, Found]>((resolve, reject) => {
+          const worker = new Worker(new URL(import.meta.url), {
+            workerData: variant,
+            execArgv: ['--experimental-strip-types'],
+          });
+          worker.on('message', (m: { done?: Found; progress?: string }) => {
+            if (m.progress) {
+              progress[variant] = m.progress;
+              show();
+            }
+            if (m.done) resolve([variant, m.done]);
+          });
+          worker.on('error', reject);
+        }),
+    ),
+  );
   process.stdout.write('\n');
   return results;
 }
 
 /** The stored puzzles of a variant, scored again and cut down to KEEP. */
 const keepBest = (variant: Variant): Found =>
-  Object.fromEntries((Object.keys(LEVELS) as Difficulty[]).map((d) =>
-    [d, choose(PUZZLES[variant][d].map(([, code]) => score(variant, code)), KEEP[d])])) as Found;
+  Object.fromEntries(
+    (Object.keys(LEVELS) as Difficulty[]).map((d) => [
+      d,
+      choose(
+        PUZZLES[variant][d].map(([, code]) => score(variant, code)),
+        KEEP[d],
+      ),
+    ]),
+  ) as Found;
 
 if (isMainThread) {
   const args = process.argv.slice(2);
   const keepOnly = args.includes('--keep');
   const asked = args.filter((a) => a !== '--keep');
   const unknown = asked.filter((v) => !isVariant(v));
-  if (unknown.length) throw new Error(`Not a variant: ${unknown.join(', ')} (variants: ${Object.keys(VARIANTS).join(', ')})`);
+  if (unknown.length)
+    throw new Error(
+      `Not a variant: ${unknown.join(', ')} (variants: ${Object.keys(VARIANTS).join(', ')})`,
+    );
   const variants = (asked.length ? asked : Object.keys(VARIANTS)) as Variant[];
-  const results = keepOnly ? variants.map((v): [Variant, Found] => [v, keepBest(v)]) : await makeAll(variants);
+  const results =
+    keepOnly ? variants.map((v): [Variant, Found] => [v, keepBest(v)]) : await makeAll(variants);
   // Every variant, in their usual order: the ones remade, and the rest as they were.
   const made = new Map(results);
-  const all = (Object.keys(VARIANTS) as Variant[]).map((v): [Variant, Found] => [v, made.get(v) ?? PUZZLES[v]]);
-  const body = all.map(([variant, found]) => `  ${variant}: {\n${(Object.keys(LEVELS) as Difficulty[]).map((d) =>
-    `    ${d}: [\n${found[d].map(([fewest, code]) => `      [${fewest}, '${code}'],`).join('\n')}\n    ],`).join('\n')}\n  },`).join('\n');
+  const all = (Object.keys(VARIANTS) as Variant[]).map((v): [Variant, Found] => [
+    v,
+    made.get(v) ?? PUZZLES[v],
+  ]);
+  const body = all
+    .map(
+      ([variant, found]) =>
+        `  ${variant}: {\n${(Object.keys(LEVELS) as Difficulty[])
+          .map(
+            (d) =>
+              `    ${d}: [\n${found[d].map(([fewest, code]) => `      [${fewest}, '${code}'],`).join('\n')}\n    ],`,
+          )
+          .join('\n')}\n  },`,
+    )
+    .join('\n');
   writeFileSync(
     new URL('../src/blocks/puzzles.ts', import.meta.url),
     `// Made by scripts/blocks.ts (\`just blocks\`): don't edit by hand. Per variant and difficulty, each

@@ -1,15 +1,15 @@
 <script lang="ts">
-  import GameScreen from '../../shared/GameScreen.svelte';
-  import { createShake } from '../../shared/shake.svelte';
-  import { loadJSON, saveJSON } from '../../shared/storage';
-  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { untrack } from 'svelte';
   import CardFace from '../../shared/CardFace.svelte';
   import { cardName, isRed, SUITS } from '../../shared/cards';
+  import GameScreen from '../../shared/GameScreen.svelte';
   import { attachPan } from '../../shared/pan';
-  import { bestTarget, type Card, type Draw, type Source } from './logic';
-  import { untrack } from 'svelte';
+  import { createShake } from '../../shared/shake.svelte';
+  import { loadJSON, saveJSON } from '../../shared/storage';
   import VariantPicker from '../../shared/VariantPicker.svelte';
   import { GAMES, KLONDIKE, parse, type VariantProps } from '../variants';
+  import { isGame, newGame, reducer, STORAGE_KEY, type Action } from './game';
+  import { bestTarget, type Card, type Draw, type Source } from './logic';
 
   let { start: first, onswitch }: VariantProps = $props();
   // The New dialog's pick, "<variant>:<setting>", starting on this game each time it opens.
@@ -18,7 +18,11 @@
 
   const isDraw = (s: string | undefined) => s === '1' || s === '3';
   let game = $state.raw(
-    untrack(() => (isDraw(first) ? newGame(Number(first) as Draw) : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)))),
+    untrack(() =>
+      isDraw(first) ?
+        newGame(Number(first) as Draw)
+      : (loadJSON(STORAGE_KEY, isGame) ?? newGame(1)),
+    ),
   );
   // Cards glide between places only once the player has moved: not while the page lays out.
   let animate = $state(false);
@@ -42,7 +46,12 @@
   const gap = $derived(Math.max(4, Math.min(width, PHONE_W) * 0.014));
   const across = (n: number, w = width) => (w - gap * (n - 1)) / n;
   const heightCap = $derived(height / (5.5 * 1.4));
-  const cw = $derived(Math.max(Math.min(across(7), heightCap), Math.min(across(5, Math.min(width, PHONE_W)), heightCap)));
+  const cw = $derived(
+    Math.max(
+      Math.min(across(7), heightCap),
+      Math.min(across(5, Math.min(width, PHONE_W)), heightCap),
+    ),
+  );
   const ch = $derived(cw * 1.4);
   const columnsW = $derived(7 * cw + 6 * gap);
   const maxScroll = $derived(Math.max(0, columnsW - width));
@@ -50,7 +59,7 @@
   // with their right edge.
   const columnsLeft = $derived(Math.max(0, (width - columnsW) / 2));
   // null: not panned since the deal, so the columns sit centered.
-  let scrollX = $state<number | null>(null);
+  let scrollX = $state<null | number>(null);
   const sx = $derived(scrollX === null ? maxScroll / 2 : Math.min(Math.max(0, scrollX), maxScroll));
   const colX = (col: number) => columnsLeft + col * (cw + gap) - sx;
   // Laid out for a phone held upright: the four foundations centered along the top, the columns
@@ -70,30 +79,46 @@
 
   interface Placed {
     card: Card;
+    source: 'stock' | null | Source;
+    up: boolean;
     x: number;
     y: number;
     z: number;
-    up: boolean;
-    source: Source | 'stock' | null;
   }
 
   const placed = $derived.by(() => {
     const t = game.table;
     const out: Placed[] = [];
     // Stock: face down in the bottom-right corner.
-    t.stock.forEach((card, k) => out.push({ card, x: stockX, y: bottomY, z: k, up: false, source: 'stock' }));
+    t.stock.forEach((card, k) =>
+      out.push({ card, x: stockX, y: bottomY, z: k, up: false, source: 'stock' }),
+    );
     // Waste: just left of the stock. The top one (or three) fans out leftward, so the card you
     // can play is always the one nearest the stock.
     const fan = game.draw === 3 ? 3 : 1;
     t.waste.forEach((card, k) => {
       const fromTop = t.waste.length - 1 - k;
       const shift = Math.min(fromTop, fan - 1, t.waste.length - 1) * cw * 0.42;
-      out.push({ card, x: wasteX - shift, y: bottomY, z: 100 + k, up: true, source: fromTop === 0 ? { from: 'waste' } : null });
+      out.push({
+        card,
+        x: wasteX - shift,
+        y: bottomY,
+        z: 100 + k,
+        up: true,
+        source: fromTop === 0 ? { from: 'waste' } : null,
+      });
     });
     // Foundations: one slot per suit, centered along the top.
     t.foundations.forEach((n, suit) => {
       for (let r = 0; r < n; r++) {
-        out.push({ card: suit * 13 + r, x: foundationX(suit), y: topY, z: 200 + r, up: true, source: r === n - 1 ? { from: 'foundation', suit } : null });
+        out.push({
+          card: suit * 13 + r,
+          x: foundationX(suit),
+          y: topY,
+          z: 200 + r,
+          up: true,
+          source: r === n - 1 ? { from: 'foundation', suit } : null,
+        });
       }
     });
     // Tableau: face-down cards tightly stacked, face-up ones fanned; squeezed to end above the
@@ -107,11 +132,26 @@
         downStep *= room / need;
         upStep *= room / need;
       }
-      down.forEach((card, k) => out.push({ card, x: colX(col), y: tableauY + k * downStep, z: 300 + k, up: false, source: null }));
-      up.forEach((card, k) => out.push({
-        card, x: colX(col), y: tableauY + down.length * downStep + k * upStep, z: 330 + k, up: true,
-        source: { from: 'tableau', col, index: k },
-      }));
+      down.forEach((card, k) =>
+        out.push({
+          card,
+          x: colX(col),
+          y: tableauY + k * downStep,
+          z: 300 + k,
+          up: false,
+          source: null,
+        }),
+      );
+      up.forEach((card, k) =>
+        out.push({
+          card,
+          x: colX(col),
+          y: tableauY + down.length * downStep + k * upStep,
+          z: 330 + k,
+          up: true,
+          source: { from: 'tableau', col, index: k },
+        }),
+      );
     });
     return out.sort((a, b) => a.card - b.card);
   });
@@ -167,53 +207,74 @@
 <svelte:document onkeydown={onKey} />
 
 <GameScreen
-  wide
-  title="Solitaire"
-  subtitle="Klondike · {KLONDIKE[game.draw]}"
-  onundo={() => dispatch({ type: 'undo' })}
   canUndo={!game.done && game.history.length > 0}
-  onopennew={() => { pick = `klondike:${game.draw}`; pickerOpens++; }}
-  onstart={start}
   finished={game.done}
   onnext={() => deal(newGame(game.draw))}
+  onopennew={() => {
+    pick = `klondike:${game.draw}`;
+    pickerOpens++;
+  }}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  subtitle="Klondike · {KLONDIKE[game.draw]}"
+  title="Solitaire"
+  wide
 >
   {#snippet picker()}
     {#key pickerOpens}<VariantPicker games={GAMES} bind:value={pick} />{/key}
   {/snippet}
   <div class="board-area">
     <div
-      class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}
       bind:this={table}
-      bind:clientWidth={width}
-      bind:clientHeight={height}
       style:--cw="{cw}px"
       style:--ch="{ch}px"
+      class={['card-table sol-board', { animate, pannable: maxScroll > 0, panning }]}
+      bind:clientWidth={width}
+      bind:clientHeight={height}
     >
       <!-- Empty slots: the stock (tap to turn the waste over), foundations, and columns. -->
       <button
-        type="button"
-        class="slot stock"
         style:transform="translate({stockX}px, {bottomY}px)"
+        class="slot stock"
         aria-label={game.table.stock.length ? 'Draw' : 'Turn the waste over'}
         onclick={() => dispatch({ type: 'stock' })}
+        type="button"
       >
         {#if !game.table.stock.length && game.table.waste.length}↻{/if}
       </button>
       {#each SUITS as suit, s (s)}
-        <div class="slot" style:transform="translate({foundationX(s)}px, {topY}px)" aria-hidden="true">{suit}</div>
+        <div
+          style:transform="translate({foundationX(s)}px, {topY}px)"
+          class="slot"
+          aria-hidden="true"
+        >
+          {suit}
+        </div>
       {/each}
       {#each { length: 7 } as _, col (col)}
-        <div class="slot" style:transform="translate({colX(col)}px, {tableauY}px)" aria-hidden="true"></div>
+        <div
+          style:transform="translate({colX(col)}px, {tableauY}px)"
+          class="slot"
+          aria-hidden="true"
+        ></div>
       {/each}
 
       {#each placed as p (p.card)}
         <button
-          type="button"
-          class={['card', { down: !p.up, red: isRed(p.card), shake: shake.current === p.card, live: p.source !== null }]}
           style:transform="translate({p.x}px, {p.y}px)"
           style:z-index={p.z}
+          class={[
+            'card',
+            {
+              down: !p.up,
+              red: isRed(p.card),
+              shake: shake.current === p.card,
+              live: p.source !== null,
+            },
+          ]}
           aria-label={p.up ? cardName(p.card) : 'Face-down card'}
           onclick={() => tap(p)}
+          type="button"
         >
           {#if p.up}<CardFace card={p.card} />{/if}
         </button>

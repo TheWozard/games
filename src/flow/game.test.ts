@@ -18,7 +18,16 @@ describe('reducer', () => {
   it('is done when the puzzle’s own paths are drawn, and round-trips through JSON', () => {
     const { size } = DIFFICULTIES.medium;
     const { dots, solution, board } = generate('medium');
-    let g: Game = { difficulty: 'medium', rules: { ...NO_RULES }, size, board, dots, paths: dots.map(() => []), history: [], done: false };
+    let g: Game = {
+      difficulty: 'medium',
+      rules: { ...NO_RULES },
+      size,
+      board,
+      dots,
+      paths: dots.map(() => []),
+      history: [],
+      done: false,
+    };
     const before = g.paths;
     g = reducer(g, { type: 'draw', paths: solution });
     g = reducer(g, { type: 'commit', before });

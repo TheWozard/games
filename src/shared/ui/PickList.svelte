@@ -8,18 +8,26 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { title, count = 0, actions, chips, children }: {
-    title: string;
+  let {
+    title,
+    count = 0,
+    actions,
+    chips,
+    children,
+  }: {
+    actions?: Snippet;
+    children: Snippet;
+    chips?: Snippet;
     /** How many are on, shown beside the heading (left out at 0). */
     count?: number;
-    actions?: Snippet;
-    chips?: Snippet;
-    children: Snippet;
+    title: string;
   } = $props();
 </script>
 
 <div class="pick-head">
-  <h3 class="pick-title">{title}{#if count}<span class="pick-count">{count}</span>{/if}</h3>
+  <h3 class="pick-title">
+    {title}{#if count}<span class="pick-count">{count}</span>{/if}
+  </h3>
   {@render actions?.()}
 </div>
 <div class="pick pick-list">

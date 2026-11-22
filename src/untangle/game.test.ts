@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describe as label, fromSaved, isGame, newGame, reducer, type Game } from './game';
+import { fromSaved, isGame, describe as label, newGame, reducer, type Game } from './game';
 import { crossings, DEFAULT_BOARD, generate } from './logic';
 
 describe('reducer', () => {
@@ -17,7 +17,11 @@ describe('reducer', () => {
   });
 
   it('keeps dots on the board', () => {
-    const g = reducer(newGame({ size: 'd10', style: 'loops', start: 'scatter' }), { type: 'drag', index: 0, to: [-50, 999] });
+    const g = reducer(newGame({ size: 'd10', style: 'loops', start: 'scatter' }), {
+      type: 'drag',
+      index: 0,
+      to: [-50, 999],
+    });
     expect(g.points[0][0]).toBeGreaterThan(0);
     expect(g.points[0][1]).toBeLessThan(130);
   });
@@ -32,14 +36,24 @@ describe('reducer', () => {
     const before = g.points;
     g = reducer(g, { type: 'drag', index: 0, to: g.points[1] });
     g = reducer(g, { type: 'drop', index: 0, before });
-    expect(Math.hypot(g.points[0][0] - g.points[1][0], g.points[0][1] - g.points[1][1])).toBeGreaterThan(5);
+    expect(
+      Math.hypot(g.points[0][0] - g.points[1][0], g.points[0][1] - g.points[1][1]),
+    ).toBeGreaterThan(5);
   });
 
   it('nudges a dot dropped on a line off it, in the same move', () => {
     const g0: Game = {
       ...newGame({ size: 'd10', style: 'lines', start: 'circle' }),
-      points: [[10, 50], [90, 50], [50, 70], [50, 90]],
-      edges: [[0, 1], [2, 3]],
+      points: [
+        [10, 50],
+        [90, 50],
+        [50, 70],
+        [50, 90],
+      ],
+      edges: [
+        [0, 1],
+        [2, 3],
+      ],
       history: [],
       moves: 0,
       done: false,
@@ -61,7 +75,15 @@ describe('reducer', () => {
     // move that untangles. (Moving dots home one by one could drop one next to a dot that hasn't
     // moved yet, and the nudge would push it off its spot.)
     const points = solution.map((p, i) => (i === 0 ? ([5, 5] as [number, number]) : p));
-    let g: Game = { ...settings, ...DEFAULT_BOARD, points, edges, history: [], moves: 0, done: false };
+    let g: Game = {
+      ...settings,
+      ...DEFAULT_BOARD,
+      points,
+      edges,
+      history: [],
+      moves: 0,
+      done: false,
+    };
     const before = g.points;
     g = reducer(g, { type: 'drag', index: 0, to: solution[0] });
     g = reducer(g, { type: 'drop', index: 0, before });
@@ -98,7 +120,9 @@ describe('resize', () => {
 
 describe('settings', () => {
   it('describes them', () => {
-    expect(label({ size: 'd28', style: 'loops', start: 'scatter' })).toBe('28 dots · Loops · Scatter');
+    expect(label({ size: 'd28', style: 'loops', start: 'scatter' })).toBe(
+      '28 dots · Loops · Scatter',
+    );
   });
 
   it('upgrades a game saved with the old three levels', () => {
@@ -112,7 +136,14 @@ describe('settings', () => {
   });
 
   it('reads a game saved before boards had a size as the default board', () => {
-    const { width: _w, height: _h, ...old } = newGame({ size: 'd10', style: 'loops', start: 'spiral' });
-    expect(fromSaved(JSON.parse(JSON.stringify(old)))).toMatchObject({ ...DEFAULT_BOARD, start: 'spiral' });
+    const {
+      width: _w,
+      height: _h,
+      ...old
+    } = newGame({ size: 'd10', style: 'loops', start: 'spiral' });
+    expect(fromSaved(JSON.parse(JSON.stringify(old)))).toMatchObject({
+      ...DEFAULT_BOARD,
+      start: 'spiral',
+    });
   });
 });

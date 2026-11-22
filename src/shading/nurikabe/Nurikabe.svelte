@@ -5,27 +5,35 @@
   import { storageKey, type Switcher } from '../variants';
   import { conflicts, DIFFICULTIES, generate, isDifficulty, isPuzzle } from './logic';
 
-  let { variants, first }: { variants: Switcher; first?: string } = $props();
+  let { variants, first }: { first?: string; variants: Switcher } = $props();
 </script>
 
 <ShadePlay
-  title="Shading"
-  storageKey={storageKey('nurikabe')}
+  conflicts={(p, marks) =>
+    conflicts(
+      p,
+      marks.map((m) => m === MAIN),
+    )}
+  create={(d: string) => generate(isDifficulty(d) ? d : 'easy')}
   difficulties={DIFFICULTIES}
-  create={(d) => generate(isDifficulty(d) ? d : 'easy')}
-  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
-  fixed={(p, i) => p.clues[i] !== null}
-  conflicts={(p, marks) => conflicts(p, marks.map((m) => m === MAIN))}
-  names={['Shade', 'Dot']}
   drags={['free', 'free']}
-  {variants}
   {first}
+  fixed={(p, i) => p.clues[i] !== null}
+  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
+  names={['Shade', 'Dot']}
+  storageKey={storageKey('nurikabe')}
+  title="Shading"
+  {variants}
 >
   {#snippet icon(kind)}
     {#if kind === MAIN}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><rect class="shade-icon" x="2" y="2" width="12" height="12" rx="2" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 16 16">
+        <rect class="shade-icon" height="12" rx="2" width="12" x="2" y="2" />
+      </svg>
     {:else}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.6" fill="currentColor" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" fill="currentColor" r="2.6" />
+      </svg>
     {/if}
   {/snippet}
 
@@ -35,9 +43,15 @@
       {@const x = i % n}
       {@const y = Math.floor(i / n)}
       {#if puzzle.clues[i] !== null}
-        <text class="clue" x={x + 0.5} y={y + 0.5} dy="0.355em">{puzzle.clues[i]}</text>
+        <text class="clue" dy="0.355em" x={x + 0.5} y={y + 0.5}>{puzzle.clues[i]}</text>
       {:else if m === MAIN}
-        <rect class={['shade', { bad: bad[i] }]} x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" />
+        <rect
+          class={['shade', { bad: bad[i] }]}
+          height="1.02"
+          width="1.02"
+          x={x - 0.01}
+          y={y - 0.01}
+        />
       {:else if m === NOTE}
         <Icons kind="dot" {x} {y} />
       {/if}

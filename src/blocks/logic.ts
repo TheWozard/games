@@ -36,7 +36,10 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(LEVELS, value);
 
 /** Per variant and difficulty: how many blocks (besides pillars), and the fewest moves wanted. */
-export const DIFFICULTIES: Record<Variant, Record<Difficulty, { blocks: [number, number]; moves: [number, number] }>> = {
+export const DIFFICULTIES: Record<
+  Variant,
+  Record<Difficulty, { blocks: [number, number]; moves: [number, number] }>
+> = {
   classic: {
     easy: { blocks: [7, 9], moves: [5, 9] },
     medium: { blocks: [9, 11], moves: [10, 17] },
@@ -62,12 +65,12 @@ export const DIFFICULTIES: Record<Variant, Record<Difficulty, { blocks: [number,
 
 /** A board's size, how many key blocks it has, and where they leave. */
 export interface Shape {
-  size: number;
-  keys: number;
-  /** The row the first key block lies on, and the gap in the right-hand edge it leaves by. */
-  exitRow: number;
   /** The column the second key block (if any) stands in, and the gap in the bottom edge it leaves by. */
   exitCol: number;
+  /** The row the first key block lies on, and the gap in the right-hand edge it leaves by. */
+  exitRow: number;
+  keys: number;
+  size: number;
 }
 
 export function shape(variant: Variant): Shape {
@@ -81,11 +84,11 @@ export function shape(variant: Variant): Shape {
  * second (Two Keys) stands down.
  */
 export interface Block {
-  r: number;
-  c: number;
-  len: number;
   across: boolean;
+  c: number;
   fixed?: boolean;
+  len: number;
+  r: number;
 }
 
 type Random = () => number;
@@ -93,10 +96,12 @@ type Random = () => number;
 const along = (b: Block) => (b.across ? b.c : b.r);
 
 /** Whether block i is a key block that has reached its exit, and so is out, off the board. */
-export const isOut = (blocks: readonly Block[], i: number, s: Shape) => i < s.keys && along(blocks[i]) + blocks[i].len === s.size;
+export const isOut = (blocks: readonly Block[], i: number, s: Shape) =>
+  i < s.keys && along(blocks[i]) + blocks[i].len === s.size;
 
 /** Every key block out. */
-export const isSolved = (blocks: readonly Block[], s: Shape) => blocks.every((_, i) => i >= s.keys || isOut(blocks, i, s));
+export const isSolved = (blocks: readonly Block[], s: Shape) =>
+  blocks.every((_, i) => i >= s.keys || isOut(blocks, i, s));
 
 /** Which block is on each square (-1 for none); key blocks that are out take up none. */
 export function occupancy(blocks: readonly Block[], s: Shape): number[] {
@@ -104,13 +109,19 @@ export function occupancy(blocks: readonly Block[], s: Shape): number[] {
   const grid = new Array<number>(size * size).fill(-1);
   blocks.forEach((b, i) => {
     if (isOut(blocks, i, s)) return;
-    for (let k = 0; k < b.len; k++) grid[(b.r + (b.across ? 0 : k)) * size + b.c + (b.across ? k : 0)] = i;
+    for (let k = 0; k < b.len; k++)
+      grid[(b.r + (b.across ? 0 : k)) * size + b.c + (b.across ? k : 0)] = i;
   });
   return grid;
 }
 
 /** How far block i can slide: the range of its position (column if across, row if down). */
-export function range(blocks: readonly Block[], i: number, s: Shape, grid = occupancy(blocks, s)): [number, number] {
+export function range(
+  blocks: readonly Block[],
+  i: number,
+  s: Shape,
+  grid = occupancy(blocks, s),
+): [number, number] {
   const b = blocks[i];
   const at = along(b);
   if (b.fixed || isOut(blocks, i, s)) return [at, at];
@@ -138,8 +149,12 @@ export function slide(blocks: readonly Block[], i: number, to: number): Block[] 
 // characters: row, column, length, and '-' across, '|' down or '+' a fixed pillar. The key blocks
 // come first.
 
-const MARK = (b: Block) => (b.fixed ? '+' : b.across ? '-' : '|');
-export const encode = (blocks: readonly Block[]) => blocks.map((b) => `${b.r}${b.c}${b.len}${MARK(b)}`).join('');
+const MARK = (b: Block) =>
+  b.fixed ? '+'
+  : b.across ? '-'
+  : '|';
+export const encode = (blocks: readonly Block[]) =>
+  blocks.map((b) => `${b.r}${b.c}${b.len}${MARK(b)}`).join('');
 
 export function decode(code: string): Block[] {
   const out: Block[] = [];
@@ -165,10 +180,16 @@ export function isLayout(blocks: readonly Block[], s: Shape): boolean {
     const k1 = blocks[1];
     if (k1.across || k1.fixed || k1.c !== s.exitCol || k1.len !== 2) return false;
   }
-  const inside = blocks.every((b) =>
-    [b.r, b.c].every(Number.isInteger) && b.r >= 0 && b.c >= 0 &&
-    (b.fixed ? b.len === 1 && b.r < size && b.c < size : (b.len === 2 || b.len === 3) &&
-      (b.across ? b.c + b.len <= size && b.r < size : b.r + b.len <= size && b.c < size)));
+  const inside = blocks.every(
+    (b) =>
+      [b.r, b.c].every(Number.isInteger) &&
+      b.r >= 0 &&
+      b.c >= 0 &&
+      (b.fixed ?
+        b.len === 1 && b.r < size && b.c < size
+      : (b.len === 2 || b.len === 3) &&
+        (b.across ? b.c + b.len <= size && b.r < size : b.r + b.len <= size && b.c < size)),
+  );
   if (!inside) return false;
   const squares = blocks.reduce((n, b, i) => n + (isOut(blocks, i, s) ? 0 : b.len), 0);
   return occupancy(blocks, s).filter((i) => i !== -1).length === squares;
@@ -184,7 +205,9 @@ export function isLayout(blocks: readonly Block[], s: Shape): boolean {
 function layout(variant: Variant, count: number, random: Random): Block[] | null {
   const s = shape(variant);
   const { size } = s;
-  const blocks: Block[] = [{ r: s.exitRow, c: Math.floor(random() * (size / 2)), len: 2, across: true }];
+  const blocks: Block[] = [
+    { r: s.exitRow, c: Math.floor(random() * (size / 2)), len: 2, across: true },
+  ];
   if (s.keys === 2) {
     const r = Math.floor(random() * (size - 1));
     if (r === s.exitRow || r + 1 === s.exitRow) return null; // standing on the first key block's row
@@ -193,7 +216,10 @@ function layout(variant: Variant, count: number, random: Random): Block[] | null
   const grid = occupancy(blocks, s);
   const onExitLine = (r: number, c: number) => r === s.exitRow || (s.keys === 2 && c === s.exitCol);
   const put = (b: Block) => {
-    const squares = Array.from({ length: b.len }, (_, k) => (b.r + (b.across ? 0 : k)) * size + b.c + (b.across ? k : 0));
+    const squares = Array.from(
+      { length: b.len },
+      (_, k) => (b.r + (b.across ? 0 : k)) * size + b.c + (b.across ? k : 0),
+    );
     if (squares.some((sq) => grid[sq] !== -1)) return false;
     squares.forEach((sq) => (grid[sq] = blocks.length));
     blocks.push(b);
@@ -217,7 +243,12 @@ function layout(variant: Variant, count: number, random: Random): Block[] | null
 }
 
 /** Positions explored per layout, at most. A layout with more is skipped. */
-const EXPLORE_LIMIT = { classic: 30000, pillars: 30000, big: 60000, twoKeys: 30000 } satisfies Record<Variant, number>;
+const EXPLORE_LIMIT = {
+  classic: 30000,
+  pillars: 30000,
+  big: 60000,
+  twoKeys: 30000,
+} satisfies Record<Variant, number>;
 
 export interface Puzzle {
   blocks: Block[];
@@ -229,12 +260,12 @@ export interface Puzzle {
 export const positionKey = (blocks: readonly Block[]) => blocks.map(along).join('');
 
 export interface Explored {
+  /** The blocks of position `id`. */
+  blocksOf: (id: number) => Block[];
   /** Every position reachable from the start (which is the first), as `positionKey`s. */
   keys: string[];
   /** Per position, the fewest moves to finish from there, or -1 if it can't be finished. */
   moves: Int32Array;
-  /** The blocks of position `id`. */
-  blocksOf: (id: number) => Block[];
 }
 
 /**
@@ -286,7 +317,8 @@ export function explore(start: readonly Block[], s: Shape, limit = 30000): Explo
         prev[id].push(q);
       };
       for (let p = at - 1; p >= 0 && grid[square(i, p)] === -1; p--) reach(p);
-      for (let p = at + 1; p + len[i] <= size && grid[square(i, p + len[i] - 1)] === -1; p++) reach(p);
+      for (let p = at + 1; p + len[i] <= size && grid[square(i, p + len[i] - 1)] === -1; p++)
+        reach(p);
     }
     if (keys.length > limit) return null;
   }
@@ -313,7 +345,8 @@ export function explore(start: readonly Block[], s: Shape, limit = 30000): Explo
     }
     frontier = ahead;
   }
-  const blocksOf = (id: number) => start.map((b, i) => (b.across ? { ...b, c: +keys[id][i] } : { ...b, r: +keys[id][i] }));
+  const blocksOf = (id: number) =>
+    start.map((b, i) => (b.across ? { ...b, c: +keys[id][i] } : { ...b, r: +keys[id][i] }));
   return { keys, moves, blocksOf };
 }
 
@@ -329,7 +362,7 @@ export function interest(start: readonly Block[], s: Shape, fewest: Map<string, 
     // A move one closer to the finish; among those, one that moves a block already moved, if any
     // (so the count of different blocks is what the solution can't do without).
     const grid = occupancy(blocks, s);
-    let chosen: { i: number; next: Block[] } | null = null;
+    let chosen: null | { i: number; next: Block[] } = null;
     for (let i = 0; i < blocks.length; i++) {
       const [lo, hi] = range(blocks, i, s, grid);
       for (let p = lo; p <= hi; p++) {
@@ -346,9 +379,16 @@ export function interest(start: readonly Block[], s: Shape, fewest: Map<string, 
   return count.size + 2 * again;
 }
 
-export function generate(variant: Variant, difficulty: Difficulty, random: Random = Math.random): Puzzle {
+export function generate(
+  variant: Variant,
+  difficulty: Difficulty,
+  random: Random = Math.random,
+): Puzzle {
   const s = shape(variant);
-  const { blocks: [few, many], moves: [lo, hi] } = DIFFICULTIES[variant][difficulty];
+  const {
+    blocks: [few, many],
+    moves: [lo, hi],
+  } = DIFFICULTIES[variant][difficulty];
   for (;;) {
     const count = few + Math.floor(random() * (many - few + 1));
     const start = layout(variant, count, random);
@@ -363,12 +403,14 @@ export function generate(variant: Variant, difficulty: Difficulty, random: Rando
       return true;
     };
     let most = -1;
-    for (let id = 0; id < keys.length; id++) if (moves[id] >= lo && moves[id] <= hi && moves[id] > most && whole(id)) most = moves[id];
+    for (let id = 0; id < keys.length; id++)
+      if (moves[id] >= lo && moves[id] <= hi && moves[id] > most && whole(id)) most = moves[id];
     if (most === -1) continue;
     // The hardest the layout offers within the range; of those (a dozen at most), the most interesting.
     const fewest = new Map(keys.map((k, id) => [k, moves[id]]));
     const best: number[] = [];
-    for (let id = 0; id < keys.length && best.length < 12; id++) if (moves[id] === most && whole(id)) best.push(id);
+    for (let id = 0; id < keys.length && best.length < 12; id++)
+      if (moves[id] === most && whole(id)) best.push(id);
     const scored = best.map((id) => ({ id, score: interest(blocksOf(id), s, fewest) }));
     const top = Math.max(...scored.map((x) => x.score));
     const picks = scored.filter((x) => x.score === top);

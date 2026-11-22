@@ -1,26 +1,26 @@
 /* Board, number pad and tools for digit-grid games (GridPlay.svelte). --n is the grid size. */
 
+/* Not clipped, so a cage sum on the top row can sit across the board's edge; the corner cells are
+   rounded to match the border instead. */
 .board {
-  container-type: inline-size;
   display: grid;
-  grid-template-columns: repeat(var(--n), 1fr);
   grid-template-rows: repeat(var(--n), 1fr);
-  width: min(100cqw, 100cqh);
-  aspect-ratio: 1;
+  grid-template-columns: repeat(var(--n), 1fr);
   /* Thin grid lines are the gaps between cells, so every cell is exactly the same size. The line
      sizes are shared with Shading's boards (base.css). */
   gap: var(--grid-thin);
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  container-type: inline-size;
+  /* A drag across the cells writes notes or erases; it must not pan or zoom. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
   background: var(--grid-line);
   border: var(--grid-thick) solid var(--line-strong);
   /* 4px inside the border, matching the corner cells' rounding. */
   border-radius: var(--grid-radius);
-  /* Not clipped, so a cage sum on the top row can sit across the board's edge; the corner cells
-     are rounded to match the border instead. */
-  user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
-  /* A drag across the cells writes notes or erases; it must not pan or zoom. */
-  touch-action: none;
 }
 
 .grid-board .cell {
@@ -29,11 +29,11 @@
   place-items: center;
   min-width: 0;
   padding: 0;
-  border: 0;
-  background: var(--bg);
-  color: var(--muted);
   font-size: calc(58cqi / var(--n));
   font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--bg);
+  border: 0;
 }
 
 /* Thick box / cage lines (--grid-thick, 3px): an overlay centered on the 1px gap, covering 1px of the
@@ -41,27 +41,50 @@
    without notches. The inset assumes those sizes. */
 .grid-board .cell.wall-r::after,
 .grid-board .cell.wall-b::after {
-  content: '';
   position: absolute;
   inset: -1px -2px -2px -1px;
   z-index: 1;
-  border: 0 solid var(--line-strong);
   pointer-events: none;
+  content: '';
+  border: 0 solid var(--line-strong);
 }
-.grid-board .cell.wall-r::after { border-right-width: var(--grid-thick); }
-.grid-board .cell.wall-b::after { border-bottom-width: var(--grid-thick); }
+.grid-board .cell.wall-r::after {
+  border-right-width: var(--grid-thick);
+}
+.grid-board .cell.wall-b::after {
+  border-bottom-width: var(--grid-thick);
+}
 
-.grid-board .cell:focus-visible { outline: none; }
+.grid-board .cell:focus-visible {
+  outline: none;
+}
 /* The player's digits are gray and givens white; every one that matches the picked digit turns blue
    (like the notes below) on a shaded cell. */
-.grid-board .cell.given { color: var(--text); font-weight: 600; }
-.grid-board .cell.same { color: var(--accent); background: var(--accent-soft); }
-.grid-board .cell.conflict { color: var(--danger); background: var(--danger-soft); }
+.grid-board .cell.given {
+  font-weight: 600;
+  color: var(--text);
+}
+.grid-board .cell.same {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.grid-board .cell.conflict {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
 
-.grid-board .cell.corner-tl { border-top-left-radius: 4px; }
-.grid-board .cell.corner-tr { border-top-right-radius: 4px; }
-.grid-board .cell.corner-bl { border-bottom-left-radius: 4px; }
-.grid-board .cell.corner-br { border-bottom-right-radius: 4px; }
+.grid-board .cell.corner-tl {
+  border-top-left-radius: 4px;
+}
+.grid-board .cell.corner-tr {
+  border-top-right-radius: 4px;
+}
+.grid-board .cell.corner-bl {
+  border-bottom-left-radius: 4px;
+}
+.grid-board .cell.corner-br {
+  border-bottom-right-radius: 4px;
+}
 
 /* A cage sum sits on its cage's top edge, in the gap above the colored shape (centered on the line
    between this cell and the one above), on a small tag, so the cell's pencil marks keep the same
@@ -71,47 +94,71 @@
   top: -0.5px;
   left: 3px;
   z-index: 2;
-  transform: translateY(-50%);
   padding: 0 2px;
-  border-radius: 3px;
-  background: var(--bg);
-  color: var(--text);
   font-size: calc(22cqi / var(--n));
   font-weight: 600;
   line-height: 1;
+  color: var(--text);
   white-space: nowrap;
+  background: var(--bg);
+  border-radius: 3px;
+  transform: translateY(-50%);
 }
 
 .grid-board .notes {
   position: absolute;
   inset: 2px;
   display: grid;
+  grid-template-rows: repeat(var(--note-rows), 1fr);
   /* Rows too, so each digit keeps its place: without them, rows of empty spans collapse. */
   grid-template-columns: repeat(var(--note-cols), 1fr);
-  grid-template-rows: repeat(var(--note-rows), 1fr);
-  color: var(--muted);
   font-size: calc(21.6cqi / var(--n));
   font-weight: 400;
   line-height: 1;
+  color: var(--muted);
 }
 
 /* Zone colors (Killer's cages): a translucent fill per zone, over the cell's own background so
    the picked digit's shading and a conflict's red still show through. GridPlay insets it --zone-gap from
    the zone's outline, so each cage reads as one shape with a margin of plain cell around it. The
    first is blank; the other four are the start of PALETTE (palette.ts). */
-.grid-board { --zone-gap: 5px; }
-.grid-board .zone-fill { position: absolute; pointer-events: none; background: color-mix(in srgb, var(--zone) 20%, transparent); }
-.grid-board .zone-0 { --zone: transparent; }
-.grid-board .zone-1 { --zone: #e5534b; }
-.grid-board .zone-2 { --zone: #4f8ef7; }
-.grid-board .zone-3 { --zone: #e8c547; }
-.grid-board .zone-4 { --zone: #3fb67a; }
+.grid-board {
+  --zone-gap: 5px;
+}
+.grid-board .zone-fill {
+  position: absolute;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--zone) 20%, transparent);
+}
+.grid-board .zone-0 {
+  --zone: transparent;
+}
+.grid-board .zone-1 {
+  --zone: #e5534b;
+}
+.grid-board .zone-2 {
+  --zone: #4f8ef7;
+}
+.grid-board .zone-3 {
+  --zone: #e8c547;
+}
+.grid-board .zone-4 {
+  --zone: #3fb67a;
+}
 /* Positioned, so it paints above the fill. */
-.grid-board .value { position: relative; }
+.grid-board .value {
+  position: relative;
+}
 
-.grid-board .notes span { display: grid; place-items: center; }
+.grid-board .notes span {
+  display: grid;
+  place-items: center;
+}
 /* The pad's digit among the notes, so a drag shows where that digit could still go. */
-.grid-board .notes span.hit { color: var(--accent); font-weight: 600; }
+.grid-board .notes span.hit {
+  font-weight: 600;
+  color: var(--accent);
+}
 
 /* Erase / Notes / Set and the pad go without outlines: the fill alone shows each button. Each mode
    is just its Lucide icon (the name is its aria-label): an eraser, a notebook for notes, a pencil to set. */
@@ -121,22 +168,43 @@
   border-color: transparent;
 }
 
-.pad { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
+.pad {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  gap: 4px;
+}
 
 .digit {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 8px 0 6px;
+  color: var(--accent);
+  background: var(--surface);
   border: 1px solid transparent;
   border-radius: 10px;
-  background: var(--surface);
-  color: var(--accent);
 }
 
-.digit-n { font-size: 1.6rem; line-height: 1.1; }
-.digit-left { min-height: 1em; color: var(--muted); font-size: 0.7rem; }
-.digit[aria-pressed="true"] { background: var(--accent-soft); }
-.digit.complete { opacity: 0.35; }
-.digit.complete[aria-pressed="true"] { opacity: 0.6; }
-.pad.notes-mode .digit-n { font-size: 1.1rem; line-height: 1.6; color: var(--muted); }
+.digit-n {
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+.digit-left {
+  min-height: 1em;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.digit[aria-pressed='true'] {
+  background: var(--accent-soft);
+}
+.digit.complete {
+  opacity: 0.35;
+}
+.digit.complete[aria-pressed='true'] {
+  opacity: 0.6;
+}
+.pad.notes-mode .digit-n {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--muted);
+}

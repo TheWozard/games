@@ -8,16 +8,16 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
 
   interface Props extends HTMLButtonAttributes {
-    label: string;
-    detail?: string;
-    pressed: boolean;
     children?: Snippet;
+    detail?: string;
+    label: string;
+    pressed: boolean;
   }
 
   let { label, detail, pressed, children, ...rest }: Props = $props();
 </script>
 
-<button type="button" class="btn" aria-pressed={pressed} {...rest}>
+<button class="btn" aria-pressed={pressed} type="button" {...rest}>
   {@render children?.()}
   <strong>{label}</strong>{#if detail}<span>{detail}</span>{/if}
 </button>

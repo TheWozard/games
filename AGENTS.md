@@ -10,6 +10,8 @@ https://thewozard.github.io/games/. There is no backend: everything is static an
 npm install        # once
 just dev           # Vite dev server, http://localhost:5173 (no service worker in dev)
 just test          # Vitest unit tests (npm test)
+just lint          # ESLint + Stylelint, and Prettier's check (npm run lint)
+just fmt           # Prettier, then the linters' fixes (npm run format)
 just build         # svelte-check (fails on warnings) + production build into dist/
 just preview       # serve dist/ with its service worker, http://localhost:4173
 just icons         # re-render the PNG app icons (needs Inkscape)
@@ -18,7 +20,8 @@ just mahjong-tiles # remake Mahjong's Riichi tile art from two public tile sets 
 just mahjong-layouts # remake Mahjong's archive layouts from the layout museum's GPL sources (needs a network connection)
 ```
 
-Before calling a change done: `npm test` and `npm run build` must both pass with no warnings.
+Before calling a change done: `npm run lint`, `npm test` and `npm run build` must all pass with no
+warnings.
 
 ## Layout
 
@@ -66,8 +69,11 @@ src/
     *.test.ts           tests beside the code they test
 public/                 copied to dist/ unchanged: icons/, manifest.webmanifest, .nojekyll
 scripts/                one-off generators run on a laptop (blocks.ts: Sliding Blocks puzzles; mahjong-tiles.ts: Mahjong's Riichi tile art, credited in README.md and the game menu's Credits; mahjong-layouts.ts: Mahjong's archive layouts, src/mahjong/archive.ts)
+eslint.config.js        lint rules, including some of the conventions below (pure logic.ts / game.ts, storage
+                        through storage.ts, Lucide icons by path, no vibration)
+stylelint.config.js     CSS lint (.css files and Svelte <style> blocks); Prettier (.prettierrc.json) formats
 vite.config.ts          multi-page build (every src/*/index.html), PWA/Workbox config, Vitest config
-.github/workflows/deploy.yml   test + build, then publish dist/ to the gh-pages branch
+.github/workflows/deploy.yml   lint, test + build, then publish dist/ to the gh-pages branch
 ```
 
 Games: `sudoku` (Classic, Killer and Jigsaw, one page: `src/sudoku/classic/`, `src/sudoku/killer/`
@@ -82,8 +88,8 @@ only forwards old links), `blocks` (Sliding Blocks).
 
 - **logic.ts is pure.** Generators take an optional `random` argument (default `Math.random`)
   so tests can drive them. Keep DOM and Svelte out of it.
-- **game.ts holds all state changes** in a pure `reducer(game, action)`. It returns the *same
-  object* when an action changes nothing (tests rely on this). Game state is plain JSON.
+- **game.ts holds all state changes** in a pure `reducer(game, action)`. It returns the _same
+  object_ when an action changes nothing (tests rely on this). Game state is plain JSON.
 - **Components** keep the game in `$state.raw`, replace it via the reducer, and save with
   `$effect(() => saveJSON(STORAGE_KEY, game))`. They render inside `<GameScreen>`, passing the
   title, current setting, undo, New options (or a `picker` snippet for several settings) and
@@ -156,7 +162,7 @@ only forwards old links), `blocks` (Sliding Blocks).
 - **Controls under the board, always in this order:**
   1. `.tools` row of the game's other actions: Clear/Erase, Notes, Shuffle. Undo and New
      are in the header; leave the row out if nothing's left.
-  2. A row for *what a tap places*, if the game needs one (the number pad). Prefer gestures to mode
+  2. A row for _what a tap places_, if the game needs one (the number pad). Prefer gestures to mode
      buttons: Mines flags on long-press, Bridges builds by dragging and removes by swiping.
   3. A `.status` note only for a state the player must act on (Mahjong stuck → Shuffle). Wins and
      losses (Mines' mine) just bring up Next; dead ends aren't called (Color Sort: Undo out of it), and
@@ -233,7 +239,7 @@ only forwards old links), `blocks` (Sliding Blocks).
   (Shading), draw lines with `vector-effect: non-scaling-stroke` so a stroke width in pixels stays
   that wide, and use the border of the `<svg>` itself where nothing else shares it (Nonogram draws
   its frame, since the clues share its svg).
-- **Service worker caching:** a browser that has visited the built site serves the *previous*
+- **Service worker caching:** a browser that has visited the built site serves the _previous_
   build until the new worker activates. Use a fresh browser profile when screenshotting, and
   expect one reload on devices after a deploy.
 
@@ -263,6 +269,29 @@ Nothing else to register: Vite finds the page, and Workbox precaches every built
   with `currentColor` (the accent) and `var(--surface)` for knock-outs. Keep them simple: an outer
   rounded square or a few shapes, legible at 48px. Gradient's card is the one exception that uses
   its own colors.
+
+## Formatting and lint
+
+- Prettier formats every file (`just fmt`); don't hand-format against it. It also sorts imports
+  (built-ins, packages, then relative paths; side-effect imports such as `../shared/app` stay
+  where they are) and the keys of `package.json`. Stylelint puts CSS properties in one order
+  (`stylelint-config-recess-order`: position, layout, size, box, typography, then visual); a
+  comment inside a rule moves with the declaration under it, so a comment about the whole rule goes
+  above its selector. Generated data
+  (`src/blocks/puzzles.ts`, `src/mahjong/archive.ts`, `src/solitaire/klondike/deals.ts`,
+  `faces.svg`) is left as its scripts write it (`.prettierignore`).
+- Sorted wherever order means nothing at run time: the keys of JSON files (Prettier; arrays keep
+  their order), and with ESLint's fixes, interface and object-type members, union and intersection
+  members, exports, and Svelte attributes (`svelte/sort-attributes`, which never moves one past a
+  `{...spread}`). Not object literals: `CHOICES`, `DIFFICULTIES` and the like are read in order.
+- ESLint's `no-unsafe-*` rules are off: typescript-eslint can't read the types of `.svelte`
+  imports. Mark a promise left to run on its own with `void` (`no-floating-promises`).
+- Silence a rule only for one line, with a reason: `// eslint-disable-next-line <rule> -- why`.
+- Every `<button>` says its `type` (`svelte/button-has-type`). Inside a `Dialog` (a
+  `<form method="dialog">`) or GameScreen2's menu, a button that closes it with its value is
+  `type="submit"`; any other is `type="button"`.
+- `a.at(-1)` rather than `a[a.length - 1]` (`unicorn/prefer-at`); it's typed as possibly
+  `undefined`, so add `!` where the array can't be empty.
 
 ## Testing
 

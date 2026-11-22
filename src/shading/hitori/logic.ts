@@ -19,8 +19,8 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export interface Puzzle {
-  size: number;
   numbers: number[]; // per cell, 1..size
+  size: number;
   solution: boolean[]; // per cell: shaded
 }
 
@@ -36,7 +36,11 @@ const KEPT = 1;
 const SHADED = 2;
 
 /** Up to `limit` answers (shaded cells), or null if `budget` steps run out first. */
-export function solutions(p: Pick<Puzzle, 'size' | 'numbers'>, limit = 2, budget = 100_000): boolean[][] | null {
+export function solutions(
+  p: Pick<Puzzle, 'numbers' | 'size'>,
+  limit = 2,
+  budget = 100_000,
+): boolean[][] | null {
   const n = p.size;
   const { numbers } = p;
   // The other cells with the same number in the same row or column.
@@ -75,7 +79,9 @@ export function solutions(p: Pick<Puzzle, 'size' | 'numbers'>, limit = 2, budget
       return;
     }
     // A cell that still repeats among the unshaded: one of its copies has to go.
-    const open = state.findIndex((s, i) => s === UNKNOWN && twins[i].some((j) => state[j] !== SHADED));
+    const open = state.findIndex(
+      (s, i) => s === UNKNOWN && twins[i].some((j) => state[j] !== SHADED),
+    );
     if (open < 0) {
       found.push(Array.from(state, (s) => s === SHADED));
       if (found.length >= limit) return;
@@ -99,7 +105,7 @@ export function solutions(p: Pick<Puzzle, 'size' | 'numbers'>, limit = 2, budget
   return out ? null : found;
 }
 
-export function isUnique(p: Pick<Puzzle, 'size' | 'numbers'>): boolean {
+export function isUnique(p: Pick<Puzzle, 'numbers' | 'size'>): boolean {
   const found = solutions(p);
   return found !== null && found.length === 1;
 }
@@ -108,16 +114,28 @@ export function isUnique(p: Pick<Puzzle, 'size' | 'numbers'>): boolean {
 
 /** A random Latin square: a shifted pattern, its rows, columns and numbers shuffled. */
 function latin(n: number, random: Random): number[] {
-  const rows = shuffle(Array.from({ length: n }, (_, k) => k), random);
-  const cols = shuffle(Array.from({ length: n }, (_, k) => k), random);
-  const syms = shuffle(Array.from({ length: n }, (_, k) => k + 1), random);
+  const rows = shuffle(
+    Array.from({ length: n }, (_, k) => k),
+    random,
+  );
+  const cols = shuffle(
+    Array.from({ length: n }, (_, k) => k),
+    random,
+  );
+  const syms = shuffle(
+    Array.from({ length: n }, (_, k) => k + 1),
+    random,
+  );
   return Array.from({ length: n * n }, (_, i) => syms[(rows[Math.floor(i / n)] + cols[i % n]) % n]);
 }
 
 /** Shaded cells that can't take one more: none side by side, the rest connected. */
 function shading(n: number, random: Random): boolean[] {
   const shaded = new Array<boolean>(n * n).fill(false);
-  for (const i of shuffle(Array.from({ length: n * n }, (_, k) => k), random)) {
+  for (const i of shuffle(
+    Array.from({ length: n * n }, (_, k) => k),
+    random,
+  )) {
     if (sides(n, i).some((j) => shaded[j])) continue;
     shaded[i] = true;
     if (!connected(n, (j) => !shaded[j])) shaded[i] = false;
@@ -153,7 +171,11 @@ export function generate(difficulty: Difficulty, random: Random = Math.random): 
 // ---- Checks ----
 
 /** Shaded cells side by side, and kept (circled) cells repeating a kept number in their row or column. */
-export function conflicts(p: Pick<Puzzle, 'size' | 'numbers'>, shaded: boolean[], kept: boolean[]): boolean[] {
+export function conflicts(
+  p: Pick<Puzzle, 'numbers' | 'size'>,
+  shaded: boolean[],
+  kept: boolean[],
+): boolean[] {
   const n = p.size;
   return p.numbers.map((v, i) => {
     if (shaded[i]) return sides(n, i).some((j) => shaded[j]);
@@ -163,18 +185,25 @@ export function conflicts(p: Pick<Puzzle, 'size' | 'numbers'>, shaded: boolean[]
     for (let t = 0; t < n; t++) {
       const a = r * n + t;
       const b = t * n + c;
-      if ((a !== i && kept[a] && p.numbers[a] === v) || (b !== i && kept[b] && p.numbers[b] === v)) return true;
+      if ((a !== i && kept[a] && p.numbers[a] === v) || (b !== i && kept[b] && p.numbers[b] === v))
+        return true;
     }
     return false;
   });
 }
 
 export function isPuzzle(value: unknown, difficulty: Difficulty): value is Puzzle {
-  const p = value as Puzzle | null;
+  const p = value as null | Puzzle;
   const n = DIFFICULTIES[difficulty].size;
   return (
-    typeof p === 'object' && p !== null && p.size === n &&
-    Array.isArray(p.numbers) && p.numbers.length === n * n && p.numbers.every((v) => Number.isInteger(v) && v >= 1 && v <= n) &&
-    Array.isArray(p.solution) && p.solution.length === n * n && p.solution.every((s) => typeof s === 'boolean')
+    typeof p === 'object' &&
+    p !== null &&
+    p.size === n &&
+    Array.isArray(p.numbers) &&
+    p.numbers.length === n * n &&
+    p.numbers.every((v) => Number.isInteger(v) && v >= 1 && v <= n) &&
+    Array.isArray(p.solution) &&
+    p.solution.length === n * n &&
+    p.solution.every((s) => typeof s === 'boolean')
   );
 }

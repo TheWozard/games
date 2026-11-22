@@ -1,14 +1,14 @@
 <!-- The Sudoku page: Classic, Killer or Jigsaw, whichever was played last, switched from the New Game dialog. -->
 <script lang="ts">
   import GridPlay from '../shared/GridPlay.svelte';
-  import { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import { parsePick } from '../shared/VariantPicker.svelte';
   import * as classic from './classic/game';
   import { DIFFICULTIES as CLASSIC, isDifficulty as isClassic } from './classic/logic';
   import * as jigsaw from './jigsaw/game';
-  import { DIFFICULTIES as JIGSAW, isDifficulty as isJigsaw } from './jigsaw/logic';
+  import { isDifficulty as isJigsaw, DIFFICULTIES as JIGSAW } from './jigsaw/logic';
   import * as killer from './killer/game';
-  import { DIFFICULTIES as KILLER, isDifficulty as isKiller } from './killer/logic';
+  import { isDifficulty as isKiller, DIFFICULTIES as KILLER } from './killer/logic';
   import { GAMES, isVariant, VARIANT_KEY, type Variant } from './variants';
 
   let variant = $state<Variant>(loadJSON(VARIANT_KEY, isVariant) ?? 'classic');
@@ -26,35 +26,35 @@
 
 {#if variant === 'classic'}
   <GridPlay
-    title="Sudoku"
-    storageKey={classic.STORAGE_KEY}
-    difficulties={CLASSIC}
-    isValid={classic.isGame}
     create={(d) => classic.newGame(isClassic(d) ? d : 'easy')}
-    layout={() => classic.LAYOUT}
-    variants={{ games: GAMES, current: 'classic', onswitch }}
+    difficulties={CLASSIC}
     {first}
+    isValid={classic.isGame}
+    layout={() => classic.LAYOUT}
+    storageKey={classic.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'classic', onswitch }}
   />
 {:else if variant === 'jigsaw'}
   <GridPlay
-    title="Sudoku"
-    storageKey={jigsaw.STORAGE_KEY}
-    difficulties={JIGSAW}
-    isValid={jigsaw.isGame}
     create={(d) => jigsaw.newGame(isJigsaw(d) ? d : 'easy')}
-    layout={jigsaw.layout}
-    variants={{ games: GAMES, current: 'jigsaw', onswitch }}
+    difficulties={JIGSAW}
     {first}
+    isValid={jigsaw.isGame}
+    layout={jigsaw.layout}
+    storageKey={jigsaw.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'jigsaw', onswitch }}
   />
 {:else}
   <GridPlay
-    title="Sudoku"
-    storageKey={killer.STORAGE_KEY}
-    difficulties={KILLER}
-    isValid={killer.isGame}
     create={(d) => killer.newGame(isKiller(d) ? d : 'easy')}
-    layout={killer.layout}
-    variants={{ games: GAMES, current: 'killer', onswitch }}
+    difficulties={KILLER}
     {first}
+    isValid={killer.isGame}
+    layout={killer.layout}
+    storageKey={killer.STORAGE_KEY}
+    title="Sudoku"
+    variants={{ games: GAMES, current: 'killer', onswitch }}
   />
 {/if}

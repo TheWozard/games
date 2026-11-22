@@ -6,10 +6,17 @@
 // Deals are random, and kept only if a solver finds a way to win, so every game can be won. When
 // a few random deals in a row can't be won, one of a stored list is used instead (deals.ts).
 
-import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../../shared/cards';
+import {
+  isRed,
+  rankOf,
+  safeToFoundation,
+  shuffledDeck,
+  suitOf,
+  type Card,
+} from '../../shared/cards';
 import { DEALS } from './deals';
 
-export { isRed, rankOf, suitOf, type Card };
+export { type Card, isRed, rankOf, suitOf };
 
 export interface Column {
   down: Card[]; // face down, bottom first
@@ -17,10 +24,10 @@ export interface Column {
 }
 
 export interface Table {
-  stock: Card[]; // top is last
-  waste: Card[]; // top is last
   foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
+  stock: Card[]; // top is last
   tableau: Column[];
+  waste: Card[]; // top is last
 }
 
 export type Draw = 1 | 3;
@@ -50,7 +57,7 @@ export const toFoundation = (t: Table, c: Card) => t.foundations[suitOf(c)] === 
 export function fitsColumn(t: Table, c: Card, col: number): boolean {
   const { down, up } = t.tableau[col];
   if (up.length === 0) return down.length === 0 && rankOf(c) === 13;
-  const top = up[up.length - 1];
+  const top = up.at(-1)!;
   return rankOf(top) === rankOf(c) + 1 && isRed(top) !== isRed(c);
 }
 
@@ -58,12 +65,12 @@ export function fitsColumn(t: Table, c: Card, col: number): boolean {
 
 /** Where cards can be taken from. */
 export type Source =
-  | { from: 'waste' }
+  | { col: number; from: 'tableau'; index: number } // index into that column's face-up cards
   | { from: 'foundation'; suit: number }
-  | { from: 'tableau'; col: number; index: number }; // index into that column's face-up cards
+  | { from: 'waste' };
 
 /** Where they can go. */
-export type Target = { to: 'foundation' } | { to: 'tableau'; col: number };
+export type Target = { col: number; to: 'tableau' } | { to: 'foundation' };
 
 const clone = (t: Table): Table => ({
   stock: t.stock.slice(),
@@ -74,7 +81,7 @@ const clone = (t: Table): Table => ({
 
 /** The cards a source would lift, or null if it's empty. */
 export function lifted(t: Table, s: Source): Card[] | null {
-  if (s.from === 'waste') return t.waste.length ? [t.waste[t.waste.length - 1]] : null;
+  if (s.from === 'waste') return t.waste.length ? [t.waste.at(-1)!] : null;
   if (s.from === 'foundation') {
     const n = t.foundations[s.suit];
     return n ? [s.suit * 13 + n - 1] : null;
@@ -86,7 +93,8 @@ export function lifted(t: Table, s: Source): Card[] | null {
 export function canMove(t: Table, s: Source, d: Target): boolean {
   const cards = lifted(t, s);
   if (!cards) return false;
-  if (d.to === 'foundation') return cards.length === 1 && s.from !== 'foundation' && toFoundation(t, cards[0]);
+  if (d.to === 'foundation')
+    return cards.length === 1 && s.from !== 'foundation' && toFoundation(t, cards[0]);
   if (s.from === 'tableau' && s.col === d.col) return false;
   return fitsColumn(t, cards[0], d.col);
 }
@@ -117,16 +125,17 @@ export function draw(t: Table, n: Draw): Table {
 }
 
 /** Every card is face up and the stock is used up: the rest can go to the foundations by itself. */
-export const finishable = (t: Table) => t.stock.length === 0 && t.waste.length === 0 && t.tableau.every((c) => c.down.length === 0);
+export const finishable = (t: Table) =>
+  t.stock.length === 0 && t.waste.length === 0 && t.tableau.every((c) => c.down.length === 0);
 
 /** Plays every card up to the foundations (for a finishable table). */
 export function finish(t: Table): Table {
   let out = t;
-  for (let progress = true; progress; ) {
+  for (let progress = true; progress;) {
     progress = false;
     for (let col = 0; col < 7; col++) {
       const up = out.tableau[col].up;
-      if (up.length && toFoundation(out, up[up.length - 1])) {
+      if (up.length && toFoundation(out, up.at(-1)!)) {
         out = move(out, { from: 'tableau', col, index: up.length - 1 }, { to: 'foundation' });
         progress = true;
       }
@@ -139,7 +148,7 @@ export function finish(t: Table): Table {
  * The best place to send the cards a tap picks up: the foundation if a single card fits there,
  * else a column (preferring one with cards to an empty one), else null.
  */
-export function bestTarget(t: Table, s: Source): Target | null {
+export function bestTarget(t: Table, s: Source): null | Target {
   if (canMove(t, s, { to: 'foundation' })) return { to: 'foundation' };
   const columns = [...Array(7).keys()].filter((col) => canMove(t, s, { to: 'tableau', col }));
   // A King already heading an otherwise empty column has nowhere better to go.
@@ -166,13 +175,26 @@ const SOLVE_BUDGET = 3000;
 export function solvable(start: Table, drawCount: Draw, budget = SOLVE_BUDGET): boolean {
   const seen = new Set<string>();
   const key = (t: Table) =>
-    t.tableau.map((c) => `${c.down.length}:${c.up.join('.')}`).join('|') + '/' + t.stock.join('.') + '/' + t.waste.join('.') + '/' + t.foundations.join('.');
+    t.tableau.map((c) => `${c.down.length}:${c.up.join('.')}`).join('|') +
+    '/' +
+    t.stock.join('.') +
+    '/' +
+    t.waste.join('.') +
+    '/' +
+    t.foundations.join('.');
 
   const safe = (t: Table, c: Card) => safeToFoundation(t.foundations, c);
   const autoplay = (t: Table): Table => {
-    for (let progress = true; progress; ) {
+    for (let progress = true; progress;) {
       progress = false;
-      const sources: Source[] = [{ from: 'waste' }, ...[...Array(7).keys()].map((col) => ({ from: 'tableau' as const, col, index: t.tableau[col].up.length - 1 }))];
+      const sources: Source[] = [
+        { from: 'waste' },
+        ...[...Array(7).keys()].map((col) => ({
+          from: 'tableau' as const,
+          col,
+          index: t.tableau[col].up.length - 1,
+        })),
+      ];
       for (const s of sources) {
         const cards = lifted(t, s);
         if (cards?.length === 1 && toFoundation(t, cards[0]) && safe(t, cards[0])) {
@@ -198,21 +220,25 @@ export function solvable(start: Table, drawCount: Draw, budget = SOLVE_BUDGET): 
       const s: Source = { from: 'tableau', col, index: t.tableau[col].up.length - 1 };
       if (canMove(t, s, { to: 'foundation' })) next.push(move(t, s, { to: 'foundation' }));
     }
-    if (canMove(t, { from: 'waste' }, { to: 'foundation' })) next.push(move(t, { from: 'waste' }, { to: 'foundation' }));
+    if (canMove(t, { from: 'waste' }, { to: 'foundation' }))
+      next.push(move(t, { from: 'waste' }, { to: 'foundation' }));
     // Whole face-up runs between columns, when that uncovers a card (or clears a column for a King).
     for (let col = 0; col < 7; col++) {
       const c = t.tableau[col];
       if (c.up.length === 0 || c.down.length === 0) continue;
       for (let to = 0; to < 7; to++) {
-        if (canMove(t, { from: 'tableau', col, index: 0 }, { to: 'tableau', col: to })) next.push(move(t, { from: 'tableau', col, index: 0 }, { to: 'tableau', col: to }));
+        if (canMove(t, { from: 'tableau', col, index: 0 }, { to: 'tableau', col: to }))
+          next.push(move(t, { from: 'tableau', col, index: 0 }, { to: 'tableau', col: to }));
       }
     }
     // Any card the stock can bring to the top of the waste, played onto a foundation or column:
     // one move each, rather than one per draw (which multiplies near-identical positions).
     for (const r of reachable(t, drawCount)) {
-      if (canMove(r, { from: 'waste' }, { to: 'foundation' })) next.push(move(r, { from: 'waste' }, { to: 'foundation' }));
+      if (canMove(r, { from: 'waste' }, { to: 'foundation' }))
+        next.push(move(r, { from: 'waste' }, { to: 'foundation' }));
       for (let to = 0; to < 7; to++) {
-        if (canMove(r, { from: 'waste' }, { to: 'tableau', col: to })) next.push(move(r, { from: 'waste' }, { to: 'tableau', col: to }));
+        if (canMove(r, { from: 'waste' }, { to: 'tableau', col: to }))
+          next.push(move(r, { from: 'waste' }, { to: 'tableau', col: to }));
       }
     }
 
@@ -232,7 +258,7 @@ export function reachable(t: Table, n: Draw): Table[] {
   const size = t.stock.length + t.waste.length;
   let s = t;
   for (let k = 0; k <= size + 2; k++) {
-    const top = s.waste[s.waste.length - 1];
+    const top = s.waste.at(-1);
     if (top !== undefined && !tops.has(top)) {
       tops.add(top);
       out.push(s);
@@ -252,7 +278,11 @@ export function reachable(t: Table, n: Draw): Table[] {
 const RANDOM_TRIES = 8;
 
 /** A deal the solver can win: a random one, or after `tries` misses, one from DEALS. */
-export function winnableDeal(drawCount: Draw, random: Random = Math.random, tries = RANDOM_TRIES): Table {
+export function winnableDeal(
+  drawCount: Draw,
+  random: Random = Math.random,
+  tries = RANDOM_TRIES,
+): Table {
   for (let k = 0; k < tries; k++) {
     const t = deal(random);
     if (solvable(t, drawCount)) return t;

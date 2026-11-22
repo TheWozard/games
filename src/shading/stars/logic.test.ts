@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { seeded, starsValid } from '../rules.test-helpers';
-import { conflicts, DIFFICULTIES, generate, isPuzzle, isUnique, solutions, type Difficulty } from './logic';
+import {
+  conflicts,
+  DIFFICULTIES,
+  generate,
+  isPuzzle,
+  isUnique,
+  solutions,
+  type Difficulty,
+} from './logic';
 
-const cells = (n: number, rows: number[]) => Array.from({ length: n * n }, (_, i) => (rows[Math.floor(i / n)] & (1 << (i % n))) !== 0);
+const cells = (n: number, rows: number[]) =>
+  Array.from({ length: n * n }, (_, i) => (rows[Math.floor(i / n)] & (1 << (i % n))) !== 0);
 
 describe('solutions', () => {
   it('finds exactly the placements brute force does, on small boards', () => {
@@ -45,7 +54,11 @@ describe('generate', () => {
 
 describe('conflicts', () => {
   it('flags touching stars and too many in a line', () => {
-    const p = { size: 6, stars: 1, regions: Array.from({ length: 36 }, (_, i) => Math.floor(i / 6)) };
+    const p = {
+      size: 6,
+      stars: 1,
+      regions: Array.from({ length: 36 }, (_, i) => Math.floor(i / 6)),
+    };
     const s = new Array<boolean>(36).fill(false);
     s[0] = s[7] = true; // diagonal neighbors
     s[3] = true; // a second star in row 0

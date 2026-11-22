@@ -5,25 +5,41 @@
   import { scale } from 'svelte/transition';
   import Dialog from '../shared/Dialog.svelte';
   import GameScreen2 from '../shared/GameScreen2.svelte';
+  import { formatSeed } from '../shared/seed';
+  import {
+    CHOICES,
+    loadSettings,
+    saveSetting,
+    type Setting,
+    type Settings,
+  } from '../shared/settings';
+  import { saveJSON } from '../shared/storage';
   import Button from '../shared/ui/Button.svelte';
+  import Chip from '../shared/ui/Chip.svelte';
   import Choice from '../shared/ui/Choice.svelte';
-  import PickGroup from '../shared/ui/PickGroup.svelte';
-  import Toggle from '../shared/ui/Toggle.svelte';
   import MenuItem from '../shared/ui/MenuItem.svelte';
   import MenuSection from '../shared/ui/MenuSection.svelte';
-  import Chip from '../shared/ui/Chip.svelte';
+  import PickGroup from '../shared/ui/PickGroup.svelte';
   import PickList from '../shared/ui/PickList.svelte';
-  import { formatSeed } from '../shared/seed';
-  import { CHOICES, loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
-  import { saveJSON } from '../shared/storage';
+  import Toggle from '../shared/ui/Toggle.svelte';
   import { dealInBackground } from './background';
-  import TileFaces from './TileFaces.svelte';
-  import LayoutThumb from './LayoutThumb.svelte';
   import { DEPTH } from './body';
-  import TileBody from './TileBody.svelte';
-  import { free, nextDeal, pairsLeft, reducer, slotsOf, STORAGE_KEY, type Action, type Deal, type Game } from './game';
+  import {
+    free,
+    nextDeal,
+    pairsLeft,
+    reducer,
+    slotsOf,
+    STORAGE_KEY,
+    type Action,
+    type Deal,
+    type Game,
+  } from './game';
   import { ARCHIVE_IDS, layoutOf, OWN_IDS, reaches, type Layout, type LayoutId } from './layouts';
+  import LayoutThumb from './LayoutThumb.svelte';
   import { DIFFICULTIES, drawOrder, MAX_TILES, type Difficulty } from './logic';
+  import TileBody from './TileBody.svelte';
+  import TileFaces from './TileFaces.svelte';
 
   // The game to start on: the saved one, or one App.svelte dealt.
   let { initial }: { initial: Game } = $props();
@@ -34,12 +50,29 @@
   let prefs = $state.raw(loadSettings());
   const inset = $derived(prefs.mahjongFaces === 'inset');
   const dim = $derived(prefs.mahjongBlocked === 'dimmed');
-  const SETTINGS: { key: Setting & `mahjong${string}`; label: string; names: Record<string, [string, string]> }[] = [
-    { key: 'mahjongArt', label: 'Tile Art', names: { classic: ['Classic', 'hand-drawn'], riichi: ['Riichi', 'Japanese-style set'] } },
-    { key: 'mahjongFaces', label: 'Tile Faces', names: { full: ['Full', 'fill the tile'], inset: ['Inset', 'space between tiles'] } },
-    { key: 'mahjongBlocked', label: 'Blocked Tiles', names: { dimmed: ['Dimmed', 'free tiles stand out'], plain: ['Plain', 'all look alike'] } },
+  const SETTINGS: {
+    key: `mahjong${string}` & Setting;
+    label: string;
+    names: Record<string, [string, string]>;
+  }[] = [
+    {
+      key: 'mahjongArt',
+      label: 'Tile Art',
+      names: { classic: ['Classic', 'hand-drawn'], riichi: ['Riichi', 'Japanese-style set'] },
+    },
+    {
+      key: 'mahjongFaces',
+      label: 'Tile Faces',
+      names: { full: ['Full', 'fill the tile'], inset: ['Inset', 'space between tiles'] },
+    },
+    {
+      key: 'mahjongBlocked',
+      label: 'Blocked Tiles',
+      names: { dimmed: ['Dimmed', 'free tiles stand out'], plain: ['Plain', 'all look alike'] },
+    },
   ];
-  const pickSetting = <K extends Setting>(key: K, value: Settings[K]) => (prefs = saveSetting(key, value));
+  const pickSetting = <K extends Setting>(key: K, value: Settings[K]) =>
+    (prefs = saveSetting(key, value));
 
   const layout = $derived(layoutOf(game.layout));
   const slots = $derived(slotsOf(game));
@@ -62,7 +95,13 @@
     const tops = slots.map((s) => topOf(s, maxZ));
     const x0 = Math.min(...lefts);
     const y0 = Math.min(...tops);
-    return { x0, y0, w: Math.max(...lefts) + 3 + DEPTH - x0, h: Math.max(...tops) + 4 + DEPTH - y0, maxZ };
+    return {
+      x0,
+      y0,
+      w: Math.max(...lefts) + 3 + DEPTH - x0,
+      h: Math.max(...tops) + 4 + DEPTH - y0,
+      maxZ,
+    };
   });
 
   // Size, in pixels per unit: the same for every layout, so a small one's tiles are as big as a large
@@ -85,7 +124,7 @@
   const puzzle = $derived([formatSeed(game.seed), game.layout, game.difficulty].join(' · '));
 
   // How hard a deal is: how often taking any free pair at random would still clear it (logic.ts).
-  const LEVELS: Record<Difficulty, { label: string; detail: string }> = {
+  const LEVELS: Record<Difficulty, { detail: string; label: string }> = {
     easy: { label: 'Zen', detail: 'forgiving' },
     medium: { label: 'Balance', detail: 'a few traps' },
     hard: { label: 'Focus', detail: 'plan ahead' },
@@ -103,8 +142,18 @@
   const layers = (l: Layout) => Math.max(...l.slots.map((s) => s.z)) + 1;
   const FILTERS: { key: string; kind: string; label: string; test: (l: Layout) => boolean }[] = [
     { key: 'original', kind: 'source', label: 'Original', test: (l) => !l.archive },
-    { key: 'kmahjongg', kind: 'source', label: 'KMahjongg', test: (l) => l.archive?.source === 'KMahjongg' },
-    { key: 'gnome', kind: 'source', label: 'GNOME', test: (l) => l.archive?.source === 'GNOME Mahjongg' },
+    {
+      key: 'kmahjongg',
+      kind: 'source',
+      label: 'KMahjongg',
+      test: (l) => l.archive?.source === 'KMahjongg',
+    },
+    {
+      key: 'gnome',
+      kind: 'source',
+      label: 'GNOME',
+      test: (l) => l.archive?.source === 'GNOME Mahjongg',
+    },
     { key: 'quick', kind: 'size', label: 'Quick', test: (l) => l.slots.length < 120 },
     { key: 'full', kind: 'size', label: 'Full Set', test: (l) => l.slots.length === MAX_TILES },
     { key: 'flat', kind: 'height', label: 'Flat', test: (l) => layers(l) <= 3 },
@@ -121,10 +170,12 @@
   };
   const shownIds = $derived(EVERY.filter(passes));
   const playable = $derived(chosen.filter((id) => reaches(id, level)));
-  const flip = (key: string) => (filters = filters.includes(key) ? filters.filter((k) => k !== key) : [...filters, key]);
+  const flip = (key: string) =>
+    (filters = filters.includes(key) ? filters.filter((k) => k !== key) : [...filters, key]);
   const ordered = (ids: Set<LayoutId>) => EVERY.filter((id) => ids.has(id));
   function toggle(id: LayoutId) {
-    chosen = chosen.includes(id) ? chosen.filter((k) => k !== id) : ordered(new Set([...chosen, id]));
+    chosen =
+      chosen.includes(id) ? chosen.filter((k) => k !== id) : ordered(new Set([...chosen, id]));
   }
   /** Replaces the picks among the layouts shown with `ids`, keeping the hidden ones'. */
   function pickShown(ids: readonly LayoutId[]) {
@@ -137,7 +188,9 @@
     filters = [];
   }
   const start = (value: string) =>
-    value === 'start' && playable.length ? deal(nextDeal(playable, level, game.layout)) : Promise.resolve();
+    value === 'start' && playable.length ?
+      deal(nextDeal(playable, level, game.layout))
+    : Promise.resolve();
 
   // Every deal is made in a worker (background.ts); the stage opens it on its starting view (boardKey).
   const deal = (next: Deal) => dealInBackground(next).then((g) => (game = g));
@@ -147,31 +200,42 @@
 
   // Dev menu entries (DevMenu.svelte): loaded by the dev server only, so a build leaves them out.
   let DevMenu = $state.raw<typeof import('./DevMenu.svelte').default>();
-  if (import.meta.env.DEV) import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
+  if (import.meta.env.DEV) void import('./DevMenu.svelte').then((m) => (DevMenu = m.default));
 </script>
 
 <TileFaces art={prefs.mahjongArt} />
 
 <GameScreen2
-  title="Mahjong"
-  subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
-  onundo={() => dispatch({ type: 'undo' })}
-  canUndo={!game.done && game.history.length > 0}
-  onopennew={openNew}
-  onstart={start}
-  canPlay={playable.length > 0}
-  finished={game.done}
-  onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
-  {puzzle}
   {board}
   boardKey="{game.layout} {game.seed}"
+  canPlay={playable.length > 0}
+  canUndo={!game.done && game.history.length > 0}
+  finished={game.done}
+  onnext={() => deal(nextDeal(game.pool, game.difficulty, game.layout))}
+  onopennew={openNew}
+  onstart={start}
+  onundo={() => dispatch({ type: 'undo' })}
+  {puzzle}
+  subtitle="{LEVELS[game.difficulty].label} · {layout.name}"
+  title="Mahjong"
   bind:stageWidth={stageW}
   bind:stageHeight={stageH}
 >
   {#snippet status()}
     {#if !game.done}
       <span class="mj-count" aria-label="{tilesLeft} tiles left">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2" width="9" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+        <svg aria-hidden="true" viewBox="0 0 16 16">
+          <rect
+            fill="none"
+            height="12"
+            rx="2"
+            stroke="currentColor"
+            stroke-width="1.6"
+            width="9"
+            x="3.5"
+            y="2"
+          />
+        </svg>
         {tilesLeft}
       </span>
     {/if}
@@ -180,7 +244,7 @@
     {#if !game.done && moves === 0}
       <!-- Stuck: the only time Shuffle appears. -->
       <p class="status">No matching pairs are free.</p>
-      <Button primary onclick={() => dispatch({ type: 'shuffle' })}>Shuffle</Button>
+      <Button onclick={() => dispatch({ type: 'shuffle' })} primary>Shuffle</Button>
     {/if}
   {/snippet}
   {#snippet settings()}
@@ -188,10 +252,10 @@
       <PickGroup title={label}>
         {#each CHOICES[key] as value (value)}
           <Choice
-            label={names[value][0]}
             detail={names[value][1]}
-            pressed={prefs[key] === value}
+            label={names[value][0]}
             onclick={() => pickSetting(key, value as Settings[typeof key])}
+            pressed={prefs[key] === value}
           />
         {/each}
       </PickGroup>
@@ -203,29 +267,40 @@
     </MenuSection>
   {/snippet}
   {#snippet dev()}
-    {#if DevMenu}<DevMenu {game} set={(g) => (game = g)} {deal} />{/if}
+    {#if DevMenu}<DevMenu {deal} {game} set={(g) => (game = g)} />{/if}
   {/snippet}
   {#snippet picker()}
     <PickGroup title="Difficulty">
       {#each DIFFICULTIES as d (d)}
-        <Choice label={LEVELS[d].label} detail={LEVELS[d].detail} pressed={level === d} onclick={() => (level = d)} />
+        <Choice
+          detail={LEVELS[d].detail}
+          label={LEVELS[d].label}
+          onclick={() => (level = d)}
+          pressed={level === d}
+        />
       {/each}
     </PickGroup>
-    <PickList title="Layouts" count={playable.length}>
+    <PickList count={playable.length} title="Layouts">
       {#snippet actions()}
         <span class="pick-select">Select</span>
-        <Button small disabled={!shownIds.length} onclick={() => pickShown(shownIds)}>All</Button>
-        <Button small disabled={!shownIds.length} onclick={() => pickShown([])}>None</Button>
+        <Button disabled={!shownIds.length} onclick={() => pickShown(shownIds)} small>All</Button>
+        <Button disabled={!shownIds.length} onclick={() => pickShown([])} small>None</Button>
       {/snippet}
       {#snippet chips()}
         {#each FILTERS as f, i (f.key)}
-          {#if i && f.kind !== FILTERS[i - 1].kind}<span class="chip-gap" aria-hidden="true"></span>{/if}
+          {#if i && f.kind !== FILTERS[i - 1].kind}<span class="chip-gap" aria-hidden="true"
+            ></span>{/if}
           <Chip label={f.label} on={filters.includes(f.key)} onclick={() => flip(f.key)} />
         {/each}
       {/snippet}
       {#each shownIds as id (id)}
         {@const l = layoutOf(id)}
-        <Toggle label={l.name} detail="{l.slots.length} tiles" on={chosen.includes(id)} onclick={() => toggle(id)}>
+        <Toggle
+          detail="{l.slots.length} tiles"
+          label={l.name}
+          on={chosen.includes(id)}
+          onclick={() => toggle(id)}
+        >
           {#snippet aside()}<LayoutThumb slots={l.slots} />{/snippet}
         </Toggle>
       {:else}
@@ -235,29 +310,28 @@
   {/snippet}
 
   <div
-    class="mj-board"
     style:width="{board.width}px"
     style:height="{board.height}px"
     style:--u="{u}px"
-    role="group"
+    class="mj-board"
     aria-label="Mahjong tiles"
+    role="group"
   >
     {#each order as s (s.i)}
       {#if !game.gone[s.i]}
         <button
-          type="button"
-          class={['mj-tile', {
-            blocked: dim && !free(game, s.i),
-            selected: game.selected === s.i,
-            inset,
-          }]}
           style:left="{((leftOf(s, box.maxZ) - box.x0) / box.w) * 100}%"
           style:top="{((topOf(s, box.maxZ) - box.y0) / box.h) * 100}%"
           style:width="{(3 / box.w) * 100}%"
           style:height="{(4 / box.h) * 100}%"
-          data-slot={s.i}
+          class={[
+            'mj-tile',
+            { blocked: dim && !free(game, s.i), selected: game.selected === s.i, inset },
+          ]}
           aria-label="Tile"
+          data-slot={s.i}
           onclick={() => dispatch({ type: 'tap', slot: s.i })}
+          type="button"
           transition:scale={{ duration: 180, start: 0.7 }}
         >
           <TileBody href="mj-k{game.kinds[s.i]}" />
@@ -267,12 +341,13 @@
   </div>
 </GameScreen2>
 
-<Dialog class="mj-credits" open={showingCredits} onclose={() => (showingCredits = false)}>
+<Dialog class="mj-credits" onclose={() => (showingCredits = false)} open={showingCredits}>
   <h2>Credits</h2>
   <h3 class="pick-title">This Layout</h3>
   {#if layout.archive}
     <p>
-      {layout.name}{#if layout.archive.by}, by {layout.archive.by}{/if}, from {layout.archive.source}
+      {layout.name}{#if layout.archive.by}, by {layout.archive.by}{/if}, from {layout.archive
+        .source}
       ({layout.archive.source === 'KMahjongg' ? 'GPL-2.0-or-later' : 'GPL-3.0-or-later'}).
     </p>
   {:else}
@@ -280,23 +355,41 @@
   {/if}
   <h3 class="pick-title">Layouts</h3>
   <p>
-    The classics come from <a href="https://github.com/KDE/kmahjongg/tree/master/layouts/" target="_blank" rel="noopener">KMahjongg</a>
+    The classics come from <a
+      href="https://github.com/KDE/kmahjongg/tree/master/layouts/"
+      rel="noopener"
+      target="_blank"
+    >
+      KMahjongg
+    </a>
     (KDE, GPL-2.0-or-later; most by Alexey Charkov) and
-    <a href="https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/" target="_blank" rel="noopener">GNOME Mahjongg</a>
+    <a
+      href="https://github.com/GNOME/gnome-mahjongg/tree/main/data/maps/"
+      rel="noopener"
+      target="_blank"
+    >
+      GNOME Mahjongg
+    </a>
     (GPL-3.0-or-later), collected by the
-    <a href="https://ffalt.github.io/mahseum/" target="_blank" rel="noopener">Mahjong Solitaire Layout Museum</a>.
-    The rest were made for this game.
+    <a href="https://ffalt.github.io/mahseum/" rel="noopener" target="_blank">
+      Mahjong Solitaire Layout Museum
+    </a>. The rest were made for this game.
   </p>
   <h3 class="pick-title">Tile Art</h3>
   <p>
     Classic was drawn for this game. Riichi is
-    <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles" target="_blank" rel="noopener">FluffyStuff</a>’s
-    (public domain), with flowers and seasons by
-    <a href="https://github.com/xhokir/riichi-mahjong-tiles" target="_blank" rel="noopener">xhokir</a>
-    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
+    <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles" rel="noopener" target="_blank">
+      FluffyStuff
+    </a>’s (public domain), with flowers and seasons by
+    <a href="https://github.com/xhokir/riichi-mahjong-tiles" rel="noopener" target="_blank">
+      xhokir
+    </a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener" target="_blank">
+      CC BY 4.0
+    </a>).
   </p>
   <!-- Drawn in the top corner. -->
-  <button class="dialog-close" value="" aria-label="Close">
-    <X strokeWidth={2.4} aria-hidden="true" />
+  <button class="dialog-close" aria-label="Close" type="submit" value="">
+    <X aria-hidden="true" strokeWidth={2.4} />
   </button>
 </Dialog>

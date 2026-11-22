@@ -4,19 +4,19 @@
   other entries, the menu stays open.
 -->
 <script lang="ts">
-  import Copy from "@lucide/svelte/icons/copy";
-  import { toast } from "../toast";
-  import MenuSection from "./MenuSection.svelte";
+  import Copy from '@lucide/svelte/icons/copy';
+  import { toast } from '../toast';
+  import MenuSection from './MenuSection.svelte';
 
   /** `oncopy` runs once it's copied (the dev gallery logs it). */
-  let { puzzle, oncopy }: { puzzle: string; oncopy?: () => void } = $props();
+  let { puzzle, oncopy }: { oncopy?: () => void; puzzle: string } = $props();
 
-  const failed = () => toast("Couldn't copy", { tone: "error" });
+  const failed = () => toast("Couldn't copy", { tone: 'error' });
 
   function copy() {
     if (!navigator.clipboard) return failed();
     navigator.clipboard.writeText(puzzle).then(() => {
-      toast("Copied");
+      toast('Copied');
       oncopy?.();
     }, failed);
   }
@@ -24,8 +24,8 @@
 
 <!-- A menu entry like the others (its own section, the icon at the left), but a tap doesn't close the menu. -->
 <MenuSection>
-  <button type="button" class="menu-item" title={puzzle} onclick={copy}>
-    <Copy strokeWidth={2.4} aria-hidden="true" />
+  <button class="menu-item" onclick={copy} title={puzzle} type="button">
+    <Copy aria-hidden="true" strokeWidth={2.4} />
     Details
   </button>
 </MenuSection>

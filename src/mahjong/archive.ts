@@ -5,12 +5,12 @@
 import type { Slot } from './logic';
 
 export interface ArchiveLayout {
+  /** Its author, where the layout names one. */
+  by: string;
   /** The museum's folder and file name. */
   id: string;
   name: string;
-  /** Its author, where the layout names one. */
-  by: string;
-  source: "KMahjongg" | "GNOME Mahjongg";
+  source: "GNOME Mahjongg" | "KMahjongg";
   /** Every tile as three base-36 digits, x y z, in half tiles from the top left; see `decode`. */
   tiles: string;
 }

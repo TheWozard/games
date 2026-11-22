@@ -51,7 +51,9 @@ for (let mask = 2; mask <= ALL_DIGITS; mask += 2) {
 
 /** The digit sets a cage of `size` cells summing to `sum` can use, e.g. (2, 3) → [[1, 2]]. */
 export function combinations(size: number, sum: number): number[][] {
-  return (COMBOS[size]?.[sum] ?? []).map((m) => [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => m & (1 << d)));
+  return (COMBOS[size]?.[sum] ?? []).map((m) =>
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => m & (1 << d)),
+  );
 }
 
 /** Whether a full cage is correct: right sum, no repeats. */
@@ -72,11 +74,16 @@ const orthogonal = (i: number) => {
 };
 
 /** Splits the grid into connected cages with no repeated digit, sized per difficulty. */
-function partition(solution: readonly number[], sizes: readonly number[], random: Random): number[][] {
+function partition(
+  solution: readonly number[],
+  sizes: readonly number[],
+  random: Random,
+): number[][] {
   const maxSize = Math.max(...sizes);
   const owner = new Array(81).fill(-1);
   const cages: number[][] = [];
-  const fits = (cage: number[], j: number) => owner[j] === -1 && !cage.some((i) => solution[i] === solution[j]);
+  const fits = (cage: number[], j: number) =>
+    owner[j] === -1 && !cage.some((i) => solution[i] === solution[j]);
   for (const start of shuffle([...Array(81).keys()], random)) {
     if (owner[start] !== -1) continue;
     const want = pick(sizes, random);
@@ -121,17 +128,28 @@ export interface Puzzle {
   solution: number[];
 }
 
-export function generate(difficulty: Difficulty, random: Random = Math.random, budget = SEARCH_BUDGET): Puzzle {
+export function generate(
+  difficulty: Difficulty,
+  random: Random = Math.random,
+  budget = SEARCH_BUDGET,
+): Puzzle {
   const solution = solvedGrid(random);
   const sumOf = (cells: number[]) => cells.reduce((a, i) => a + solution[i], 0);
-  let cages: Cage[] = partition(solution, DIFFICULTIES[difficulty].sizes, random).map((cells) => ({ cells, sum: sumOf(cells) }));
+  let cages: Cage[] = partition(solution, DIFFICULTIES[difficulty].sizes, random).map((cells) => ({
+    cells,
+    sum: sumOf(cells),
+  }));
   const puzzle = new Array(81).fill(0);
 
   // Splitting a cage adds information without revealing a digit, so prefer it over a given.
   const trySplit = (k: number, keep?: number): boolean => {
     const halves = split(cages[k].cells, keep ?? cages[k].cells[0], random);
     if (!halves) return false;
-    cages = [...cages.slice(0, k), ...cages.slice(k + 1), ...halves.map((cells) => ({ cells, sum: sumOf(cells) }))];
+    cages = [
+      ...cages.slice(0, k),
+      ...cages.slice(k + 1),
+      ...halves.map((cells) => ({ cells, sum: sumOf(cells) })),
+    ];
     return true;
   };
 
@@ -140,20 +158,40 @@ export function generate(difficulty: Difficulty, random: Random = Math.random, b
     if (found?.length === 1) break;
     if (found) {
       // Two solutions: split the cage of a cell where they differ, or else give that cell away.
-      const differ = shuffle([...Array(81).keys()].filter((i) => found[0][i] !== found[1][i]), random);
-      if (differ.some((i) => trySplit(cages.findIndex((c) => c.cells.includes(i)), i))) continue;
+      const differ = shuffle(
+        [...Array(81).keys()].filter((i) => found[0][i] !== found[1][i]),
+        random,
+      );
+      if (
+        differ.some((i) =>
+          trySplit(
+            cages.findIndex((c) => c.cells.includes(i)),
+            i,
+          ),
+        )
+      )
+        continue;
       puzzle[differ[0]] = solution[differ[0]];
     } else {
       // Out of budget: split the biggest cage, or else give away an empty cell.
-      const biggest = cages.reduce((b, c, k) => (c.cells.length > cages[b].cells.length ? k : b), 0);
+      const biggest = cages.reduce(
+        (b, c, k) => (c.cells.length > cages[b].cells.length ? k : b),
+        0,
+      );
       if (trySplit(biggest)) continue;
-      const cell = pick([...Array(81).keys()].filter((i) => !puzzle[i]), random);
+      const cell = pick(
+        [...Array(81).keys()].filter((i) => !puzzle[i]),
+        random,
+      );
       puzzle[cell] = solution[cell];
     }
   }
   // A one-cell cage is a given in all but name; show it as one.
   for (const c of cages) if (c.cells.length === 1) puzzle[c.cells[0]] = c.sum;
-  const empty = shuffle([...Array(81).keys()].filter((i) => !puzzle[i]), random);
+  const empty = shuffle(
+    [...Array(81).keys()].filter((i) => !puzzle[i]),
+    random,
+  );
   for (const i of empty.slice(0, DIFFICULTIES[difficulty].extra)) puzzle[i] = solution[i];
   cages.sort((a, b) => a.cells[0] - b.cells[0]);
   return { cages, puzzle, solution };
@@ -176,8 +214,8 @@ function split(cells: number[], keep: number, random: Random): [number[], number
     // The rest must be connected too.
     const seen = new Set([rest[0]]);
     const queue = [rest[0]];
-    for (let q = 0; q < queue.length; q++) {
-      for (const j of orthogonal(queue[q])) {
+    for (const here of queue) {
+      for (const j of orthogonal(here)) {
         if (rest.includes(j) && !seen.has(j)) {
           seen.add(j);
           queue.push(j);
@@ -196,7 +234,11 @@ const UNITS: number[][] = [
   ...Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => r * 9 + c)),
   ...Array.from({ length: 9 }, (_, c) => Array.from({ length: 9 }, (_, r) => r * 9 + c)),
   ...Array.from({ length: 9 }, (_, b) =>
-    Array.from({ length: 9 }, (_, k) => (Math.floor(b / 3) * 3 + Math.floor(k / 3)) * 9 + (b % 3) * 3 + (k % 3))),
+    Array.from(
+      { length: 9 },
+      (_, k) => (Math.floor(b / 3) * 3 + Math.floor(k / 3)) * 9 + (b % 3) * 3 + (k % 3),
+    ),
+  ),
 ];
 
 /**
@@ -209,7 +251,9 @@ function virtualCages(cages: readonly Cage[]): Cage[] {
   const out: Cage[] = [];
   for (const unit of UNITS) {
     const inUnit = new Set(unit);
-    const inside = new Set(unit.map((i) => cageOf[i]).filter((k) => cages[k].cells.every((i) => inUnit.has(i))));
+    const inside = new Set(
+      unit.map((i) => cageOf[i]).filter((k) => cages[k].cells.every((i) => inUnit.has(i))),
+    );
     const rest = unit.filter((i) => !inside.has(cageOf[i]));
     if (rest.length === 0 || rest.length === 9) continue;
     out.push({ cells: rest, sum: 45 - [...inside].reduce((a, k) => a + cages[k].sum, 0) });
@@ -218,7 +262,12 @@ function virtualCages(cages: readonly Cage[]): Cage[] {
 }
 
 /** Finds up to `limit` solutions, or gives up (null) after `budget` search steps. */
-export function solve(cages: readonly Cage[], givens: readonly number[], limit: number, budget = Infinity): number[][] | null {
+export function solve(
+  cages: readonly Cage[],
+  givens: readonly number[],
+  limit: number,
+  budget = Infinity,
+): null | number[][] {
   // Every constraint is "these cells hold distinct digits adding to this sum": the real cages,
   // plus the ones the 45 rule implies.
   const groups = [...cages, ...virtualCages(cages)];

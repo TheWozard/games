@@ -5,7 +5,7 @@
 // dropped and the page started afresh.
 const loaded = new Set<string>();
 
-export function loadJSON<T>(key: string, isValid: (value: unknown) => value is T): T | null {
+export function loadJSON<T>(key: string, isValid: (value: unknown) => value is T): null | T {
   try {
     const raw = localStorage.getItem(key);
     if (raw === null) return null;

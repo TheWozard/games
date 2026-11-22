@@ -24,8 +24,14 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
   typeof value === 'string' && Object.hasOwn(DIFFICULTIES, value);
 
 export const RULES = {
-  colors: { label: 'Colors', info: 'Cells come in colors, shown on the clues. Runs of the same color need a gap; different colors may touch.' },
-  mystery: { label: 'Mystery', info: 'Some numbers are hidden as ?: the run is there, but its length isn’t given.' },
+  colors: {
+    label: 'Colors',
+    info: 'Cells come in colors, shown on the clues. Runs of the same color need a gap; different colors may touch.',
+  },
+  mystery: {
+    label: 'Mystery',
+    info: 'Some numbers are hidden as ?: the run is there, but its length isn’t given.',
+  },
 } as const;
 
 export type Rule = keyof typeof RULES;
@@ -33,7 +39,8 @@ export type Rules = Record<Rule, boolean>;
 export const NO_RULES: Rules = { colors: false, mystery: false };
 
 export const isRules = (value: unknown): value is Rules =>
-  typeof value === 'object' && value !== null &&
+  typeof value === 'object' &&
+  value !== null &&
   (Object.keys(RULES) as Rule[]).every((k) => typeof (value as Rules)[k] === 'boolean');
 
 /** The share of a mystery puzzle's numbers that may be hidden, at most. */
@@ -44,14 +51,14 @@ type Random = () => number;
 /** One clue number: the run's color (1 when there are no colors) and its length, or null if hidden. */
 export interface Run {
   color: number;
-  length: number | null;
+  length: null | number;
 }
 
 export interface Puzzle {
-  size: number;
   colors: number; // 1 without the colors rule
-  rows: Run[][];
   cols: Run[][];
+  rows: Run[][];
+  size: number;
   solution: number[]; // per cell, row by row: 0 empty, 1..colors a color
 }
 
@@ -70,10 +77,12 @@ export function runsOf(line: number[]): Run[] {
   return runs;
 }
 
-export const rowOf = (cells: number[], size: number, r: number) => cells.slice(r * size, r * size + size);
-export const colOf = (cells: number[], size: number, c: number) => Array.from({ length: size }, (_, r) => cells[r * size + c]);
+export const rowOf = (cells: number[], size: number, r: number) =>
+  cells.slice(r * size, r * size + size);
+export const colOf = (cells: number[], size: number, c: number) =>
+  Array.from({ length: size }, (_, r) => cells[r * size + c]);
 
-export function cluesOf(solution: number[], size: number): { rows: Run[][]; cols: Run[][] } {
+export function cluesOf(solution: number[], size: number): { cols: Run[][]; rows: Run[][] } {
   return {
     rows: Array.from({ length: size }, (_, r) => runsOf(rowOf(solution, size, r))),
     cols: Array.from({ length: size }, (_, c) => runsOf(colOf(solution, size, c))),
@@ -83,12 +92,17 @@ export function cluesOf(solution: number[], size: number): { rows: Run[][]; cols
 /** Whether a line of cells fits its clue (hidden lengths match any length). */
 export function fits(line: number[], clue: Run[]): boolean {
   const runs = runsOf(line);
-  return runs.length === clue.length &&
-    runs.every((run, i) => run.color === clue[i].color && (clue[i].length === null || clue[i].length === run.length));
+  return (
+    runs.length === clue.length &&
+    runs.every(
+      (run, i) =>
+        run.color === clue[i].color && (clue[i].length === null || clue[i].length === run.length),
+    )
+  );
 }
 
 /** Whether every line fits its clue. With the line solver's uniqueness, that's the solution. */
-export const isSolved = (p: Pick<Puzzle, 'size' | 'rows' | 'cols'>, cells: number[]) =>
+export const isSolved = (p: Pick<Puzzle, 'cols' | 'rows' | 'size'>, cells: number[]) =>
   p.rows.every((clue, r) => fits(rowOf(cells, p.size, r), clue)) &&
   p.cols.every((clue, c) => fits(colOf(cells, p.size, c), clue));
 
@@ -102,7 +116,7 @@ export const isSolved = (p: Pick<Puzzle, 'size' | 'rows' | 'cols'>, cells: numbe
 // from the start, backward those that can still reach the end; the moves between two such states
 // are the ones some arrangement makes, and they say what each cell can be.
 
-export function solveLine(masks: number[], clue: Run[]): number[] | null {
+export function solveLine(masks: number[], clue: Run[]): null | number[] {
   const n = masks.length;
   const k = clue.length;
   const W = n + 1;
@@ -136,7 +150,8 @@ export function solveLine(masks: number[], clue: Run[]): number[] | null {
         else {
           if (masks[i] & 1 && back[at(j, i + 1, 0)]) ok = true;
           const len = ok ? null : lengths(j, i, end);
-          if (len) for (let L = len[0]; L <= len[1] && !ok; L++) if (back[at(j + 1, i + L, 1)]) ok = true;
+          if (len)
+            for (let L = len[0]; L <= len[1] && !ok; L++) if (back[at(j + 1, i + L, 1)]) ok = true;
         }
         back[at(j, i, end)] = ok ? 1 : 0;
       }
@@ -188,10 +203,10 @@ export function solveLine(masks: number[], clue: Run[]): number[] | null {
  * `budget` caps the line solves, so a check can't run long.
  */
 export function solve(
-  p: Pick<Puzzle, 'size' | 'colors' | 'rows' | 'cols'>,
+  p: Pick<Puzzle, 'colors' | 'cols' | 'rows' | 'size'>,
   stuck?: number[],
   budget = 20_000,
-): number[] | null {
+): null | number[] {
   const { size } = p;
   const all = (1 << (p.colors + 1)) - 1;
   const masks = new Array<number>(size * size).fill(all);
@@ -205,7 +220,10 @@ export function solve(
     const isRow = line < size;
     const idx = line % size;
     const cells = Array.from({ length: size }, (_, t) => (isRow ? idx * size + t : t * size + idx));
-    const got = solveLine(cells.map((x) => masks[x]), isRow ? p.rows[idx] : p.cols[idx]);
+    const got = solveLine(
+      cells.map((x) => masks[x]),
+      isRow ? p.rows[idx] : p.cols[idx],
+    );
     if (!got) return null;
     cells.forEach((x, t) => {
       if (got[t] === masks[x]) return;
@@ -237,11 +255,14 @@ function smooth(cells: number[], size: number, values: number, self: number): nu
       for (let dc = -1; dc <= 1; dc++) {
         const rr = r + dr;
         const cc = c + dc;
-        if (rr >= 0 && rr < size && cc >= 0 && cc < size) votes[cells[rr * size + cc]] += dr === 0 && dc === 0 ? self : 1;
+        if (rr >= 0 && rr < size && cc >= 0 && cc < size)
+          votes[cells[rr * size + cc]] += dr === 0 && dc === 0 ? self : 1;
       }
     }
     let best = v;
-    votes.forEach((n, k) => { if (n > votes[best]) best = k; });
+    votes.forEach((n, k) => {
+      if (n > votes[best]) best = k;
+    });
     return best;
   });
 }
@@ -252,11 +273,13 @@ function smooth(cells: number[], size: number, values: number, self: number): nu
  * mirrored left to right.
  */
 export function pattern(size: number, colors: number, random: Random = Math.random): number[] {
-  const noise = (values: number) => Array.from({ length: size * size }, () => Math.floor(random() * values));
+  const noise = (values: number) =>
+    Array.from({ length: size * size }, () => Math.floor(random() * values));
   let shape = smooth(noise(2), size, 2, 2);
   let paint = colors > 1 ? smooth(smooth(noise(colors), size, colors, 1), size, colors, 1) : null;
   if (random() < 0.5) {
-    const mirror = (a: number[]) => a.map((v, x) => (x % size < size / 2 ? v : a[x - (x % size) + size - 1 - (x % size)]));
+    const mirror = (a: number[]) =>
+      a.map((v, x) => (x % size < size / 2 ? v : a[x - (x % size) + size - 1 - (x % size)]));
     shape = mirror(shape);
     if (paint) paint = mirror(paint);
   }
@@ -269,7 +292,8 @@ function fair(cells: number[], size: number): boolean {
   if (filled < 0.35 || filled > 0.65) return false;
   // No line left entirely blank: an empty clue makes a dull line.
   for (let t = 0; t < size; t++) {
-    if (rowOf(cells, size, t).every((v) => v === 0) || colOf(cells, size, t).every((v) => v === 0)) return false;
+    if (rowOf(cells, size, t).every((v) => v === 0) || colOf(cells, size, t).every((v) => v === 0))
+      return false;
   }
   return true;
 }
@@ -292,7 +316,11 @@ function hideNumbers(p: Puzzle, random: Random): void {
 }
 
 /** A puzzle the line solver can finish, so it has one solution and needs no guessing. */
-export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
+export function generate(
+  difficulty: Difficulty,
+  rules: Rules = NO_RULES,
+  random: Random = Math.random,
+): Puzzle {
   const { size, colors: many, look } = DIFFICULTIES[difficulty];
   const colors = rules.colors ? many : 1;
   for (;;) {
@@ -318,14 +346,18 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
 }
 
 /** The share of cells that one look at each line, on its own and from blank, decides. Lower is harder. */
-export function firstLook(p: Pick<Puzzle, 'size' | 'colors' | 'rows' | 'cols'>): number {
+export function firstLook(p: Pick<Puzzle, 'colors' | 'cols' | 'rows' | 'size'>): number {
   const { size } = p;
   const blank = new Array<number>(size).fill((1 << (p.colors + 1)) - 1);
   const known = new Array<boolean>(size * size).fill(false);
   const single = (m: number) => (m & (m - 1)) === 0;
   for (let t = 0; t < size; t++) {
-    solveLine(blank, p.rows[t])!.forEach((m, c) => { if (single(m)) known[t * size + c] = true; });
-    solveLine(blank, p.cols[t])!.forEach((m, r) => { if (single(m)) known[r * size + t] = true; });
+    solveLine(blank, p.rows[t])!.forEach((m, c) => {
+      if (single(m)) known[t * size + c] = true;
+    });
+    solveLine(blank, p.cols[t])!.forEach((m, r) => {
+      if (single(m)) known[r * size + t] = true;
+    });
   }
   return known.filter(Boolean).length / known.length;
 }

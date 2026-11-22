@@ -4,26 +4,35 @@
   import { storageKey, type Switcher } from '../variants';
   import { conflicts, DIFFICULTIES, generate, isDifficulty, isPuzzle } from './logic';
 
-  let { variants, first }: { variants: Switcher; first?: string } = $props();
+  let { variants, first }: { first?: string; variants: Switcher } = $props();
 </script>
 
 <ShadePlay
-  title="Shading"
-  storageKey={storageKey('hitori')}
+  conflicts={(p, marks) =>
+    conflicts(
+      p,
+      marks.map((m) => m === MAIN),
+      marks.map((m) => m === NOTE),
+    )}
+  create={(d: string) => generate(isDifficulty(d) ? d : 'easy')}
   difficulties={DIFFICULTIES}
-  create={(d) => generate(isDifficulty(d) ? d : 'easy')}
-  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
-  conflicts={(p, marks) => conflicts(p, marks.map((m) => m === MAIN), marks.map((m) => m === NOTE))}
-  names={['Shade', 'Circle']}
   drags={['none', 'free']}
-  {variants}
   {first}
+  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
+  names={['Shade', 'Circle']}
+  storageKey={storageKey('hitori')}
+  title="Shading"
+  {variants}
 >
   {#snippet icon(kind)}
     {#if kind === MAIN}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><rect class="shade-icon" x="2" y="2" width="12" height="12" rx="2" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 16 16">
+        <rect class="shade-icon" height="12" rx="2" width="12" x="2" y="2" />
+      </svg>
     {:else}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" fill="none" r="5.2" stroke="currentColor" stroke-width="1.6" />
+      </svg>
     {/if}
   {/snippet}
 
@@ -33,11 +42,24 @@
       {@const x = i % n}
       {@const y = Math.floor(i / n)}
       {#if m === MAIN}
-        <rect class={['shade', 'dark', { bad: bad[i] }]} x={x - 0.01} y={y - 0.01} width="1.02" height="1.02" />
+        <rect
+          class={['shade', 'dark', { bad: bad[i] }]}
+          height="1.02"
+          width="1.02"
+          x={x - 0.01}
+          y={y - 0.01}
+        />
       {:else if m === NOTE}
         <circle class={['ring', { bad: bad[i] }]} cx={x + 0.5} cy={y + 0.5} r="0.36" />
       {/if}
-      <text class={['digit', { under: m === MAIN, bad: m === NOTE && bad[i] }]} x={x + 0.5} y={y + 0.5} dy="0.355em">{puzzle.numbers[i]}</text>
+      <text
+        class={['digit', { under: m === MAIN, bad: m === NOTE && bad[i] }]}
+        dy="0.355em"
+        x={x + 0.5}
+        y={y + 0.5}
+      >
+        {puzzle.numbers[i]}
+      </text>
     {/each}
   {/snippet}
 </ShadePlay>

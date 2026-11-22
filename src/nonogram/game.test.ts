@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { PALETTE } from '../shared/palette';
-import { CROSS, EMPTY, gameOf, isGame, newGame, paletteOf, PALETTES, reducer, type Game } from './game';
+import {
+  CROSS,
+  EMPTY,
+  gameOf,
+  isGame,
+  newGame,
+  paletteOf,
+  PALETTES,
+  reducer,
+  type Game,
+} from './game';
 import { generate, NO_RULES } from './logic';
 
 describe('reducer', () => {
@@ -40,7 +50,11 @@ describe('reducer', () => {
   });
 
   it('round-trips through JSON, and rejects saves that don’t fit', () => {
-    const g = reducer(newGame('hard', { colors: true, mystery: true }), { type: 'paint', indices: [0], value: 3 });
+    const g = reducer(newGame('hard', { colors: true, mystery: true }), {
+      type: 'paint',
+      indices: [0],
+      value: 3,
+    });
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
     expect(isGame({ ...g, cells: g.cells.map((v, i) => (i === 0 ? 4 : v)) })).toBe(false);
     expect(isGame({ ...g, size: 10 })).toBe(false);

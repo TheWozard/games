@@ -5,6 +5,7 @@ Simple puzzle games as an installable, offline-capable PWA, served by GitHub Pag
 TypeScript, built with [Vite](https://vite.dev) into small static files.
 
 Games:
+
 - [Sudoku](src/sudoku/): Classic, Killer (colored cages that add up to their sums, almost no givens) or Jigsaw (irregular regions in place of the boxes), picked when you start a game; generated puzzles with a unique solution, rated by the techniques a Classic puzzle needs (Easy: singles; Medium: pointing and pairs; Hard: triples, X-Wing, XY-Wing, Swordfish), pencil marks, undo, and progress saved on the device.
 - [Mines](src/mines/): find the mines from the neighbor counts. The first tap is always safe and every board can be cleared without guessing.
 - [Loop](src/loop/): draw one closed loop along the dots to match the numbers, with optional squares to keep on opposite sides and ringed dots to pass through; every puzzle has exactly one loop (Hard, the slowest to make, is made in the background).
@@ -22,8 +23,9 @@ Games:
 ## Installing on a phone
 
 Open https://thewozard.github.io/games/ and:
-- **Android (Chrome):** menu → *Add to Home screen* / *Install app*.
-- **iOS (Safari):** Share → *Add to Home Screen*.
+
+- **Android (Chrome):** menu → _Add to Home screen_ / _Install app_.
+- **iOS (Safari):** Share → _Add to Home Screen_.
 
 Once it has loaded once, everything works offline. Saved games live in the browser's storage for
 this origin, so they stay on that device.
@@ -62,7 +64,7 @@ The service worker only exists in the production build, so test offline behavior
 
 Pushing to `main` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml): it installs, tests,
 typechecks and builds, then publishes `dist/` to the `gh-pages` branch, which Pages serves
-(Settings → Pages → *Deploy from a branch* → `gh-pages` / root). Pull requests run the same checks
+(Settings → Pages → _Deploy from a branch_ → `gh-pages` / root). Pull requests run the same checks
 without deploying, and with read-only access: only the publish job can write to the repository. Don't edit `gh-pages` by hand; each deploy replaces it.
 
 The service worker is generated at build time by [vite-plugin-pwa](https://vite-pwa-org.netlify.app)

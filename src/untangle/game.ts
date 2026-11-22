@@ -3,26 +3,42 @@
 // its lines now run over), records the move for undo, and checks whether the tangle is gone. When
 // the screen changes shape ('resize'), the dots stretch to fit.
 import {
-  clamp, crossings, DEFAULT_BOARD, generate, isSize, isStart, isStyle, nudge, rescale, sameBoard, settle, SIZES, STARTS, STYLES,
-  type Board, type Edge, type Point, type Settings,
+  clamp,
+  crossings,
+  DEFAULT_BOARD,
+  generate,
+  isSize,
+  isStart,
+  isStyle,
+  nudge,
+  rescale,
+  sameBoard,
+  settle,
+  SIZES,
+  STARTS,
+  STYLES,
+  type Board,
+  type Edge,
+  type Point,
+  type Settings,
 } from './logic';
 
 export const STORAGE_KEY = 'games.untangle.v1';
 const HISTORY_LIMIT = 300;
 
 export interface Game extends Settings, Board {
-  points: Point[];
+  done: boolean;
   edges: Edge[];
   history: Point[][]; // layouts before each move, for undo
   moves: number;
-  done: boolean;
+  points: Point[];
 }
 
 export type Action =
-  | { type: 'drag'; index: number; to: Point }
-  | { type: 'drop'; index: number; before: Point[] }
-  | { type: 'undo' }
-  | { type: 'resize'; board: Board };
+  | { before: Point[]; index: number; type: 'drop' }
+  | { board: Board; type: 'resize' }
+  | { index: number; to: Point; type: 'drag' }
+  | { type: 'undo' };
 
 export const DEFAULT: Settings = { size: 'd10', style: 'lines', start: 'circle' };
 
@@ -35,18 +51,35 @@ export const settingsOf = ({ size, style, start }: Settings): Settings => ({ siz
 export function newGame(settings: Settings, board: Board = DEFAULT_BOARD): Game {
   const { width, height } = board;
   const { points, edges } = generate(settings, board);
-  return { ...settingsOf(settings), width, height, points, edges, history: [], moves: 0, done: false };
+  return {
+    ...settingsOf(settings),
+    width,
+    height,
+    points,
+    edges,
+    history: [],
+    moves: 0,
+    done: false,
+  };
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   return (
-    isSize(g?.size) && isStyle(g.style) && isStart(g.start) &&
-    typeof g.width === 'number' && g.width > 0 && typeof g.height === 'number' && g.height > 0 &&
-    Array.isArray(g.points) && g.points.length === SIZES[g.size].dots &&
+    isSize(g?.size) &&
+    isStyle(g.style) &&
+    isStart(g.start) &&
+    typeof g.width === 'number' &&
+    g.width > 0 &&
+    typeof g.height === 'number' &&
+    g.height > 0 &&
+    Array.isArray(g.points) &&
+    g.points.length === SIZES[g.size].dots &&
     g.points.every((p) => Array.isArray(p) && p.length === 2) &&
-    Array.isArray(g.edges) && g.edges.every(([a, b]) => a < g.points!.length && b < g.points!.length) &&
-    Array.isArray(g.history) && typeof g.moves === 'number'
+    Array.isArray(g.edges) &&
+    g.edges.every(([a, b]) => a < g.points!.length && b < g.points!.length) &&
+    Array.isArray(g.history) &&
+    typeof g.moves === 'number'
   );
 }
 
@@ -85,10 +118,17 @@ export function reducer(g: Game, action: Action, random: () => number = Math.ran
     case 'drop': {
       if (g.done) return g;
       // A drop where nothing moved (a tap) changes nothing.
-      if (action.before.every((p, i) => p[0] === g.points[i][0] && p[1] === g.points[i][1])) return g;
+      if (action.before.every((p, i) => p[0] === g.points[i][0] && p[1] === g.points[i][1]))
+        return g;
       // Clear of any dot it landed on, then off any line it landed on, and any dot its lines now
       // run over nudged off them (dots already on lines elsewhere stay put): all one move.
-      const settled = settle(nudge(g.points, action.index, g, random), g.edges, g, undefined, action.index);
+      const settled = settle(
+        nudge(g.points, action.index, g, random),
+        g.edges,
+        g,
+        undefined,
+        action.index,
+      );
       const points = settled === g.points ? g.points : settled.slice();
       const moved = action.before.some((p, i) => p[0] !== points[i][0] || p[1] !== points[i][1]);
       if (!moved) return points === g.points ? g : { ...g, points };

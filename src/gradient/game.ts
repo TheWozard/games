@@ -1,29 +1,38 @@
 // Gradient game state and moves, as a pure reducer.
-import { corners, fixedTiles, isPattern, isSize, PATTERNS, shuffled, SIZES, type Lab, type Pattern, type Size } from './logic';
+import {
+  corners,
+  fixedTiles,
+  isPattern,
+  isSize,
+  PATTERNS,
+  shuffled,
+  SIZES,
+  type Lab,
+  type Pattern,
+  type Size,
+} from './logic';
 
 export const STORAGE_KEY = 'games.gradient.v1';
 const HISTORY_LIMIT = 500;
 
 export interface Settings {
-  size: Size;
   pattern: Pattern;
+  size: Size;
 }
 
 export interface Game extends Settings {
   cols: number;
-  rows: number;
   corners: Lab[];
-  fixed: boolean[]; // per position
-  order: number[]; // tile id at each position; a tile's id is its home position
-  selected: number | null; // position of the first tile picked for a swap
-  history: [number, number][]; // swaps made, for undo
   done: boolean;
+  fixed: boolean[]; // per position
+  history: [number, number][]; // swaps made, for undo
+  order: number[]; // tile id at each position; a tile's id is its home position
+  rows: number;
+  selected: null | number; // position of the first tile picked for a swap
 }
 
 export type Action =
-  | { type: 'tap'; pos: number }
-  | { type: 'swap'; from: number; to: number }
-  | { type: 'undo' };
+  { from: number; to: number; type: 'swap' } | { pos: number; type: 'tap' } | { type: 'undo' };
 
 export const DEFAULT: Settings = { size: 'small', pattern: 'checker' };
 
@@ -48,14 +57,18 @@ export const describe = ({ size, pattern }: Settings) =>
   `${SIZES[size].cols}×${SIZES[size].rows} · ${PATTERNS[pattern].label}`;
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   if (!isSize(g?.size) || !isPattern(g.pattern)) return false;
   const { cols, rows } = SIZES[g.size];
   const n = cols * rows;
   return (
-    g.cols === cols && g.rows === rows &&
-    g.corners?.length === 4 && g.fixed?.length === n && g.order?.length === n &&
-    new Set(g.order).size === n && Array.isArray(g.history)
+    g.cols === cols &&
+    g.rows === rows &&
+    g.corners?.length === 4 &&
+    g.fixed?.length === n &&
+    g.order?.length === n &&
+    new Set(g.order).size === n &&
+    Array.isArray(g.history)
   );
 }
 
@@ -67,7 +80,8 @@ function swap(g: Game, from: number, to: number, record = true): Game {
     ...g,
     order,
     selected: null,
-    history: record ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT) : g.history,
+    history:
+      record ? [...g.history, [from, to] as [number, number]].slice(-HISTORY_LIMIT) : g.history,
     done,
   };
 }
@@ -100,7 +114,7 @@ export interface Line {
 }
 
 /** For each row and column: whether it's complete, and whether it's made only of fixed tiles. */
-export function lines(g: Game): { rows: Line[]; cols: Line[] } {
+export function lines(g: Game): { cols: Line[]; rows: Line[] } {
   const line = (cells: number[]): Line => ({
     correct: cells.every((p) => g.order[p] === p),
     fixed: cells.every((p) => g.fixed[p]),
@@ -122,8 +136,9 @@ const OLD_LEVELS: Record<string, Settings> = {
 /** A saved game in the current shape, upgrading one saved by an earlier version; else null. */
 export function fromSaved(value: unknown): Game | null {
   if (isGame(value)) return value;
-  const old = value as { difficulty?: unknown } | null;
-  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty)) return null;
+  const old = value as null | { difficulty?: unknown };
+  if (typeof old?.difficulty !== 'string' || !Object.hasOwn(OLD_LEVELS, old.difficulty))
+    return null;
   const { difficulty, ...rest } = old as { difficulty: string };
   const upgraded = { ...rest, ...OLD_LEVELS[difficulty] };
   return isGame(upgraded) ? upgraded : null;

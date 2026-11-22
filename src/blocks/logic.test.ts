@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
-  decode, DIFFICULTIES, encode, explore, generate, isLayout, isOut, isSolved, LEVELS, range, shape, slide, VARIANTS,
-  type Block, type Difficulty, type Shape, type Variant,
+  decode,
+  DIFFICULTIES,
+  encode,
+  explore,
+  generate,
+  isLayout,
+  isOut,
+  isSolved,
+  LEVELS,
+  range,
+  shape,
+  slide,
+  VARIANTS,
+  type Block,
+  type Difficulty,
+  type Shape,
+  type Variant,
 } from './logic';
 import { PUZZLES } from './puzzles';
 

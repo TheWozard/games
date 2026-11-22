@@ -5,7 +5,14 @@
 //
 // Nearly every deal can be won with four free cells, fewer with two or three; a solver checks
 // each deal, so every game can be won.
-import { isRed, rankOf, safeToFoundation, shuffledDeck, suitOf, type Card } from '../../shared/cards';
+import {
+  isRed,
+  rankOf,
+  safeToFoundation,
+  shuffledDeck,
+  suitOf,
+  type Card,
+} from '../../shared/cards';
 
 export const DIFFICULTIES = {
   classic: { label: 'Classic', cells: 4 },
@@ -21,14 +28,15 @@ export const COLUMNS = 8;
 
 export interface Table {
   cells: (Card | null)[];
-  foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
   columns: Card[][]; // bottom first
+  foundations: number[]; // per suit: how many cards are up (0 = empty, 13 = complete)
 }
 
 /** Where cards can be taken from: a free cell, or a column from `index` to its end. */
-export type Source = { from: 'cell'; i: number } | { from: 'column'; col: number; index: number };
+export type Source = { col: number; from: 'column'; index: number } | { from: 'cell'; i: number };
 /** Where they can go. */
-export type Target = { to: 'foundation' } | { to: 'cell'; i: number } | { to: 'column'; col: number };
+export type Target =
+  { col: number; to: 'column' } | { i: number; to: 'cell' } | { to: 'foundation' };
 
 type Random = () => number;
 
@@ -81,7 +89,7 @@ export function canMove(t: Table, s: Source, d: Target): boolean {
       const onto = t.columns[d.col];
       if (!onto || (s.from === 'column' && s.col === d.col)) return false;
       if (onto.length === 0) return cards.length <= capacity(t, true);
-      return fits(cards[0], onto[onto.length - 1]) && cards.length <= capacity(t, false);
+      return fits(cards[0], onto.at(-1)!) && cards.length <= capacity(t, false);
     }
   }
 }
@@ -102,7 +110,7 @@ export function move(t: Table, s: Source, d: Target): Table {
 
 /** Sends every card that's safe to put up (see safeToFoundation) to its foundation. */
 export function autoplay(t: Table): Table {
-  for (let progress = true; progress; ) {
+  for (let progress = true; progress;) {
     progress = false;
     const sources: Source[] = [
       ...t.cells.map((_, i): Source => ({ from: 'cell', i })),
@@ -110,7 +118,11 @@ export function autoplay(t: Table): Table {
     ];
     for (const s of sources) {
       const cards = lifted(t, s);
-      if (cards?.length === 1 && toFoundation(t, cards[0]) && safeToFoundation(t.foundations, cards[0])) {
+      if (
+        cards?.length === 1 &&
+        toFoundation(t, cards[0]) &&
+        safeToFoundation(t.foundations, cards[0])
+      ) {
         t = move(t, s, { to: 'foundation' });
         progress = true;
       }
@@ -123,16 +135,20 @@ export function autoplay(t: Table): Table {
  * The best place for the cards a tap picks up: the foundation for a single card that fits, else
  * a column with cards, else (one card) a free cell, else an empty column; null if none will do.
  */
-export function bestTarget(t: Table, s: Source): Target | null {
+export function bestTarget(t: Table, s: Source): null | Target {
   if (canMove(t, s, { to: 'foundation' })) return { to: 'foundation' };
   const cols = [...Array(COLUMNS).keys()];
-  const onto = cols.find((col) => t.columns[col].length > 0 && canMove(t, s, { to: 'column', col }));
+  const onto = cols.find(
+    (col) => t.columns[col].length > 0 && canMove(t, s, { to: 'column', col }),
+  );
   if (onto !== undefined) return { to: 'column', col: onto };
   const cell = t.cells.indexOf(null);
   if (cell !== -1 && canMove(t, s, { to: 'cell', i: cell })) return { to: 'cell', i: cell };
   // Moving a whole column into an empty one changes nothing.
   if (s.from === 'column' && s.index === 0) return null;
-  const empty = cols.find((col) => t.columns[col].length === 0 && canMove(t, s, { to: 'column', col }));
+  const empty = cols.find(
+    (col) => t.columns[col].length === 0 && canMove(t, s, { to: 'column', col }),
+  );
   return empty === undefined ? null : { to: 'column', col: empty };
 }
 
@@ -153,11 +169,23 @@ export function solve(start: Table, budget = SOLVE_BUDGET): [Source, Target][] |
   const seen = new Set<string>();
   // Column order and which cell holds which card don't matter, so they're sorted.
   const key = (t: Table) =>
-    t.columns.map((c) => c.join('.')).sort().join('|') + '/' + t.cells.filter((c) => c !== null).sort((a, b) => a - b).join('.');
+    t.columns
+      .map((c) => c.join('.'))
+      .sort()
+      .join('|') +
+    '/' +
+    t.cells
+      .filter((c) => c !== null)
+      .sort((a, b) => a - b)
+      .join('.');
 
   // Best first: always carry on from the most promising position seen so far. Each position
   // remembers the one it came from and the move, to read the winning line back at the end.
-  interface Node { t: Table; parent: Node | null; move: [Source, Target] | null }
+  interface Node {
+    move: [Source, Target] | null;
+    parent: Node | null;
+    t: Table;
+  }
   const path = (n: Node) => {
     const out: [Source, Target][] = [];
     for (let at: Node | null = n; at?.move; at = at.parent) out.push(at.move);
@@ -226,7 +254,7 @@ class Heap<T> {
   push(item: T, p: number) {
     const a = this.items;
     a.push({ item, p });
-    for (let i = a.length - 1; i > 0; ) {
+    for (let i = a.length - 1; i > 0;) {
       const up = (i - 1) >> 1;
       if (a[up].p <= a[i].p) break;
       [a[up], a[i]] = [a[i], a[up]];
@@ -240,7 +268,7 @@ class Heap<T> {
     const last = a.pop()!;
     if (a.length) {
       a[0] = last;
-      for (let i = 0; ; ) {
+      for (let i = 0; ;) {
         const l = 2 * i + 1;
         const r = l + 1;
         let m = i;
@@ -258,13 +286,18 @@ class Heap<T> {
 function candidates(t: Table): [Source, Target][] {
   const out: [Source, Target][] = [];
   const cols = [...Array(COLUMNS).keys()];
-  const cellSources = t.cells.flatMap((c, i): Source[] => (c === null ? [] : [{ from: 'cell', i }]));
-  const tops = cols.flatMap((col): Source[] => (t.columns[col].length ? [{ from: 'column', col, index: t.columns[col].length - 1 }] : []));
+  const cellSources = t.cells.flatMap((c, i): Source[] =>
+    c === null ? [] : [{ from: 'cell', i }],
+  );
+  const tops = cols.flatMap((col): Source[] =>
+    t.columns[col].length ? [{ from: 'column', col, index: t.columns[col].length - 1 }] : [],
+  );
   const firstEmpty = cols.find((col) => t.columns[col].length === 0);
   const firstCell = t.cells.indexOf(null);
 
   // To the foundations.
-  for (const s of [...tops, ...cellSources]) if (canMove(t, s, { to: 'foundation' })) out.push([s, { to: 'foundation' }]);
+  for (const s of [...tops, ...cellSources])
+    if (canMove(t, s, { to: 'foundation' })) out.push([s, { to: 'foundation' }]);
   // Runs onto columns with cards: the part of each run whose head fits there. Whole runs first.
   const runMoves: [number, [Source, Target]][] = [];
   for (const from of cols) {
@@ -274,11 +307,12 @@ function candidates(t: Table): [Source, Target][] {
     for (const to of cols) {
       const onto = t.columns[to];
       if (to === from || !onto.length) continue;
-      const head = onto[onto.length - 1];
+      const head = onto.at(-1)!;
       for (let i = start; i < col.length; i++) {
         if (fits(col[i], head)) {
           const s: Source = { from: 'column', col: from, index: i };
-          if (canMove(t, s, { to: 'column', col: to })) runMoves.push([i === start ? 0 : 1, [s, { to: 'column', col: to }]]);
+          if (canMove(t, s, { to: 'column', col: to }))
+            runMoves.push([i === start ? 0 : 1, [s, { to: 'column', col: to }]]);
           break;
         }
       }
@@ -288,7 +322,9 @@ function candidates(t: Table): [Source, Target][] {
   out.push(...runMoves.map(([, m]) => m));
   // Free cells onto columns with cards.
   for (const s of cellSources) {
-    for (const col of cols) if (t.columns[col].length && canMove(t, s, { to: 'column', col })) out.push([s, { to: 'column', col }]);
+    for (const col of cols)
+      if (t.columns[col].length && canMove(t, s, { to: 'column', col }))
+        out.push([s, { to: 'column', col }]);
   }
   if (firstEmpty !== undefined) {
     // The longest movable run into an empty column (not a whole column: that changes nothing).
@@ -296,7 +332,11 @@ function candidates(t: Table): [Source, Target][] {
       const col = t.columns[from];
       if (!col.length) continue;
       const index = Math.max(runStart(col), col.length - capacity(t, true));
-      if (index > 0) out.push([{ from: 'column', col: from, index }, { to: 'column', col: firstEmpty }]);
+      if (index > 0)
+        out.push([
+          { from: 'column', col: from, index },
+          { to: 'column', col: firstEmpty },
+        ]);
     }
     for (const s of cellSources) out.push([s, { to: 'column', col: firstEmpty }]);
   }

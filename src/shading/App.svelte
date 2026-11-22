@@ -1,7 +1,7 @@
 <!-- The Shading page: Star Battle, Nurikabe, Hitori or Light Up, whichever was played last, switched from the New Game dialog. -->
 <script lang="ts">
-  import { parsePick } from '../shared/VariantPicker.svelte';
   import { loadJSON, saveJSON } from '../shared/storage';
+  import { parsePick } from '../shared/VariantPicker.svelte';
   import Hitori from './hitori/Hitori.svelte';
   import LightUp from './lightup/LightUp.svelte';
   import Nurikabe from './nurikabe/Nurikabe.svelte';
@@ -24,11 +24,11 @@
 </script>
 
 {#if variant === 'stars'}
-  <Stars {variants} {first} />
+  <Stars {first} {variants} />
 {:else if variant === 'nurikabe'}
-  <Nurikabe {variants} {first} />
+  <Nurikabe {first} {variants} />
 {:else if variant === 'hitori'}
-  <Hitori {variants} {first} />
+  <Hitori {first} {variants} />
 {:else}
-  <LightUp {variants} {first} />
+  <LightUp {first} {variants} />
 {/if}

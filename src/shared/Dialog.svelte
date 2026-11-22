@@ -7,15 +7,22 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { open, locked = false, onclose, class: className, label, children }: {
-    open: boolean;
-    locked?: boolean;
-    onclose: (value: string) => void;
+  let {
+    open,
+    locked = false,
+    onclose,
+    class: className,
+    label,
+    children,
+  }: {
+    children: Snippet;
     /** A class for the dialog, for one placed or drawn differently (GameScreen2's menu). */
     class?: string;
     /** A name for a dialog with no heading to name it. */
     label?: string;
-    children: Snippet;
+    locked?: boolean;
+    onclose: (value: string) => void;
+    open: boolean;
   } = $props();
 
   let dialog: HTMLDialogElement;
@@ -34,15 +41,18 @@
 </script>
 
 <!-- The keyboard way out is Escape, built into the dialog. -->
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 <dialog
   bind:this={dialog}
-  tabindex="-1"
   class={className}
   aria-label={label}
+  oncancel={(e) => {
+    if (locked) e.preventDefault();
+  }}
+  onclick={(e) => {
+    if (e.target === dialog && !locked) dialog.close('');
+  }}
   onclose={() => onclose(dialog.returnValue)}
-  oncancel={(e) => { if (locked) e.preventDefault(); }}
-  onclick={(e) => { if (e.target === dialog && !locked) dialog.close(''); }}
+  tabindex="-1"
 >
   <form method="dialog">{@render children()}</form>
 </dialog>

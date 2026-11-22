@@ -23,12 +23,12 @@
 
   interface Props {
     board: Size;
+    children: Snippet;
+    height?: number;
     /** Changes for a new board, to open it on the starting view even if its size is the same. */
     key?: unknown;
     /** The space's size (all of it, bottom inset included), for a game that sizes its board from it. */
     width?: number;
-    height?: number;
-    children: Snippet;
   }
 
   let { board, key, width = $bindable(0), height = $bindable(0), children }: Props = $props();
@@ -70,7 +70,11 @@
     untrack(() => {
       if (!touched || last.width === 0 || last.height === 0) view = startView(now, board, REACH);
       else {
-        const moved = { ...view, x: view.x + (now.width - last.width) / 2, y: view.y + (now.height - last.height) / 2 };
+        const moved = {
+          ...view,
+          x: view.x + (now.width - last.width) / 2,
+          y: view.y + (now.height - last.height) / 2,
+        };
         view = clampView(moved, now, board, REACH);
       }
       last = now;
@@ -78,10 +82,11 @@
   });
 
   let el: HTMLElement;
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping, never drawn
   const pointers = new Map<number, { x: number; y: number }>();
   // One finger: where it started and the view then. Two: their distance and midpoint at the start.
-  let drag: { x: number; y: number; from: View; moved: boolean } | null = null;
-  let pinch: { dist: number; mid: { x: number; y: number }; from: View } | null = null;
+  let drag: null | { from: View; moved: boolean; x: number; y: number } = null;
+  let pinch: null | { dist: number; from: View; mid: { x: number; y: number } } = null;
   let swallow = false; // the next click ends a drag or pinch
   // While the board moves under a finger or the wheel, it's its own layer (`.moving`: will-change),
   // so the phone's GPU moves and scales a picture of it rather than the browser redrawing every
@@ -102,7 +107,10 @@
   }
   function two() {
     const [a, b] = [...pointers.values()];
-    return { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+    return {
+      dist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+      mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+    };
   }
   function startDrag(at: { x: number; y: number }, moved: boolean) {
     drag = { ...at, from: shown, moved };
@@ -211,9 +219,14 @@
     touched = true;
     moving = true;
     clearTimeout(wheelEnd);
-    wheelEnd = window.setTimeout(() => { if (!pointers.size) moving = false; }, 150);
+    wheelEnd = window.setTimeout(() => {
+      if (!pointers.size) moving = false;
+    }, 150);
     // Deltas in pixels; some mice (Firefox) give lines or pages.
-    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.height : 1;
+    const unit =
+      e.deltaMode === 1 ? 16
+      : e.deltaMode === 2 ? stage.height
+      : 1;
     const [dx, dy] = [e.deltaX * unit, e.deltaY * unit];
     if (e.ctrlKey || e.metaKey) {
       const at = local(e);
@@ -228,19 +241,19 @@
   const shown = $derived(clampView(view, stage, board, REACH));
 </script>
 
-<div
-  class="zoom-stage"
-  bind:this={el}
-  bind:clientWidth={width}
-  bind:clientHeight={height}
->
-  <div class="zoom-frame" aria-hidden="true" bind:clientWidth={frameW} bind:clientHeight={frameH}></div>
+<div bind:this={el} class="zoom-stage" bind:clientWidth={width} bind:clientHeight={height}>
   <div
-    class="zoom-board"
-    class:moving
+    class="zoom-frame"
+    aria-hidden="true"
+    bind:clientWidth={frameW}
+    bind:clientHeight={frameH}
+  ></div>
+  <div
     style:width="{board.width}px"
     style:height="{board.height}px"
     style:transform="translate({shown.x}px, {shown.y}px) scale({shown.z})"
+    class="zoom-board"
+    class:moving
   >
     {@render children()}
   </div>

@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { gridReducer, type GridAction } from '../../shared/grid';
 import { isGame, layout, newGame, ZONES, type Game } from './game';
 
-const play = (g: Game, ...actions: GridAction[]) => actions.reduce((s, a) => gridReducer(s, a, layout(s)), g);
+const play = (g: Game, ...actions: GridAction[]) =>
+  actions.reduce((s, a) => gridReducer(s, a, layout(s)), g);
 
 describe('layout', () => {
   it('labels each multi-cell cage once, on its first cell', () => {
     const g = newGame('hard');
     const shape = layout(g);
     for (const c of g.cages) {
-      expect(c.cells.map((i) => shape.label!(i)).filter(Boolean)).toEqual(c.cells.length > 1 ? [String(c.sum)] : []);
+      expect(c.cells.map((i) => shape.label!(i)).filter(Boolean)).toEqual(
+        c.cells.length > 1 ? [String(c.sum)] : [],
+      );
     }
   });
 
@@ -31,7 +34,11 @@ describe('layout', () => {
     const wrong = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((d) => !used.has(d))!;
     g = play(g, { type: 'place', index: first, digit: wrong });
     expect(cage.cells.every((i) => layout(g).error!(i))).toBe(true);
-    g = play(g, { type: 'erase', indices: [first] }, { type: 'place', index: first, digit: g.solution[first] });
+    g = play(
+      g,
+      { type: 'erase', indices: [first] },
+      { type: 'place', index: first, digit: g.solution[first] },
+    );
     expect(cage.cells.some((i) => layout(g).error!(i))).toBe(false);
   });
 });
@@ -39,7 +46,11 @@ describe('layout', () => {
 describe('zones', () => {
   it('give touching cages different colors, and stay the same for a puzzle', () => {
     for (let run = 0; run < 30; run++) {
-      const g = newGame(run % 3 === 0 ? 'easy' : run % 3 === 1 ? 'medium' : 'hard');
+      const g = newGame(
+        run % 3 === 0 ? 'easy'
+        : run % 3 === 1 ? 'medium'
+        : 'hard',
+      );
       const zone = layout(g).zone!;
       const cageOf = (i: number) => g.cages.findIndex((c) => c.cells.includes(i));
       for (let i = 0; i < 81; i++) {

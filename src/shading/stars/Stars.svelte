@@ -5,7 +5,7 @@
   import { storageKey, type Switcher } from '../variants';
   import { conflicts, DIFFICULTIES, generate, isDifficulty, isPuzzle } from './logic';
 
-  let { variants, first }: { variants: Switcher; first?: string } = $props();
+  let { variants, first }: { first?: string; variants: Switcher } = $props();
 
   /** A five-pointed star in a cell whose top left is (x, y). */
   function starPath(x: number, y: number, r = 0.32): string {
@@ -19,22 +19,35 @@
 </script>
 
 <ShadePlay
-  title="Shading"
-  storageKey={storageKey('stars')}
+  conflicts={(p, marks) =>
+    conflicts(
+      p,
+      marks.map((m) => m === MAIN),
+    )}
+  create={(d: string) => generate(isDifficulty(d) ? d : 'easy')}
   difficulties={DIFFICULTIES}
-  create={(d) => generate(isDifficulty(d) ? d : 'easy')}
-  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
-  conflicts={(p, marks) => conflicts(p, marks.map((m) => m === MAIN))}
-  names={['Star', 'X']}
   drags={['none', 'free']}
-  {variants}
   {first}
+  isPuzzle={(v, d) => isDifficulty(d) && isPuzzle(v, d)}
+  names={['Star', 'X']}
+  storageKey={storageKey('stars')}
+  title="Shading"
+  {variants}
 >
   {#snippet icon(kind)}
     {#if kind === MAIN}
-      <svg viewBox="0 0 1 1" aria-hidden="true"><path class="star-icon" d={starPath(0, 0, 0.48)} /></svg>
+      <svg aria-hidden="true" viewBox="0 0 1 1">
+        <path class="star-icon" d={starPath(0, 0, 0.48)} />
+      </svg>
     {:else}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 16 16">
+        <path
+          d="M4.5 4.5l7 7M11.5 4.5l-7 7"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-width="1.8"
+        />
+      </svg>
     {/if}
   {/snippet}
 
@@ -43,8 +56,20 @@
     {#each puzzle.regions as g, i (i)}
       {@const x = i % n}
       {@const y = Math.floor(i / n)}
-      {#if x < n - 1 && puzzle.regions[i + 1] !== g}<line class="wall" x1={x + 1} y1={y} x2={x + 1} y2={y + 1} />{/if}
-      {#if y < n - 1 && puzzle.regions[i + n] !== g}<line class="wall" x1={x} y1={y + 1} x2={x + 1} y2={y + 1} />{/if}
+      {#if x < n - 1 && puzzle.regions[i + 1] !== g}<line
+          class="wall"
+          x1={x + 1}
+          x2={x + 1}
+          y1={y}
+          y2={y + 1}
+        />{/if}
+      {#if y < n - 1 && puzzle.regions[i + n] !== g}<line
+          class="wall"
+          x1={x}
+          x2={x + 1}
+          y1={y + 1}
+          y2={y + 1}
+        />{/if}
     {/each}
     {#each marks as m, i (i)}
       {#if m === MAIN}

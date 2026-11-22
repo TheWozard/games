@@ -19,12 +19,16 @@ export const storageKey = (variant: Variant) => `games.shading.${variant}.v1`;
 
 /** What each game's screen gets to show the other games' tabs and switch to one. */
 export interface Switcher {
-  games: Games;
   current: Variant;
+  games: Games;
   onswitch: (pick: string) => void;
 }
 
-const options = (variant: Variant, difficulties: Record<string, { label: string; size: number }>, more?: (d: string) => string) =>
+const options = (
+  variant: Variant,
+  difficulties: Record<string, { label: string; size: number }>,
+  more?: (d: string) => string,
+) =>
   Object.entries(difficulties).map(([key, d]) => ({
     value: `${variant}:${key}`,
     label: d.label,
@@ -35,7 +39,11 @@ export const GAMES: Games = {
   stars: {
     label: 'Star Battle',
     title: 'Difficulty',
-    options: options('stars', STARS, (d) => (STARS[d as keyof typeof STARS].stars === 1 ? '1 star' : `${STARS[d as keyof typeof STARS].stars} stars`)),
+    options: options('stars', STARS, (d) =>
+      STARS[d as keyof typeof STARS].stars === 1 ?
+        '1 star'
+      : `${STARS[d as keyof typeof STARS].stars} stars`,
+    ),
   },
   nurikabe: { label: 'Nurikabe', title: 'Difficulty', options: options('nurikabe', NURIKABE) },
   hitori: { label: 'Hitori', title: 'Difficulty', options: options('hitori', HITORI) },

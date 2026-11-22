@@ -1,8 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { deal, DIFFICULTIES, SLIM, drawOrder, facesFor, FLOWERS, freePairs, grader, group, isFree, LAYOUTS, matches, neighbors, reshuffle, SEASONS, TIERS, type LayoutName } from './logic';
+import {
+  deal,
+  DIFFICULTIES,
+  drawOrder,
+  facesFor,
+  FLOWERS,
+  freePairs,
+  grader,
+  group,
+  isFree,
+  LAYOUTS,
+  matches,
+  neighbors,
+  reshuffle,
+  SEASONS,
+  SLIM,
+  TIERS,
+  type LayoutName,
+} from './logic';
 
 /** Replays an order of pairs: each must be free, matching, and together they clear the board. */
-function replays(kinds: number[], near: ReturnType<typeof neighbors>, gone: boolean[], order: [number, number][]): boolean {
+function replays(
+  kinds: number[],
+  near: ReturnType<typeof neighbors>,
+  gone: boolean[],
+  order: [number, number][],
+): boolean {
   const g = gone.slice();
   for (const [a, b] of order) {
     if (g[a] || g[b] || !matches(kinds[a], kinds[b])) return false;
@@ -16,9 +39,26 @@ describe('layouts', () => {
   it('have the expected tile counts and no two tiles in one place', () => {
     const sizes = Object.fromEntries(Object.entries(LAYOUTS).map(([k, l]) => [k, l.slots.length]));
     expect(sizes).toEqual({
-      arrow: 78, diamond: 80, pyramid: 82, hourglass: 92, crown: 96, rings: 98, heart: 100, butterfly: 104,
-      twinPeaks: 106, cross: 108, bridge: 112, pine: 116, steps: 122, fortress: 136, fish: 136,
-      lanterns: 134, rampart: 124, turtle: 124, gate: 118, dragon: 144,
+      arrow: 78,
+      diamond: 80,
+      pyramid: 82,
+      hourglass: 92,
+      crown: 96,
+      rings: 98,
+      heart: 100,
+      butterfly: 104,
+      twinPeaks: 106,
+      cross: 108,
+      bridge: 112,
+      pine: 116,
+      steps: 122,
+      fortress: 136,
+      fish: 136,
+      lanterns: 134,
+      rampart: 124,
+      turtle: 124,
+      gate: 118,
+      dragon: 144,
     });
     // Listed (and so offered in the Customize dialog) smallest first.
     const counts = Object.values(sizes);
@@ -32,9 +72,11 @@ describe('layouts', () => {
       expect(SLIM.includes(name as LayoutName)).toBe(!wide);
       expect(Math.max(...slots.map((s) => s.x)) + 2).toBeLessThanOrEqual(wide ? 28 : 16);
       expect(Math.max(...slots.map((s) => s.y)) + 2).toBeLessThanOrEqual(20);
-      for (const s of slots) for (const t of slots) {
-        if (s !== t && s.z === t.z) expect(Math.abs(s.x - t.x) >= 2 || Math.abs(s.y - t.y) >= 2).toBe(true);
-      }
+      for (const s of slots)
+        for (const t of slots) {
+          if (s !== t && s.z === t.z)
+            expect(Math.abs(s.x - t.x) >= 2 || Math.abs(s.y - t.y) >= 2).toBe(true);
+        }
     }
   });
 });
@@ -48,7 +90,9 @@ describe('stacking', () => {
         let area = 0;
         for (const t of slots) {
           if (t.z !== s.z - 1) continue;
-          area += Math.max(0, Math.min(s.x, t.x) + 2 - Math.max(s.x, t.x)) * Math.max(0, Math.min(s.y, t.y) + 2 - Math.max(s.y, t.y));
+          area +=
+            Math.max(0, Math.min(s.x, t.x) + 2 - Math.max(s.x, t.x)) *
+            Math.max(0, Math.min(s.y, t.y) + 2 - Math.max(s.y, t.y));
         }
         expect(area, `${name}: tile at (${s.x}, ${s.y}) on layer ${s.z}`).toBe(4);
       }
@@ -62,15 +106,17 @@ describe('drawOrder', () => {
       const order = drawOrder(slots);
       expect([...order].sort((a, b) => a - b)).toEqual(slots.map((_, i) => i));
       const at = new Map(order.map((slot, k) => [slot, k]));
-      slots.forEach((a, i) => slots.forEach((b, j) => {
-        // Lower layers first: a higher tile always covers a lower one.
-        if (b.z > a.z) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
-        if (b.z !== a.z) return;
-        // On one layer: the tile touching its right side, or its bottom, even half a tile offset.
-        const right = b.x === a.x + 2 && Math.abs(b.y - a.y) < 2;
-        const below = b.y === a.y + 2 && Math.abs(b.x - a.x) < 2;
-        if (right || below) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
-      }));
+      slots.forEach((a, i) =>
+        slots.forEach((b, j) => {
+          // Lower layers first: a higher tile always covers a lower one.
+          if (b.z > a.z) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
+          if (b.z !== a.z) return;
+          // On one layer: the tile touching its right side, or its bottom, even half a tile offset.
+          const right = b.x === a.x + 2 && Math.abs(b.y - a.y) < 2;
+          const below = b.y === a.y + 2 && Math.abs(b.x - a.x) < 2;
+          if (right || below) expect(at.get(j)!).toBeGreaterThan(at.get(i)!);
+        }),
+      );
     }
   });
 });
@@ -88,9 +134,23 @@ describe('deal', () => {
           const counts = new Map<number, number>();
           for (const k of kinds) counts.set(group(k), (counts.get(group(k)) ?? 0) + 1);
           for (const n of counts.values()) expect(n % 2).toBe(0);
-          for (const k of new Set(kinds)) expect(kinds.filter((x) => x === k).length).toBeLessThanOrEqual(k >= FLOWERS ? 1 : 4);
-          expect(freePairs(kinds, near, slots.map(() => false)).length).toBeGreaterThan(0);
-          expect(replays(kinds, near, slots.map(() => false), order)).toBe(true);
+          for (const k of new Set(kinds))
+            expect(kinds.filter((x) => x === k).length).toBeLessThanOrEqual(k >= FLOWERS ? 1 : 4);
+          expect(
+            freePairs(
+              kinds,
+              near,
+              slots.map(() => false),
+            ).length,
+          ).toBeGreaterThan(0);
+          expect(
+            replays(
+              kinds,
+              near,
+              slots.map(() => false),
+              order,
+            ),
+          ).toBe(true);
         }
       }
     });
@@ -102,7 +162,11 @@ function carelessWins(kinds: number[], near: ReturnType<typeof neighbors>, runs:
   let won = 0;
   for (let run = 0; run < runs; run++) {
     const gone = kinds.map(() => false);
-    for (let pairs = freePairs(kinds, near, gone); pairs.length; pairs = freePairs(kinds, near, gone)) {
+    for (
+      let pairs = freePairs(kinds, near, gone);
+      pairs.length;
+      pairs = freePairs(kinds, near, gone)
+    ) {
       const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
       gone[a] = gone[b] = true;
     }
@@ -150,7 +214,7 @@ describe('difficulty', () => {
   }, 30_000); // about 2s on a laptop, 3s on CI, which has run past the 5s default
 
   it('can be driven by a seeded random source', () => {
-    const seeded = (seed: number) => () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    const seeded = (seed: number) => () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
     expect(deal('diamond', 'hard', seeded(7))).toEqual(deal('diamond', 'hard', seeded(7)));
   });
 });
@@ -169,7 +233,8 @@ describe('the full set', () => {
     const faces = facesFor(144);
     expect(faces).toHaveLength(144);
     for (let k = 0; k < FLOWERS; k++) expect(faces.filter((f) => f === k)).toHaveLength(4);
-    for (let k = FLOWERS; k < SEASONS + 4; k++) expect(faces.filter((f) => f === k)).toHaveLength(1);
+    for (let k = FLOWERS; k < SEASONS + 4; k++)
+      expect(faces.filter((f) => f === k)).toHaveLength(1);
   });
 
   it('gives smaller layouts whole groups, so every group pairs up', () => {
@@ -186,7 +251,12 @@ describe('the full set', () => {
 describe('isFree', () => {
   it('needs nothing on top and one side open', () => {
     // Three in a row, one on top of the middle.
-    const slots = [{ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }, { x: 4, y: 0, z: 0 }, { x: 2, y: 0, z: 1 }];
+    const slots = [
+      { x: 0, y: 0, z: 0 },
+      { x: 2, y: 0, z: 0 },
+      { x: 4, y: 0, z: 0 },
+      { x: 2, y: 0, z: 1 },
+    ];
     const near = neighbors(slots);
     const gone = [false, false, false, false];
     expect([0, 1, 2, 3].map((i) => isFree(i, near, gone))).toEqual([true, false, true, true]);
@@ -208,7 +278,9 @@ describe('reshuffle', () => {
     const next = reshuffle(kinds, near, gone);
     const left = (k: number[]) => k.filter((_, i) => !gone[i]).sort((a, b) => a - b);
     expect(left(next)).toEqual(left(kinds));
-    next.forEach((k, i) => { if (gone[i]) expect(k).toBe(kinds[i]); });
+    next.forEach((k, i) => {
+      if (gone[i]) expect(k).toBe(kinds[i]);
+    });
     expect(freePairs(next, near, gone).length).toBeGreaterThan(0);
   });
 });

@@ -1,9 +1,9 @@
 import { execSync } from 'node:child_process';
-import { readdirSync, existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vitest/config';
 
 const root = resolve(import.meta.dirname, 'src');
 
@@ -13,7 +13,9 @@ const root = resolve(import.meta.dirname, 'src');
 const pages = Object.fromEntries([
   ['index', resolve(root, 'index.html')],
   ...readdirSync(root, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name !== 'dev' && existsSync(resolve(root, d.name, 'index.html')))
+    .filter(
+      (d) => d.isDirectory() && d.name !== 'dev' && existsSync(resolve(root, d.name, 'index.html')),
+    )
     .map((d) => [d.name, resolve(root, d.name, 'index.html')]),
 ]);
 
@@ -56,8 +58,5 @@ export default defineConfig({
       },
     }),
   ],
-  test: {
-    root: import.meta.dirname,
-    include: ['src/**/*.test.ts'],
-  },
+  test: { root: import.meta.dirname, include: ['src/**/*.test.ts'] },
 });

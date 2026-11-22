@@ -1,25 +1,36 @@
 // Mine finder game state and moves, as a pure reducer (apart from placing mines on the first
 // reveal, which uses Math.random unless a source is passed in).
-import { counts, flood, isDensity, isSize, mineCount, neighbors, placeMines, SIZES, type Density, type Size } from './logic';
+import {
+  counts,
+  flood,
+  isDensity,
+  isSize,
+  mineCount,
+  neighbors,
+  placeMines,
+  SIZES,
+  type Density,
+  type Size,
+} from './logic';
 
 export const STORAGE_KEY = 'games.mines.v1';
 
 export interface Game {
-  size: Size;
-  density: Density;
-  rows: number;
   cols: number;
+  density: Density;
+  exploded: null | number; // the mine that ended the game
+  flagged: boolean[];
   mineCount: number;
   mines: boolean[] | null; // placed on the first reveal
   revealed: boolean[];
-  flagged: boolean[];
-  status: 'playing' | 'won' | 'lost';
-  exploded: number | null; // the mine that ended the game
+  rows: number;
+  size: Size;
+  status: 'lost' | 'playing' | 'won';
 }
 
 export type Action =
-  | { type: 'tap'; index: number } // reveal (or, on a number, clear around it)
-  | { type: 'flag'; index: number }; // long-press / right-click
+  | { index: number; type: 'flag' } // long-press / right-click
+  | { index: number; type: 'tap' }; // reveal (or, on a number, clear around it)
 
 export function newGame(size: Size, density: Density): Game {
   const { rows, cols } = SIZES[size];
@@ -38,11 +49,15 @@ export function newGame(size: Size, density: Density): Game {
 }
 
 /** Saves from before size and density were separate settings had one difficulty instead. */
-const OLD_DIFFICULTIES: Record<string, [Size, Density]> = { easy: ['small', 'few'], medium: ['medium', 'some'], hard: ['large', 'many'] };
+const OLD_DIFFICULTIES: Record<string, [Size, Density]> = {
+  easy: ['small', 'few'],
+  medium: ['medium', 'some'],
+  hard: ['large', 'many'],
+};
 
 /** Validates a save, reading a pre-split save's difficulty as the size and density it stood for. */
 export function isGame(value: unknown): value is Game {
-  const g = value as (Partial<Game> & { difficulty?: string }) | null;
+  const g = value as null | (Partial<Game> & { difficulty?: string });
   if (g && !g.size && g.difficulty && Object.hasOwn(OLD_DIFFICULTIES, g.difficulty)) {
     [g.size, g.density] = OLD_DIFFICULTIES[g.difficulty];
     delete g.difficulty;
@@ -51,9 +66,11 @@ export function isGame(value: unknown): value is Game {
   const { rows, cols } = SIZES[g.size];
   const cells = rows * cols;
   return (
-    g.rows === rows && g.cols === cols &&
+    g.rows === rows &&
+    g.cols === cols &&
     (g.mines === null || g.mines?.length === cells) &&
-    g.revealed?.length === cells && g.flagged?.length === cells &&
+    g.revealed?.length === cells &&
+    g.flagged?.length === cells &&
     (g.status === 'playing' || g.status === 'won' || g.status === 'lost')
   );
 }
@@ -72,7 +89,7 @@ function open(g: Game, mines: boolean[], targets: number[]): Game {
   const board = { rows: g.rows, cols: g.cols };
   const near = counts(mines, board);
   const revealed = g.revealed.slice();
-  let exploded: number | null = null;
+  let exploded: null | number = null;
   for (const t of targets) {
     if (revealed[t] || g.flagged[t]) continue;
     if (mines[t]) {
@@ -80,7 +97,8 @@ function open(g: Game, mines: boolean[], targets: number[]): Game {
       revealed[t] = true;
       continue;
     }
-    for (const j of flood(t, near, board, (k) => revealed[k] || g.flagged[k] || mines[k])) revealed[j] = true;
+    for (const j of flood(t, near, board, (k) => revealed[k] || g.flagged[k] || mines[k]))
+      revealed[j] = true;
   }
   if (exploded !== null) return { ...g, mines, revealed, status: 'lost', exploded };
   const safeLeft = revealed.filter((r, i) => !r && !mines[i]).length;

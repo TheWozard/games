@@ -6,17 +6,17 @@
   import type { Component } from 'svelte';
 
   interface Props {
-    icon?: Component<{ strokeWidth?: number; 'aria-hidden'?: 'true' }>;
-    label: string;
-    value?: string;
     disabled?: boolean;
+    icon?: Component<{ 'aria-hidden'?: 'true'; strokeWidth?: number }>;
+    label: string;
     onclick?: () => void;
+    value?: string;
   }
 
   let { icon: Icon, label, value, disabled = false, onclick }: Props = $props();
 </script>
 
-<button class="menu-item" {value} {disabled} {onclick}>
-  {#if Icon}<Icon strokeWidth={2.4} aria-hidden="true" />{/if}
+<button class="menu-item" {disabled} {onclick} type="submit" {value}>
+  {#if Icon}<Icon aria-hidden="true" strokeWidth={2.4} />{/if}
   {label}
 </button>

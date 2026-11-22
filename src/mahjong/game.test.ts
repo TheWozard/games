@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { dealt, free, isGame, newGame, nextDeal, pairsLeft, pickLayout, reducer, replayOf, type Game } from './game';
+import {
+  dealt,
+  free,
+  isGame,
+  newGame,
+  nextDeal,
+  pairsLeft,
+  pickLayout,
+  reducer,
+  replayOf,
+  type Game,
+} from './game';
 import { ARCHIVE_IDS, isArchive, layoutOf, OWN_IDS } from './layouts';
+import { deal, FLOWERS, matches, SEASONS } from './logic';
 
 /** A game played with random free pairs until no match is left (common in Mahjong). */
 function stuck(): Game {
@@ -16,7 +28,6 @@ function stuck(): Game {
   }
   throw new Error('never got stuck');
 }
-import { deal, FLOWERS, matches, SEASONS } from './logic';
 
 describe('reducer', () => {
   it('removes a free matching pair, and undoes it', () => {
@@ -32,13 +43,19 @@ describe('reducer', () => {
   });
 
   it('takes two different flowers (or seasons) as a pair', () => {
-    for (const [first, second] of [[FLOWERS, FLOWERS + 2], [SEASONS + 3, SEASONS]]) {
+    for (const [first, second] of [
+      [FLOWERS, FLOWERS + 2],
+      [SEASONS + 3, SEASONS],
+    ]) {
       const g = newGame('pyramid');
       const [a, b] = g.kinds.flatMap((_, i) => (free(g, i) ? [i] : []));
       const kinds = g.kinds.slice();
       kinds[a] = first;
       kinds[b] = second;
-      const after = reducer(reducer({ ...g, kinds }, { type: 'tap', slot: a }), { type: 'tap', slot: b });
+      const after = reducer(reducer({ ...g, kinds }, { type: 'tap', slot: a }), {
+        type: 'tap',
+        slot: b,
+      });
       expect(after.gone[a] && after.gone[b]).toBe(true);
     }
   });
@@ -69,8 +86,19 @@ describe('reducer', () => {
 
   it('is done when the board is clear, following the dealer’s order', () => {
     const { kinds, order } = deal('fortress');
-    let g: Game = { layout: 'fortress', pool: ['fortress'], difficulty: 'medium', seed: 1, kinds, gone: kinds.map(() => false), selected: null, history: [], done: false };
-    for (const [a, b] of order) g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
+    let g: Game = {
+      layout: 'fortress',
+      pool: ['fortress'],
+      difficulty: 'medium',
+      seed: 1,
+      kinds,
+      gone: kinds.map(() => false),
+      selected: null,
+      history: [],
+      done: false,
+    };
+    for (const [a, b] of order)
+      g = reducer(reducer(g, { type: 'tap', slot: a }), { type: 'tap', slot: b });
     expect(g.done).toBe(true);
     expect(isGame(JSON.parse(JSON.stringify(g)))).toBe(true);
   });
@@ -116,7 +144,9 @@ describe('reducer', () => {
       expect(newGame('pyramid', difficulty, ['pyramid'], 0x1234abcd).kinds).toEqual(a.kinds);
       expect(isGame(JSON.parse(JSON.stringify(a)))).toBe(true);
     }
-    expect(newGame('pyramid', 'medium', ['pyramid'], 1).kinds).not.toEqual(newGame('pyramid', 'medium', ['pyramid'], 2).kinds);
+    expect(newGame('pyramid', 'medium', ['pyramid'], 1).kinds).not.toEqual(
+      newGame('pyramid', 'medium', ['pyramid'], 2).kinds,
+    );
     const g = newGame('pyramid');
     const { seed: _, ...old } = g;
     expect(isGame(old)).toBe(false);

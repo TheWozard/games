@@ -1,11 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import {
-  bestTarget, canMove, deal, draw, finish, finishable, fitsColumn, isWon, move, rankOf, reachable, solvable, suitOf, toFoundation,
-  winnableDeal, type Table,
+  bestTarget,
+  canMove,
+  deal,
+  draw,
+  finish,
+  finishable,
+  fitsColumn,
+  isWon,
+  move,
+  rankOf,
+  reachable,
+  solvable,
+  suitOf,
+  toFoundation,
+  winnableDeal,
+  type Table,
 } from './logic';
 
 const card = (rank: number, suit: number) => suit * 13 + rank - 1; // suit: 0 ♠, 1 ♥, 2 ♦, 3 ♣
-const empty = (): Table => ({ stock: [], waste: [], foundations: [0, 0, 0, 0], tableau: Array.from({ length: 7 }, () => ({ down: [], up: [] })) });
+const empty = (): Table => ({
+  stock: [],
+  waste: [],
+  foundations: [0, 0, 0, 0],
+  tableau: Array.from({ length: 7 }, () => ({ down: [], up: [] })),
+});
 
 describe('deal', () => {
   it('lays out all 52 cards: columns of 1 to 7 with the top card up, the rest in the stock', () => {
@@ -89,7 +108,8 @@ describe('rules', () => {
   it('plays everything home once nothing is hidden', () => {
     const t = empty();
     // Each suit's cards in one column, King at the bottom.
-    for (let s = 0; s < 4; s++) t.tableau[s].up = Array.from({ length: 13 }, (_, k) => card(13 - k, s));
+    for (let s = 0; s < 4; s++)
+      t.tableau[s].up = Array.from({ length: 13 }, (_, k) => card(13 - k, s));
     expect(finishable(t)).toBe(true);
     const done = finish(t);
     expect(isWon(done)).toBe(true);

@@ -14,8 +14,8 @@
 //   jump. A board too small for the reach to move it (at 0.25, under half the stage) stays centered.
 
 export interface Size {
-  width: number;
   height: number;
+  width: number;
 }
 
 export interface View {
@@ -30,13 +30,16 @@ export const ZOOM_IN = 2;
 export interface Limits {
   /** Zoom at which the whole board just fits the stage. */
   fit: number;
+  max: number;
   min: number;
   start: number;
-  max: number;
 }
 
 export function limits(stage: Size, board: Size): Limits {
-  const fit = board.width > 0 && board.height > 0 ? Math.min(stage.width / board.width, stage.height / board.height) : 1;
+  const fit =
+    board.width > 0 && board.height > 0 ?
+      Math.min(stage.width / board.width, stage.height / board.height)
+    : 1;
   return { fit, min: Math.min(fit, 1), start: 1, max: ZOOM_IN };
 }
 
@@ -71,17 +74,41 @@ export function clampView(view: View, stage: Size, board: Size, reach: Reach = R
 /** The opening view: zoomed to `start` and centered. */
 export function startView(stage: Size, board: Size, reach: Reach = REACH): View {
   const z = limits(stage, board).start;
-  return clampView({ x: (stage.width - board.width * z) / 2, y: (stage.height - board.height * z) / 2, z }, stage, board, reach);
+  return clampView(
+    { x: (stage.width - board.width * z) / 2, y: (stage.height - board.height * z) / 2, z },
+    stage,
+    board,
+    reach,
+  );
 }
 
 /** Panned by (dx, dy) stage pixels. */
-export const panBy = (view: View, dx: number, dy: number, stage: Size, board: Size, reach: Reach = REACH): View =>
-  clampView({ x: view.x + dx, y: view.y + dy, z: view.z }, stage, board, reach);
+export const panBy = (
+  view: View,
+  dx: number,
+  dy: number,
+  stage: Size,
+  board: Size,
+  reach: Reach = REACH,
+): View => clampView({ x: view.x + dx, y: view.y + dy, z: view.z }, stage, board, reach);
 
 /** Zoomed by `factor`, keeping the board point under stage point (px, py) where it is. */
-export function zoomAt(view: View, factor: number, px: number, py: number, stage: Size, board: Size, reach: Reach = REACH): View {
+export function zoomAt(
+  view: View,
+  factor: number,
+  px: number,
+  py: number,
+  stage: Size,
+  board: Size,
+  reach: Reach = REACH,
+): View {
   const { min, max } = limits(stage, board);
   const z = Math.min(max, Math.max(min, view.z * factor));
   const k = z / view.z;
-  return clampView({ x: px - (px - view.x) * k, y: py - (py - view.y) * k, z }, stage, board, reach);
+  return clampView(
+    { x: px - (px - view.x) * k, y: py - (py - view.y) * k, z },
+    stage,
+    board,
+    reach,
+  );
 }

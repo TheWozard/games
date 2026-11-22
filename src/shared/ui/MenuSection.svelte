@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  let { tone, children }: { tone?: 'dev'; children: Snippet } = $props();
+  let { tone, children }: { children: Snippet; tone?: 'dev' } = $props();
 </script>
 
 <div class={['menu-section', tone]}>

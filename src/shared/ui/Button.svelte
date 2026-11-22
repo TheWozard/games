@@ -7,12 +7,14 @@
   import type { HTMLButtonAttributes } from 'svelte/elements';
 
   interface Props extends HTMLButtonAttributes {
+    children: Snippet;
     primary?: boolean;
     small?: boolean;
-    children: Snippet;
   }
 
   let { primary = false, small = false, class: className, children, ...rest }: Props = $props();
 </script>
 
-<button type="button" class={['btn', { primary, small }, className]} {...rest}>{@render children()}</button>
+<button class={['btn', { primary, small }, className]} type="button" {...rest}>
+  {@render children()}
+</button>

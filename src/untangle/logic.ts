@@ -34,8 +34,10 @@ export type Size = keyof typeof SIZES;
 export type Style = keyof typeof STYLES;
 export type Start = keyof typeof STARTS;
 
-const has = <T extends object>(table: T) => (value: unknown): value is keyof T =>
-  typeof value === 'string' && Object.hasOwn(table, value);
+const has =
+  <T extends object>(table: T) =>
+  (value: unknown): value is keyof T =>
+    typeof value === 'string' && Object.hasOwn(table, value);
 export const isSize = has(SIZES);
 export const isStyle = has(STYLES);
 export const isStart = has(STARTS);
@@ -48,8 +50,8 @@ export type Edge = [a: number, b: number];
  * with the shorter side 100 units long (dot sizes are in the same units).
  */
 export interface Board {
-  width: number;
   height: number;
+  width: number;
 }
 /** Until the screen has been measured: a phone in portrait. */
 export const DEFAULT_BOARD: Board = { width: 100, height: 130 };
@@ -63,7 +65,8 @@ export function boardFor(w: number, h: number): Board {
   return { width: Math.round(w * scale * 10) / 10, height: Math.round(h * scale * 10) / 10 };
 }
 
-export const sameBoard = (a: Board, b: Board) => Math.abs(a.width - b.width) < 0.5 && Math.abs(a.height - b.height) < 0.5;
+export const sameBoard = (a: Board, b: Board) =>
+  Math.abs(a.width - b.width) < 0.5 && Math.abs(a.height - b.height) < 0.5;
 
 /**
  * Stretches a layout from one board to another (each axis on its own). A stretch keeps straight
@@ -72,11 +75,16 @@ export const sameBoard = (a: Board, b: Board) => Math.abs(a.width - b.width) < 0
 export function rescale(points: readonly Point[], from: Board, to: Board): Point[] {
   const sx = (to.width - 2 * MARGIN) / (from.width - 2 * MARGIN);
   const sy = (to.height - 2 * MARGIN) / (from.height - 2 * MARGIN);
-  return points.map(([x, y]) => clamp([MARGIN + (x - MARGIN) * sx, MARGIN + (y - MARGIN) * sy], to));
+  return points.map(([x, y]) =>
+    clamp([MARGIN + (x - MARGIN) * sx, MARGIN + (y - MARGIN) * sy], to),
+  );
 }
 
 /** Drawn dot radius: a little smaller on the busiest boards. */
-export const dotRadius = (dots: number) => (dots <= 15 ? 2.8 : dots <= 21 ? 2.5 : 2.1);
+export const dotRadius = (dots: number) =>
+  dots <= 15 ? 2.8
+  : dots <= 21 ? 2.5
+  : 2.1;
 /** A dot this close to a line it isn't part of is "on" it, and counts as a crossing. */
 export const touchDistance = (dots: number) => dotRadius(dots) * 0.8;
 /** Dropped dots are nudged at least this far from any other dot. */
@@ -94,7 +102,8 @@ function shuffle<T>(a: T[], random: Random): T[] {
 
 // ---- Geometry ----
 
-const cross = (o: Point, a: Point, b: Point) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+const cross = (o: Point, a: Point, b: Point) =>
+  (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 
 /**
  * Whether segments p1–p2 and p3–p4 properly cross. Touching at an end, or lying along the same
@@ -102,8 +111,12 @@ const cross = (o: Point, a: Point, b: Point) => (a[0] - o[0]) * (b[1] - o[1]) - 
  * otherwise rounding noise can make two pieces of one straight line look as if they cross.
  */
 export function segmentsCross(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
-  const eps = 1e-9 * Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) * Math.hypot(p4[0] - p3[0], p4[1] - p3[1]);
-  const side = (v: number) => (v > eps ? 1 : v < -eps ? -1 : 0);
+  const eps =
+    1e-9 * Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) * Math.hypot(p4[0] - p3[0], p4[1] - p3[1]);
+  const side = (v: number) =>
+    v > eps ? 1
+    : v < -eps ? -1
+    : 0;
   const d1 = side(cross(p3, p4, p1));
   const d2 = side(cross(p3, p4, p2));
   const d3 = side(cross(p1, p2, p3));
@@ -116,14 +129,15 @@ export function distanceToSegment(p: Point, a: Point, b: Point): number {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
   const len2 = dx * dx + dy * dy;
-  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2));
+  const t =
+    len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2));
   return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
 }
 
 export interface Tangle {
+  count: number; // edge crossings plus dots on lines
   crossed: boolean[]; // per edge: crosses another edge, or has a dot sitting on it
   touching: boolean[]; // per dot: sits on a line it isn't part of
-  count: number; // edge crossings plus dots on lines
 }
 
 /** Everything still tangled: pairs of edges that cross, and dots lying on others' lines. */
@@ -166,9 +180,16 @@ export const clamp = ([x, y]: Point, { width, height }: Board): Point => [
  * Moves dot `i` clear of any dot it was dropped on (staying on the board). Returns the same array
  * when nothing needed moving.
  */
-export function nudge(points: readonly Point[], i: number, board: Board, random: Random = Math.random): readonly Point[] {
+export function nudge(
+  points: readonly Point[],
+  i: number,
+  board: Board,
+  random: Random = Math.random,
+): readonly Point[] {
   const gap = dotGap(points.length);
-  const clear = points.every((p, j) => j === i || Math.hypot(p[0] - points[i][0], p[1] - points[i][1]) >= gap);
+  const clear = points.every(
+    (p, j) => j === i || Math.hypot(p[0] - points[i][0], p[1] - points[i][1]) >= gap,
+  );
   if (clear) return points;
   const out = points.slice();
   for (let step = 0; step < 40; step++) {
@@ -183,10 +204,14 @@ export function nudge(points: readonly Point[], i: number, board: Board, random:
     });
     if (near === -1) break;
     // Step directly away from it (any direction if they're exactly on top of each other).
-    const angle = nearD > 1e-6
-      ? Math.atan2(out[i][1] - out[near][1], out[i][0] - out[near][0])
+    const angle =
+      nearD > 1e-6 ?
+        Math.atan2(out[i][1] - out[near][1], out[i][0] - out[near][0])
       : random() * Math.PI * 2;
-    out[i] = clamp([out[near][0] + Math.cos(angle) * gap * 1.05, out[near][1] + Math.sin(angle) * gap * 1.05], board);
+    out[i] = clamp(
+      [out[near][0] + Math.cos(angle) * gap * 1.05, out[near][1] + Math.sin(angle) * gap * 1.05],
+      board,
+    );
   }
   return out;
 }
@@ -212,8 +237,12 @@ export function settle(
     let improved = false;
     for (let k = 0; k < out.length; k++) {
       if (!tangle.touching[k]) continue;
-      const involved = (a: number, b: number) => around === undefined || k === around || a === around || b === around;
-      const e = edges.find(([a, b]) => a !== k && b !== k && involved(a, b) && distanceToSegment(out[k], out[a], out[b]) < touch);
+      const involved = (a: number, b: number) =>
+        around === undefined || k === around || a === around || b === around;
+      const e = edges.find(
+        ([a, b]) =>
+          a !== k && b !== k && involved(a, b) && distanceToSegment(out[k], out[a], out[b]) < touch,
+      );
       if (!e) continue;
       const [a, b] = [out[e[0]], out[e[1]]];
       // Sideways from the line, starting on the side the dot is on.
@@ -245,21 +274,26 @@ export function settle(
 
 export interface Settings {
   size: Size;
-  style: Style;
   start: Start;
+  style: Style;
 }
 
 export interface Puzzle {
   edges: Edge[];
-  solution: Point[]; // an untangled layout, inside the board
   points: Point[]; // the scrambled start
+  solution: Point[]; // an untangled layout, inside the board
 }
 
-export function generate({ size, style, start }: Settings, board: Board = DEFAULT_BOARD, random: Random = Math.random): Puzzle {
+export function generate(
+  { size, style, start }: Settings,
+  board: Board = DEFAULT_BOARD,
+  random: Random = Math.random,
+): Puzzle {
   const { dots, lines } = SIZES[size];
   const layout = { circle, spiral, rows, grid, scatter }[start];
   for (;;) {
-    const built = style === 'lines' ? fromLines(lines, board, random) : fromMesh(dots, style, board, random);
+    const built =
+      style === 'lines' ? fromLines(lines, board, random) : fromMesh(dots, style, board, random);
     if (!built) continue;
     const solution = untouch(built.solution, built.edges, board);
     if (!solution) continue;
@@ -275,7 +309,7 @@ export function generate({ size, style, start }: Settings, board: Board = DEFAUL
  * meet), for a made puzzle's answer. Returns the repaired layout, or null if it still has real
  * crossings.
  */
-function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): Point[] | null {
+function untouch(start: readonly Point[], edges: readonly Edge[], board: Board): null | Point[] {
   const points = settle(start, edges, board, touchDistance(start.length) + 0.3);
   return crossings(points, edges).count === 0 ? points.slice() : null;
 }
@@ -292,7 +326,7 @@ function fromLines(n: number, board: Board, random: Random): { edges: Edge[]; so
 
   // Each pair of lines meets once: that's a dot, at parameter t along each line.
   const dots: Point[] = [];
-  const along: { t: number; dot: number }[][] = lines.map(() => []);
+  const along: { dot: number; t: number }[][] = lines.map(() => []);
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const { p: p1, d: d1 } = lines[i];
@@ -318,7 +352,12 @@ function fromLines(n: number, board: Board, random: Random): { edges: Edge[]; so
 }
 
 /** Well-spaced random dots joined into triangles, then thinned: a little for mesh, a lot for loops. */
-function fromMesh(n: number, style: 'mesh' | 'loops', board: Board, random: Random): { edges: Edge[]; solution: Point[] } | null {
+function fromMesh(
+  n: number,
+  style: 'loops' | 'mesh',
+  board: Board,
+  random: Random,
+): null | { edges: Edge[]; solution: Point[] } {
   const solution = spread(n, board, random);
   if (!solution) return null;
   const edges = delaunay(solution);
@@ -352,8 +391,8 @@ function connected(n: number, edges: readonly Edge[]): boolean {
   }
   const seen = new Set([0]);
   const queue = [0];
-  for (let q = 0; q < queue.length; q++) {
-    for (const j of next[queue[q]]) {
+  for (const here of queue) {
+    for (const j of next[here]) {
       if (!seen.has(j)) {
         seen.add(j);
         queue.push(j);
@@ -364,12 +403,15 @@ function connected(n: number, edges: readonly Edge[]): boolean {
 }
 
 /** `n` random dots on the board, each at least a comfortable distance from the others. */
-function spread(n: number, { width, height }: Board, random: Random): Point[] | null {
+function spread(n: number, { width, height }: Board, random: Random): null | Point[] {
   const area = (width - 2 * MARGIN) * (height - 2 * MARGIN);
   const spacing = Math.sqrt(area / n) * 0.62;
   const out: Point[] = [];
   for (let tries = 0; out.length < n && tries < n * 400; tries++) {
-    const p: Point = [MARGIN + random() * (width - 2 * MARGIN), MARGIN + random() * (height - 2 * MARGIN)];
+    const p: Point = [
+      MARGIN + random() * (width - 2 * MARGIN),
+      MARGIN + random() * (height - 2 * MARGIN),
+    ];
     if (out.every((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) >= spacing)) out.push(p);
   }
   return out.length === n ? out : null;
@@ -389,8 +431,16 @@ export function delaunay(points: readonly Point[]): Edge[] {
     const [bx, by] = all[b];
     const [cx, cy] = all[c];
     const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
-    const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
-    const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
+    const ux =
+      ((ax * ax + ay * ay) * (by - cy) +
+        (bx * bx + by * by) * (cy - ay) +
+        (cx * cx + cy * cy) * (ay - by)) /
+      d;
+    const uy =
+      ((ax * ax + ay * ay) * (cx - bx) +
+        (bx * bx + by * by) * (ax - cx) +
+        (cx * cx + cy * cy) * (bx - ax)) /
+      d;
     return Math.hypot(p[0] - ux, p[1] - uy) < Math.hypot(ax - ux, ay - uy);
   };
   for (let i = 0; i < n; i++) {
@@ -399,7 +449,11 @@ export function delaunay(points: readonly Point[]): Edge[] {
     const count = new Map<string, [number, number]>();
     const seen = new Map<string, number>();
     for (const [a, b, c] of bad) {
-      for (const [u, v] of [[a, b], [b, c], [c, a]] as [number, number][]) {
+      for (const [u, v] of [
+        [a, b],
+        [b, c],
+        [c, a],
+      ] as [number, number][]) {
         const key = u < v ? `${u},${v}` : `${v},${u}`;
         seen.set(key, (seen.get(key) ?? 0) + 1);
         count.set(key, [u, v]);
@@ -410,7 +464,11 @@ export function delaunay(points: readonly Point[]): Edge[] {
   }
   const edges = new Map<string, Edge>();
   for (const [a, b, c] of tris) {
-    for (const [u, v] of [[a, b], [b, c], [c, a]] as [number, number][]) {
+    for (const [u, v] of [
+      [a, b],
+      [b, c],
+      [c, a],
+    ] as [number, number][]) {
       if (u >= n || v >= n) continue;
       edges.set(u < v ? `${u},${v}` : `${v},${u}`, u < v ? [u, v] : [v, u]);
     }
@@ -423,7 +481,10 @@ function fit(points: Point[], { width, height }: Board): Point[] {
   const xs = points.map((p) => p[0]);
   const ys = points.map((p) => p[1]);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const scale = Math.min((width - 2 * MARGIN) / (x1 - x0 || 1), (height - 2 * MARGIN) / (y1 - y0 || 1));
+  const scale = Math.min(
+    (width - 2 * MARGIN) / (x1 - x0 || 1),
+    (height - 2 * MARGIN) / (y1 - y0 || 1),
+  );
   const ox = (width - (x1 - x0) * scale) / 2;
   const oy = (height - (y1 - y0) * scale) / 2;
   return points.map(([x, y]) => [ox + (x - x0) * scale, oy + (y - y0) * scale]);
@@ -476,7 +537,10 @@ function grid(count: number, { width, height }: Board, random: Random): Point[] 
   const spots: Point[] = [];
   for (let r = 0; r < lines; r++) {
     for (let c = 0; c < cols; c++) {
-      spots.push([MARGIN * 2 + ((width - 4 * MARGIN) * (c + 0.5)) / cols, MARGIN + ((height - 2 * MARGIN) * (r + 0.5)) / lines]);
+      spots.push([
+        MARGIN * 2 + ((width - 4 * MARGIN) * (c + 0.5)) / cols,
+        MARGIN + ((height - 2 * MARGIN) * (r + 0.5)) / lines,
+      ]);
     }
   }
   return shuffle(spots, random).slice(0, count);

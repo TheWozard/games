@@ -19,7 +19,7 @@
 </script>
 
 {#if variant === 'klondike'}
-  <Klondike {start} {onswitch} />
+  <Klondike {onswitch} {start} />
 {:else}
-  <FreeCell {start} {onswitch} />
+  <FreeCell {onswitch} {start} />
 {/if}

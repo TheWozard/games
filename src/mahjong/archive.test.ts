@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { ARCHIVE, decode } from './archive';
 import { seeded } from '../shared/seed';
+import { ARCHIVE, decode } from './archive';
 import { reaches } from './layouts';
-import { deal, DIFFICULTIES, grader, isFree, layoutProblems, LAYOUTS, matches, neighbors, TIERS } from './logic';
+import {
+  deal,
+  DIFFICULTIES,
+  grader,
+  isFree,
+  layoutProblems,
+  LAYOUTS,
+  matches,
+  neighbors,
+  TIERS,
+} from './logic';
 
 describe('archive layouts', () => {
   it('has layouts from both sources, each with its own id', () => {
@@ -27,14 +37,27 @@ describe('archive layouts', () => {
   it("agrees with the game's own layouts on the rules", () => {
     for (const { slots } of Object.values(LAYOUTS)) expect(layoutProblems(slots)).toEqual([]);
     expect(layoutProblems([{ x: 0, y: 0, z: 0 }])).toEqual(['an odd number of tiles (1)']);
-    expect(layoutProblems([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }])).toEqual(['tiles overlap at (0, 0, 0)']);
+    expect(
+      layoutProblems([
+        { x: 0, y: 0, z: 0 },
+        { x: 1, y: 0, z: 0 },
+      ]),
+    ).toEqual(['tiles overlap at (0, 0, 0)']);
     // A bridge, a tile with nothing under it, is allowed.
-    expect(layoutProblems([{ x: 0, y: 0, z: 0 }, { x: 4, y: 0, z: 1 }])).toEqual([]);
+    expect(
+      layoutProblems([
+        { x: 0, y: 0, z: 0 },
+        { x: 4, y: 0, z: 1 },
+      ]),
+    ).toEqual([]);
   });
 
   it('counts a tile as covered by a bridge over it, even with a gap between', () => {
     // A tile on the floor, nothing over it on layer 1, and a bridge over it on layer 2.
-    const slots = [{ x: 2, y: 0, z: 0 }, { x: 1, y: 0, z: 2 }];
+    const slots = [
+      { x: 2, y: 0, z: 0 },
+      { x: 1, y: 0, z: 2 },
+    ];
     const near = neighbors(slots);
     expect(near[0].above).toEqual([1]);
     expect(isFree(0, near, [false, false])).toBe(false);
@@ -44,9 +67,15 @@ describe('archive layouts', () => {
   it('has bridges: layouts with tiles over a gap', () => {
     const bridged = ARCHIVE.filter(({ tiles }) => {
       const slots = decode(tiles);
-      return slots.some((s) => s.z > 0 && !slots.some((t) => t.z === s.z - 1 && Math.abs(t.x - s.x) < 2 && Math.abs(t.y - s.y) < 2));
+      return slots.some(
+        (s) =>
+          s.z > 0 &&
+          !slots.some((t) => t.z === s.z - 1 && Math.abs(t.x - s.x) < 2 && Math.abs(t.y - s.y) < 2),
+      );
     });
-    expect(bridged.map((l) => l.id)).toEqual(expect.arrayContaining(['gnome-mahjongg/overpass', 'gnome-mahjongg/the_ziggurat']));
+    expect(bridged.map((l) => l.id)).toEqual(
+      expect.arrayContaining(['gnome-mahjongg/overpass', 'gnome-mahjongg/the_ziggurat']),
+    );
   });
 
   // One test per layout, as for the game's own (logic.test.ts): all of them in one can outlast the
@@ -82,10 +111,17 @@ describe('archive layouts', () => {
     const grade = grader(neighbors(slots));
     for (const difficulty of ['medium', 'hard'] as const) {
       expect(reaches('kmahjongg/clubs', difficulty)).toBe(false);
-      const shares = Array.from({ length: 10 }, (_, k) => grade(deal(slots, difficulty, seeded(k + 1)).kinds, 400, seeded(k + 1)));
-      expect(shares.filter((share) => share > TIERS[difficulty][1]).length, difficulty).toBeGreaterThan(5);
+      const shares = Array.from({ length: 10 }, (_, k) =>
+        grade(deal(slots, difficulty, seeded(k + 1)).kinds, 400, seeded(k + 1)),
+      );
+      expect(
+        shares.filter((share) => share > TIERS[difficulty][1]).length,
+        difficulty,
+      ).toBeGreaterThan(5);
     }
     expect(reaches('kmahjongg/clubs', 'easy')).toBe(true);
-    expect(Object.keys(LAYOUTS).every((id) => DIFFICULTIES.every((d) => reaches(id, d)))).toBe(true);
+    expect(Object.keys(LAYOUTS).every((id) => DIFFICULTIES.every((d) => reaches(id, d)))).toBe(
+      true,
+    );
   }, 20_000);
 });

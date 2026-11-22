@@ -6,21 +6,24 @@
 <script lang="ts">
   import Bug from '@lucide/svelte/icons/bug';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import Eraser from '@lucide/svelte/icons/eraser';
   import MenuIcon from '@lucide/svelte/icons/menu';
+  import Palette from '@lucide/svelte/icons/palette';
   import Pencil from '@lucide/svelte/icons/pencil';
   import Plus from '@lucide/svelte/icons/plus';
-  import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-  import Palette from '@lucide/svelte/icons/palette';
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
   import Trophy from '@lucide/svelte/icons/trophy';
   import Undo2 from '@lucide/svelte/icons/undo-2';
+  import { layoutOf } from '../../mahjong/layouts';
+  import LayoutThumb from '../../mahjong/LayoutThumb.svelte';
   import Dialog from '../../shared/Dialog.svelte';
   import NewDialog from '../../shared/NewDialog.svelte';
   import NextButton from '../../shared/NextButton.svelte';
   import { toast } from '../../shared/toast';
   import Button from '../../shared/ui/Button.svelte';
+  import Chip from '../../shared/ui/Chip.svelte';
   import Choice from '../../shared/ui/Choice.svelte';
   import IconButton from '../../shared/ui/IconButton.svelte';
   import MenuItem from '../../shared/ui/MenuItem.svelte';
@@ -28,16 +31,13 @@
   import MenuSection from '../../shared/ui/MenuSection.svelte';
   import PickGroup from '../../shared/ui/PickGroup.svelte';
   import PickList from '../../shared/ui/PickList.svelte';
-  import Chip from '../../shared/ui/Chip.svelte';
-  import Toggle from '../../shared/ui/Toggle.svelte';
-  import LayoutThumb from '../../mahjong/LayoutThumb.svelte';
-  import { layoutOf } from '../../mahjong/layouts';
   import { slidePick } from '../../shared/ui/slide';
+  import Toggle from '../../shared/ui/Toggle.svelte';
   import type { Wait } from '../../shared/wait';
 
   // The log: newest first, a few lines, each with how long since the one before (a double fire
   // shows as +0ms).
-  let log = $state<{ n: number; text: string; gap: string }[]>([]);
+  let log = $state<{ gap: string; n: number; text: string }[]>([]);
   let n = 0;
   let last = 0;
   function note(text: string) {
@@ -66,11 +66,15 @@
   let layouts = $state({ pyramid: true, turtle: false });
   // PickList: Mahjong's layout rows, each with its shape, narrowed by chips (Original or
   // Archive; with neither on, all show).
-  const SHAPES = ['pyramid', 'turtle', 'dragon', 'kmahjongg/arena', 'kmahjongg/altar'].map((id) => layoutOf(id));
+  const SHAPES = ['pyramid', 'turtle', 'dragon', 'kmahjongg/arena', 'kmahjongg/altar'].map((id) =>
+    layoutOf(id),
+  );
   let shaped = $state<Record<string, boolean>>({ pyramid: true });
   let fromOwn = $state(false);
   let fromArchive = $state(false);
-  const shapesShown = $derived(SHAPES.filter((l) => (!fromOwn && !fromArchive) || (l.archive ? fromArchive : fromOwn)));
+  const shapesShown = $derived(
+    SHAPES.filter((l) => (!fromOwn && !fromArchive) || (l.archive ? fromArchive : fromOwn)),
+  );
 
   // The menu, as a real dialog (GameScreen2's), and inline to look at. What Details copies: one
   // of Mahjong's.
@@ -91,7 +95,7 @@
 
 <div class="gallery">
   <header class="bar">
-    <IconButton href="../" icon={ChevronLeft} label="Dev pages" class="back" />
+    <IconButton class="back" href="../" icon={ChevronLeft} label="Dev pages" />
     <h1>UI Components <small>src/shared/ui/</small></h1>
   </header>
 
@@ -99,18 +103,28 @@
     <h2>IconButton</h2>
     <p>Round, in the header. Disabled stays visible but takes no tap.</p>
     <div class="row">
-      <IconButton icon={Undo2} strokeWidth={2.2} label="Undo" disabled={!canUndo} onclick={() => note('Undo')} />
+      <IconButton
+        disabled={!canUndo}
+        icon={Undo2}
+        label="Undo"
+        onclick={() => note('Undo')}
+        strokeWidth={2.2}
+      />
       <IconButton icon={Plus} label="New Game" onclick={() => note('New Game')} />
       <IconButton
+        aria-expanded={expanded}
         icon={MenuIcon}
         label="Menu"
-        aria-expanded={expanded}
         onclick={() => note(`Menu (aria-expanded ${(expanded = !expanded)})`)}
       />
-      <IconButton icon={Bug} label="Link" href="#icon" onclick={() => note('Link (href #icon)')} />
+      <IconButton href="#icon" icon={Bug} label="Link" onclick={() => note('Link (href #icon)')} />
     </div>
     <div class="row">
-      <Toggle label="Undo enabled" on={canUndo} onclick={() => note(`Undo enabled: ${(canUndo = !canUndo)}`)} />
+      <Toggle
+        label="Undo enabled"
+        on={canUndo}
+        onclick={() => note(`Undo enabled: ${(canUndo = !canUndo)}`)}
+      />
     </div>
   </section>
 
@@ -119,16 +133,20 @@
     <p>Plain, <code>primary</code>, <code>small</code>; Next and Play's slow colors.</p>
     <div class="row wrap">
       <Button onclick={() => note('Plain')}>Plain</Button>
-      <Button primary onclick={() => note('Primary')}>Primary</Button>
-      <Button small onclick={() => note('Small')}>Small</Button>
+      <Button onclick={() => note('Primary')} primary>Primary</Button>
+      <Button onclick={() => note('Small')} small>Small</Button>
       <Button disabled onclick={() => note('Disabled (should never log)')}>Disabled</Button>
-      <Button primary class="slow" onclick={() => note('Slow')}>Slow</Button>
-      <Button primary class="slower" onclick={() => note('Slower')}>Slower</Button>
+      <Button class="slow" onclick={() => note('Slow')} primary>Slow</Button>
+      <Button class="slower" onclick={() => note('Slower')} primary>Slower</Button>
     </div>
     <h3 class="sub">In a .tools row (equal widths, under a board)</h3>
     <div class="tools">
-      <Button onclick={() => note('Erase')}><Eraser aria-hidden="true" class="inline-icon" /> Erase</Button>
-      <Button aria-pressed={false} onclick={() => note('Notes')}><Pencil aria-hidden="true" class="inline-icon" /> Notes</Button>
+      <Button onclick={() => note('Erase')}>
+        <Eraser class="inline-icon" aria-hidden="true" /> Erase
+      </Button>
+      <Button aria-pressed={false} onclick={() => note('Notes')}>
+        <Pencil class="inline-icon" aria-hidden="true" /> Notes
+      </Button>
       <Button onclick={() => note('Shuffle')}>Shuffle</Button>
     </div>
   </section>
@@ -138,12 +156,17 @@
     <p>One of a set: a tap picks it. As in a New Game dialog.</p>
     <PickGroup title="Difficulty">
       {#each LEVELS as { value, label, detail } (value)}
-        <Choice {label} {detail} pressed={level === value} onclick={() => note(`Difficulty: ${(level = value)}`)} />
+        <Choice
+          {detail}
+          {label}
+          onclick={() => note(`Difficulty: ${(level = value)}`)}
+          pressed={level === value}
+        />
       {/each}
     </PickGroup>
     <PickGroup title="Size (no details)">
       {#each SIZES as s (s)}
-        <Choice label={s} pressed={size === s} onclick={() => note(`Size: ${(size = s)}`)} />
+        <Choice label={s} onclick={() => note(`Size: ${(size = s)}`)} pressed={size === s} />
       {/each}
     </PickGroup>
   </section>
@@ -153,13 +176,31 @@
     <p>Each on or off by itself: a check box.</p>
     <h3 class="pick-title">Rules</h3>
     <div class="col">
-      <Toggle label="Squares" on={rules.squares} onclick={() => note(`Squares: ${(rules.squares = !rules.squares)}`)} />
-      <Toggle label="Rings" on={rules.rings} onclick={() => note(`Rings: ${(rules.rings = !rules.rings)}`)} />
+      <Toggle
+        label="Squares"
+        on={rules.squares}
+        onclick={() => note(`Squares: ${(rules.squares = !rules.squares)}`)}
+      />
+      <Toggle
+        label="Rings"
+        on={rules.rings}
+        onclick={() => note(`Rings: ${(rules.rings = !rules.rings)}`)}
+      />
     </div>
     <h3 class="pick-title">With a detail</h3>
     <div class="grid2">
-      <Toggle label="Pyramid" detail="82 tiles" on={layouts.pyramid} onclick={() => note(`Pyramid: ${(layouts.pyramid = !layouts.pyramid)}`)} />
-      <Toggle label="Turtle" detail="144 tiles" on={layouts.turtle} onclick={() => note(`Turtle: ${(layouts.turtle = !layouts.turtle)}`)} />
+      <Toggle
+        detail="82 tiles"
+        label="Pyramid"
+        on={layouts.pyramid}
+        onclick={() => note(`Pyramid: ${(layouts.pyramid = !layouts.pyramid)}`)}
+      />
+      <Toggle
+        detail="144 tiles"
+        label="Turtle"
+        on={layouts.turtle}
+        onclick={() => note(`Turtle: ${(layouts.turtle = !layouts.turtle)}`)}
+      />
     </div>
   </section>
 
@@ -168,25 +209,54 @@
     <p>
       A long list of Toggles drawn like a PickGroup: a heading with a count and small buttons, then
       one strip with a row of filter <code>chips</code> (Chip) at its top, which scrolls sideways,
-      and, scrolling by themselves under it, a toggle a row, with an <code>aside</code> at the
-      right (Mahjong's layouts show their shape).
+      and, scrolling by themselves under it, a toggle a row, with an <code>aside</code> at the right (Mahjong's
+      layouts show their shape).
     </p>
-    <PickList title="Layouts" count={SHAPES.filter((l) => shaped[l.id]).length} >
+    <PickList count={SHAPES.filter((l) => shaped[l.id]).length} title="Layouts">
       {#snippet actions()}
         <span class="pick-select">Select</span>
-        <Button small onclick={() => { for (const l of shapesShown) shaped[l.id] = true; note('Layouts: All'); }}>All</Button>
-        <Button small onclick={() => { for (const l of shapesShown) shaped[l.id] = false; note('Layouts: None'); }}>None</Button>
+        <Button
+          onclick={() => {
+            for (const l of shapesShown) shaped[l.id] = true;
+            note('Layouts: All');
+          }}
+          small
+        >
+          All
+        </Button>
+        <Button
+          onclick={() => {
+            for (const l of shapesShown) shaped[l.id] = false;
+            note('Layouts: None');
+          }}
+          small
+        >
+          None
+        </Button>
       {/snippet}
       {#snippet chips()}
-        <Chip label="Original" on={fromOwn} onclick={() => note(`Original: ${(fromOwn = !fromOwn)}`)} />
-        <Chip label="Archive" on={fromArchive} onclick={() => note(`Archive: ${(fromArchive = !fromArchive)}`)} />
+        <Chip
+          label="Original"
+          on={fromOwn}
+          onclick={() => note(`Original: ${(fromOwn = !fromOwn)}`)}
+        />
+        <Chip
+          label="Archive"
+          on={fromArchive}
+          onclick={() => note(`Archive: ${(fromArchive = !fromArchive)}`)}
+        />
         <span class="chip-gap" aria-hidden="true"></span>
         {#each ['Quick', 'Full Set', 'Flat', 'Tall', 'More', 'Chips'] as c (c)}
           <Chip label={c} on={false} onclick={() => note(`${c} (scrolls sideways)`)} />
         {/each}
       {/snippet}
       {#each shapesShown as l (l.id)}
-        <Toggle label={l.name} detail="{l.slots.length} tiles" on={!!shaped[l.id]} onclick={() => note(`${l.name}: ${(shaped[l.id] = !shaped[l.id])}`)}>
+        <Toggle
+          detail="{l.slots.length} tiles"
+          label={l.name}
+          on={!!shaped[l.id]}
+          onclick={() => note(`${l.name}: ${(shaped[l.id] = !shaped[l.id])}`)}
+        >
           {#snippet aside()}<LayoutThumb slots={l.slots} />{/snippet}
         </Toggle>
       {:else}
@@ -202,7 +272,7 @@
       last entry, Details, copies what the puzzle is and leaves the menu open.
     </p>
     <div class="row">
-      <Button primary onclick={() => (menuOpen = true)}>Open Menu</Button>
+      <Button onclick={() => (menuOpen = true)} primary>Open Menu</Button>
     </div>
     <div class="menu-preview">
       {@render menuItems()}
@@ -211,7 +281,10 @@
 
   <section>
     <h2>Dialogs, toasts, Next</h2>
-    <p>New Game: Play waits as long as the pick says, with a spinner (the dialog can't close meanwhile).</p>
+    <p>
+      New Game: Play waits as long as the pick says, with a spinner (the dialog can't close
+      meanwhile).
+    </p>
     <div class="row wrap">
       <Button onclick={() => (newOpen = true)}>New Game</Button>
       <Button onclick={() => toast('A short note')}>Toast</Button>
@@ -220,11 +293,20 @@
     <h3 class="pick-title">Next</h3>
     <div class="col">
       <Toggle label="Show Next" on={showNext} onclick={() => (showNext = !showNext)} />
-      <Toggle label="Takes a second" detail="spinner, then logs" on={slowNext} onclick={() => (slowNext = !slowNext)} />
+      <Toggle
+        detail="spinner, then logs"
+        label="Takes a second"
+        on={slowNext}
+        onclick={() => (slowNext = !slowNext)}
+      />
     </div>
     <div class="pick" {@attach slidePick}>
       {#each ['quick', 'slow', 'slower'] as const as w (w)}
-        <Choice label={w[0].toUpperCase() + w.slice(1)} pressed={nextWait === w} onclick={() => (nextWait = w)} />
+        <Choice
+          label={w[0].toUpperCase() + w.slice(1)}
+          onclick={() => (nextWait = w)}
+          pressed={nextWait === w}
+        />
       {/each}
     </div>
   </section>
@@ -240,86 +322,189 @@
 
 {#snippet menuItems()}
   <MenuSection>
-    <MenuItem icon={ChevronRight} label="New" value="next" onclick={() => note('Menu: New')} />
-    <MenuItem icon={SlidersHorizontal} label="Customize" value="new" onclick={() => note('Menu: Customize')} />
-    <MenuItem icon={Palette} label="Display" value="settings" onclick={() => note('Menu: Display')} />
+    <MenuItem icon={ChevronRight} label="New" onclick={() => note('Menu: New')} value="next" />
+    <MenuItem
+      icon={SlidersHorizontal}
+      label="Customize"
+      onclick={() => note('Menu: Customize')}
+      value="new"
+    />
+    <MenuItem
+      icon={Palette}
+      label="Display"
+      onclick={() => note('Menu: Display')}
+      value="settings"
+    />
   </MenuSection>
   <MenuSection>
     <MenuItem icon={RotateCcw} label="Restart" onclick={() => note('Menu: Restart')} />
-    <MenuItem icon={Bug} label="Disabled" disabled onclick={() => note('Disabled (should never log)')} />
+    <MenuItem
+      disabled
+      icon={Bug}
+      label="Disabled"
+      onclick={() => note('Disabled (should never log)')}
+    />
   </MenuSection>
   <MenuSection tone="dev">
     <MenuItem icon={Trophy} label="Win" onclick={() => note('Menu: Win')} />
   </MenuSection>
-  <MenuPuzzle puzzle={PUZZLE} oncopy={() => note(`Copied: ${PUZZLE}`)} />
+  <MenuPuzzle oncopy={() => note(`Copied: ${PUZZLE}`)} puzzle={PUZZLE} />
 {/snippet}
 
-<Dialog class="game-menu" label="Menu" open={menuOpen} onclose={(value) => { menuOpen = false; note(`Menu closed (value "${value}")`); }}>
+<Dialog
+  class="game-menu"
+  label="Menu"
+  onclose={(value) => {
+    menuOpen = false;
+    note(`Menu closed (value "${value}")`);
+  }}
+  open={menuOpen}
+>
   {@render menuItems()}
 </Dialog>
 
 <NewDialog
-  open={newOpen}
+  current="quick"
   onclose={() => (newOpen = false)}
+  onstart={(value) => {
+    wait = value as Wait;
+    note(`Play: ${value}`);
+    return value === 'quick' ? undefined : (
+        later(value === 'slow' ? 1000 : 3000).then(() => note(`Play: ${value} ready`))
+      );
+  }}
+  open={newOpen}
   options={[
     { value: 'quick', label: 'Quick', detail: 'at once' },
     { value: 'slow', label: 'Slow', detail: '1 second' },
     { value: 'slower', label: 'Slower', detail: '3 seconds' },
   ]}
-  current="quick"
   optionsTitle="Wait"
   {wait}
-  onstart={(value) => {
-    wait = value as Wait;
-    note(`Play: ${value}`);
-    return value === 'quick' ? undefined : later(value === 'slow' ? 1000 : 3000).then(() => note(`Play: ${value} ready`));
-  }}
 />
 
 <NextButton
-  show={showNext}
-  wait={nextWait}
   busy={nextBusy}
   onclick={() => {
     if (nextBusy) return note('Next (busy: ignored)');
     note('Next');
     if (slowNext) {
       nextBusy = true;
-      later(1000).then(() => { nextBusy = false; note('Next: ready'); });
+      void later(1000).then(() => {
+        nextBusy = false;
+        note('Next: ready');
+      });
     }
   }}
+  show={showNext}
+  wait={nextWait}
 />
 
 <style>
-  .gallery { max-width: 520px; margin: 0 auto; padding-bottom: 200px; /* clear of the log */ }
-  section { margin: 0 16px 28px; }
-  h2 { margin: 0 0 4px; font-size: 1.05rem; }
-  section > p { margin: 0 0 12px; color: var(--muted); font-size: 0.85rem; }
-  .sub { margin: 14px 0 6px; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
-  .row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .row.wrap { flex-wrap: wrap; gap: 8px; }
-  .col { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 10px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-  .tools :global(.inline-icon) { width: 16px; height: 16px; vertical-align: -3px; }
+  .gallery {
+    max-width: 520px;
+    padding-bottom: 200px; /* clear of the log */
+    margin: 0 auto;
+  }
+  section {
+    margin: 0 16px 28px;
+  }
+  h2 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+  }
+  section > p {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .sub {
+    margin: 14px 0 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .row.wrap {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 6px 0 10px;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .tools :global(.inline-icon) {
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+  }
   /* Laid out as in a dialog (base.css styles some of these only inside one). */
-  .dialog-like { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+  .dialog-like {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
   /* Toggles as they look in a dialog, where they're used (.pick rows style their own picks). */
-  .gallery :global(.btn.toggle[aria-pressed='true']) { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
-  .menu-preview { width: min(280px, 100%); margin-top: 10px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .gallery :global(.btn.toggle[aria-pressed='true']) {
+    color: var(--text);
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .menu-preview {
+    width: min(280px, 100%);
+    padding: 6px;
+    margin-top: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
   .log {
     position: fixed;
     inset: auto 0 0;
     z-index: 40;
-    margin: 0;
     padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    font:
+      0.8rem/1.5 ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      monospace;
     list-style: none;
+    background: rgb(22 24 29 / 94%);
     border-top: 1px solid var(--line);
-    background: rgb(22 24 29 / 0.94);
-    font: 0.8rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
   }
-  .log li:first-child { color: var(--text); }
-  .log li { color: var(--muted); }
-  .log span { display: inline-block; min-width: 2.5em; color: var(--muted); }
-  .log small { color: var(--warn); }
-  .log .empty { font-family: system-ui, sans-serif; }
+  .log li:first-child {
+    color: var(--text);
+  }
+  .log li {
+    color: var(--muted);
+  }
+  .log span {
+    display: inline-block;
+    min-width: 2.5em;
+    color: var(--muted);
+  }
+  .log small {
+    color: var(--warn);
+  }
+  .log .empty {
+    font-family: system-ui, sans-serif;
+  }
 </style>

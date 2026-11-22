@@ -28,6 +28,7 @@ jobs:
           cache: npm
 
       - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: npm run build # typechecks first
 
@@ -58,4 +59,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./dist
           force_orphan: true # keep gh-pages to a single commit of build output
-          commit_message: "deploy: ${{ github.sha }}"
+          commit_message: 'deploy: ${{ github.sha }}'

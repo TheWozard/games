@@ -22,7 +22,10 @@ describe('dragEdge', () => {
         const a = center(g, e.a);
         const b = center(g, e.b);
         // From either end, dragging most of a cell toward the other end (a little off) picks this edge.
-        const toward = (p: typeof a, q: typeof a) => ({ x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.08, y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.08 });
+        const toward = (p: typeof a, q: typeof a) => ({
+          x: p.x + Math.sign(q.x - p.x) * 0.8 + 0.08,
+          y: p.y + Math.sign(q.y - p.y) * 0.8 + 0.08,
+        });
         expect(dragEdge(g, e.a, toward(a, b))).toBe(k);
         expect(dragEdge(g, e.b, toward(b, a))).toBe(k);
       });
@@ -36,7 +39,12 @@ describe('dragEdge', () => {
     // Some direction from some island leads nowhere (the board edge, at least).
     const dead = g.islands.some((_, i) => {
       const p = center(g, i);
-      return [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dx, dy]) => dragEdge(g, i, { x: p.x + dx, y: p.y + dy }) === -1);
+      return [
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1],
+      ].some(([dx, dy]) => dragEdge(g, i, { x: p.x + dx, y: p.y + dy }) === -1);
     });
     expect(dead).toBe(true);
   });
@@ -52,9 +60,16 @@ describe('swipedEdges', () => {
     const b = center(g, e.b);
     const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     // A short stroke straight across the middle of the bridge.
-    const across = e.dr === 0
-      ? [{ x: mid.x, y: mid.y - 0.3 }, { x: mid.x, y: mid.y + 0.3 }]
-      : [{ x: mid.x - 0.3, y: mid.y }, { x: mid.x + 0.3, y: mid.y }];
+    const across =
+      e.dr === 0 ?
+        [
+          { x: mid.x, y: mid.y - 0.3 },
+          { x: mid.x, y: mid.y + 0.3 },
+        ]
+      : [
+          { x: mid.x - 0.3, y: mid.y },
+          { x: mid.x + 0.3, y: mid.y },
+        ];
     expect(swipedEdges(g, across[0], across[1])).toEqual([]); // nothing built yet
     g = reducer(g, { type: 'build', edge: k });
     expect(swipedEdges(g, across[0], across[1])).toEqual([k]);

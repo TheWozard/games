@@ -18,23 +18,32 @@ export interface Shape {
 
 export interface Game<P extends Shape> {
   difficulty: string;
-  puzzle: P;
-  marks: number[];
-  history: number[][];
   done: boolean;
+  history: number[][];
+  marks: number[];
+  puzzle: P;
 }
 
-export type Action =
-  | { type: 'paint'; indices: number[]; value: number }
-  | { type: 'undo' };
+export type Action = { indices: number[]; type: 'paint'; value: number } | { type: 'undo' };
 
 export function gameOf<P extends Shape>(difficulty: string, puzzle: P): Game<P> {
-  return { difficulty, puzzle, marks: new Array<number>(puzzle.size * puzzle.size).fill(EMPTY), history: [], done: false };
+  return {
+    difficulty,
+    puzzle,
+    marks: new Array<number>(puzzle.size * puzzle.size).fill(EMPTY),
+    history: [],
+    done: false,
+  };
 }
 
-export const isDone = (marks: number[], solution: boolean[]) => marks.every((m, i) => (m === MAIN) === solution[i]);
+export const isDone = (marks: number[], solution: boolean[]) =>
+  marks.every((m, i) => (m === MAIN) === solution[i]);
 
-export function reducer<P extends Shape>(g: Game<P>, action: Action, fixed: (i: number) => boolean): Game<P> {
+export function reducer<P extends Shape>(
+  g: Game<P>,
+  action: Action,
+  fixed: (i: number) => boolean,
+): Game<P> {
   switch (action.type) {
     case 'paint': {
       const { indices, value } = action;
@@ -43,7 +52,12 @@ export function reducer<P extends Shape>(g: Game<P>, action: Action, fixed: (i: 
       if (!targets.length) return g;
       const marks = g.marks.slice();
       for (const i of targets) marks[i] = value;
-      return { ...g, marks, history: [...g.history, g.marks].slice(-HISTORY_LIMIT), done: isDone(marks, g.puzzle.solution) };
+      return {
+        ...g,
+        marks,
+        history: [...g.history, g.marks].slice(-HISTORY_LIMIT),
+        done: isDone(marks, g.puzzle.solution),
+      };
     }
     case 'undo': {
       const last = g.history.at(-1);
@@ -59,13 +73,22 @@ export function isGame<P extends Shape>(
   isDifficulty: (d: unknown) => boolean,
   isPuzzle: (p: unknown, difficulty: string) => boolean,
 ): value is Game<P> {
-  const g = value as Partial<Game<P>> | null;
-  if (typeof g !== 'object' || g === null || !isDifficulty(g.difficulty) || !isPuzzle(g.puzzle, g.difficulty as string)) return false;
+  const g = value as null | Partial<Game<P>>;
+  if (
+    typeof g !== 'object' ||
+    g === null ||
+    !isDifficulty(g.difficulty) ||
+    !isPuzzle(g.puzzle, g.difficulty as string)
+  )
+    return false;
   const cells = g.puzzle!.size * g.puzzle!.size;
   const isMark = (m: unknown) => m === EMPTY || m === MAIN || m === NOTE;
   return (
-    Array.isArray(g.marks) && g.marks.length === cells && g.marks.every(isMark) &&
-    Array.isArray(g.history) && g.history.every((h) => Array.isArray(h) && h.length === cells) &&
+    Array.isArray(g.marks) &&
+    g.marks.length === cells &&
+    g.marks.every(isMark) &&
+    Array.isArray(g.history) &&
+    g.history.every((h) => Array.isArray(h) && h.length === cells) &&
     typeof g.done === 'boolean'
   );
 }

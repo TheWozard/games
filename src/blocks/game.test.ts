@@ -10,10 +10,14 @@ function solve(g: Game): Game {
   const moves = new Map(found.keys.map((k, id) => [k, found.moves[id]]));
   while (!g.done) {
     const left = moves.get(positionKey(g.blocks))!;
-    g = g.blocks.flatMap((_, i) => {
-      const [lo, hi] = range(g.blocks, i, s);
-      return Array.from({ length: hi - lo + 1 }, (_, k) => reducer(g, { type: 'slide', index: i, to: lo + k }));
-    }).find((n) => moves.get(positionKey(n.blocks)) === left - 1)!;
+    g = g.blocks
+      .flatMap((_, i) => {
+        const [lo, hi] = range(g.blocks, i, s);
+        return Array.from({ length: hi - lo + 1 }, (_, k) =>
+          reducer(g, { type: 'slide', index: i, to: lo + k }),
+        );
+      })
+      .find((n) => moves.get(positionKey(n.blocks)) === left - 1)!;
   }
   return g;
 }
@@ -22,7 +26,11 @@ describe('levels', () => {
   it('list each variant’s Easy, then Medium, then Hard puzzles', () => {
     for (const variant of ['classic', 'pillars', 'big', 'twoKeys'] as const) {
       const list = LEVEL_LIST[variant];
-      expect(list.map((l) => l.code)).toEqual((['easy', 'medium', 'hard'] as const).flatMap((d) => PUZZLES[variant][d].map(([, code]) => code)));
+      expect(list.map((l) => l.code)).toEqual(
+        (['easy', 'medium', 'hard'] as const).flatMap((d) =>
+          PUZZLES[variant][d].map(([, code]) => code),
+        ),
+      );
       expect(list.length).toBe(100);
     }
   });
@@ -106,10 +114,14 @@ describe('reducer', () => {
     const moves = new Map(found.keys.map((k, id) => [k, found.moves[id]]));
     while (!g.done) {
       const left = moves.get(positionKey(g.blocks))!;
-      g = g.blocks.flatMap((_, i) => {
-        const [lo, hi] = range(g.blocks, i, s);
-        return Array.from({ length: hi - lo + 1 }, (_, k) => reducer(g, { type: 'slide', index: i, to: lo + k }));
-      }).find((n) => moves.get(positionKey(n.blocks)) === left - 1)!;
+      g = g.blocks
+        .flatMap((_, i) => {
+          const [lo, hi] = range(g.blocks, i, s);
+          return Array.from({ length: hi - lo + 1 }, (_, k) =>
+            reducer(g, { type: 'slide', index: i, to: lo + k }),
+          );
+        })
+        .find((n) => moves.get(positionKey(n.blocks)) === left - 1)!;
       const out = [0, 1].filter((k) => isOut(g.blocks, k, s));
       if (out.length === 1) expect(g.done).toBe(false);
     }
@@ -119,17 +131,36 @@ describe('reducer', () => {
 
 describe('saves', () => {
   /** A save as it was before each variant was one list: a difficulty and a number in it. */
-  const oldSave = (variant: 'classic' | 'big', difficulty: 'easy' | 'medium' | 'hard', number: number) => {
-    const { level: _, upNext: __, ...rest } = newGame(variant, FIRST, LEVEL_LIST[variant].findIndex((l) => l.difficulty === difficulty) + number);
+  const oldSave = (
+    variant: 'big' | 'classic',
+    difficulty: 'easy' | 'hard' | 'medium',
+    number: number,
+  ) => {
+    const {
+      level: _,
+      upNext: __,
+      ...rest
+    } = newGame(
+      variant,
+      FIRST,
+      LEVEL_LIST[variant].findIndex((l) => l.difficulty === difficulty) + number,
+    );
     return { ...rest, difficulty, number };
   };
 
   it('carries a save from before the lists on: the same puzzle, and the level after the furthest played', () => {
     const empty = { easy: 0, medium: 0, hard: 0 };
-    const save = JSON.parse(JSON.stringify({
-      ...oldSave('big', 'medium', 5),
-      upNext: { classic: { easy: 3, medium: 0, hard: 0 }, pillars: empty, big: { easy: 4, medium: 6, hard: 0 }, twoKeys: { easy: 95, medium: 0, hard: 0 } },
-    }));
+    const save = JSON.parse(
+      JSON.stringify({
+        ...oldSave('big', 'medium', 5),
+        upNext: {
+          classic: { easy: 3, medium: 0, hard: 0 },
+          pillars: empty,
+          big: { easy: 4, medium: 6, hard: 0 },
+          twoKeys: { easy: 95, medium: 0, hard: 0 },
+        },
+      }),
+    );
     const blocks = save.blocks;
     expect(isGame(save)).toBe(true);
     expect(save.level).toBe(PUZZLES.big.easy.length + 5);
@@ -145,7 +176,13 @@ describe('saves', () => {
   });
 
   it('carries a save from before the variants on as Classic, keeping what’s next', () => {
-    const old = JSON.parse(JSON.stringify({ ...oldSave('classic', 'easy', 2), variant: undefined, upNext: { easy: 3, medium: 6, hard: 0 } }));
+    const old = JSON.parse(
+      JSON.stringify({
+        ...oldSave('classic', 'easy', 2),
+        variant: undefined,
+        upNext: { easy: 3, medium: 6, hard: 0 },
+      }),
+    );
     delete old.variant;
     expect(isGame(old)).toBe(true);
     expect(old.variant).toBe('classic');

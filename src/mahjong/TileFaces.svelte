@@ -16,6 +16,7 @@
 
 {#if art === 'riichi'}
   {#await import('./faces.svg?raw') then { default: faces }}
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -- our own built-in SVG, not user input -->
     {@html faces}
   {/await}
 {:else}
@@ -23,9 +24,9 @@
 {/if}
 
 <!-- The tile's top (as CSS's 160deg: down and a little right), and the picked tile's tint. -->
-<svg class="mj-faces" aria-hidden="true" width="0" height="0">
+<svg class="mj-faces" aria-hidden="true" height="0" width="0">
   <defs>
-    <linearGradient id="mj-top" x1="0.33" y1="0" x2="0.67" y2="1">
+    <linearGradient id="mj-top" x1="0.33" x2="0.67" y1="0" y2="1">
       <stop offset="0" stop-color="#fbf7ec" />
       <stop offset="1" stop-color="#ece3cc" />
     </linearGradient>
@@ -34,10 +35,18 @@
          stay clean. The symbol takes mj-pick; the body takes mj-pick-outline, the same inside a
          pale accent border (half white): its outline grown 2px. -->
     <filter id="mj-pick" color-interpolation-filters="sRGB">
-      <feColorMatrix type="matrix" values="0.556 0 0 0 0  0 0.700 0 0 0  0 0 0.967 0 0  0 0 0 1 0" />
+      <feColorMatrix
+        type="matrix"
+        values="0.556 0 0 0 0  0 0.700 0 0 0  0 0 0.967 0 0  0 0 0 1 0"
+      />
     </filter>
     <filter id="mj-pick-outline" color-interpolation-filters="sRGB">
-      <feColorMatrix in="SourceGraphic" type="matrix" values="0.556 0 0 0 0  0 0.700 0 0 0  0 0 0.967 0 0  0 0 0 1 0" result="tint" />
+      <feColorMatrix
+        in="SourceGraphic"
+        result="tint"
+        type="matrix"
+        values="0.556 0 0 0 0  0 0.700 0 0 0  0 0 0.967 0 0  0 0 0 1 0"
+      />
       <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="grown" />
       <feFlood style="flood-color: color-mix(in srgb, var(--accent), white 50%)" />
       <feComposite in2="grown" operator="in" result="ring" />
@@ -47,5 +56,10 @@
 </svg>
 
 <style>
-  :global(.mj-faces) { position: absolute; width: 0; height: 0; overflow: hidden; }
+  :global(.mj-faces) {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
 </style>

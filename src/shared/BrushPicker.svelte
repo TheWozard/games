@@ -5,14 +5,14 @@
   so nearer ones show more than farther ones. A stop is a colored circle or a plain one, with an
   optional icon (`icon` draws it). Styles: brush.css.
 -->
-<script lang="ts" generics="T extends string | number">
+<script generics="T extends number | string" lang="ts">
   import type { Snippet } from 'svelte';
 
   interface Props {
-    stops: { value: T; name: string; color?: string }[];
-    value: T;
     /** Draws a stop's icon (it may draw nothing for a colored one). */
     icon?: Snippet<[T]>;
+    stops: { color?: string; name: string; value: T }[];
+    value: T;
   }
 
   let { stops, value = $bindable(), icon }: Props = $props();
@@ -21,7 +21,12 @@
   const SHRINK = 0.18; // each circle back is this much smaller
   const SHOWS = 0.4; // the share of its width each one behind shows
 
-  const index = $derived(Math.max(0, stops.findIndex((s) => s.value === value)));
+  const index = $derived(
+    Math.max(
+      0,
+      stops.findIndex((s) => s.value === value),
+    ),
+  );
   const next = $derived(stops[(index + 1) % stops.length]);
   const stack = $derived.by(() => {
     let edge = 0; // how far the stack reaches left of the front circle's left edge
@@ -36,21 +41,21 @@
 
 <div class="brush-row">
   <button
-    type="button"
-    class="brush"
     style:--count={stops.length}
     style:--size="{SIZE}px"
-    style:width="{SIZE + stack[stack.length - 1].edge}px"
+    style:width="{SIZE + stack.at(-1)!.edge}px"
+    class="brush"
     aria-label="Placing {stops[index].name}; tap for {next.name}"
     onclick={() => (value = next.value)}
+    type="button"
   >
     {#each stops as stop, k (stop.value)}
       {@const at = (k - index + stops.length) % stops.length}
       <span
-        class={['dot', { plain: !stop.color }]}
         style:--at={at}
         style:transform="translateX({-stack[at].shift}px) scale({stack[at].scale})"
         style:background={stop.color}
+        class={['dot', { plain: !stop.color }]}
       >
         {@render icon?.(stop.value)}
       </span>

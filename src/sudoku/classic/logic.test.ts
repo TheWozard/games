@@ -13,7 +13,9 @@ describe('generate', () => {
       for (let run = 0; run < 5; run++) {
         const { puzzle, solution } = generate(difficulty);
         expect(isValidSolution(solution)).toBe(true);
-        puzzle.forEach((v, i) => { if (v) expect(v).toBe(solution[i]); });
+        puzzle.forEach((v, i) => {
+          if (v) expect(v).toBe(solution[i]);
+        });
         expect(puzzle.filter(Boolean).length).toBeGreaterThanOrEqual(clues);
         expect(countSolutions(puzzle.slice(), 2)).toBe(1);
         expect(grade(puzzle)).toBe(tier);

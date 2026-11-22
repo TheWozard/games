@@ -29,9 +29,18 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
 
 export const RULES = {
   walls: { label: 'Walls', info: 'Paths can’t cross the thick walls between some squares.' },
-  holes: { label: 'Holes', info: 'Some squares are missing; paths go around them, and they don’t need filling.' },
-  wrap: { label: 'Wrapping', info: 'The edges join up: a path that leaves one side comes back on the opposite side.' },
-  bridges: { label: 'Bridges', info: 'Two paths cross on a bridge, one straight across and one straight down; it’s filled once both do.' },
+  holes: {
+    label: 'Holes',
+    info: 'Some squares are missing; paths go around them, and they don’t need filling.',
+  },
+  wrap: {
+    label: 'Wrapping',
+    info: 'The edges join up: a path that leaves one side comes back on the opposite side.',
+  },
+  bridges: {
+    label: 'Bridges',
+    info: 'Two paths cross on a bridge, one straight across and one straight down; it’s filled once both do.',
+  },
 } as const;
 
 export type Rule = keyof typeof RULES;
@@ -39,7 +48,8 @@ export type Rules = Record<Rule, boolean>;
 export const NO_RULES: Rules = { walls: false, holes: false, wrap: false, bridges: false };
 
 export const isRules = (value: unknown): value is Rules =>
-  typeof value === 'object' && value !== null &&
+  typeof value === 'object' &&
+  value !== null &&
   (Object.keys(RULES) as Rule[]).every((k) => typeof (value as Rules)[k] === 'boolean');
 
 /** Squares are numbered row by row: r * size + c. */
@@ -47,14 +57,20 @@ export type Path = number[];
 
 /** The grid and what the rules add to it. */
 export interface Board {
-  size: number;
-  wrap: boolean;
-  holes: number[];
-  walls: [number, number][]; // pairs of neighboring squares with a wall between them
   bridges: number[];
+  holes: number[];
+  size: number;
+  walls: [number, number][]; // pairs of neighboring squares with a wall between them
+  wrap: boolean;
 }
 
-export const plainBoard = (size: number): Board => ({ size, wrap: false, holes: [], walls: [], bridges: [] });
+export const plainBoard = (size: number): Board => ({
+  size,
+  wrap: false,
+  holes: [],
+  walls: [],
+  bridges: [],
+});
 
 type Random = () => number;
 
@@ -71,7 +87,12 @@ function shuffle<T>(a: T[], random: Random): T[] {
 // ---- Geometry ----
 
 /** Directions as [rows, columns]: up, down, left, right. */
-export const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+export const DIRS = [
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
+] as const;
 
 /** The square one step from `i` in direction `d` (wrapping if the board does), or -1 off the edge. */
 export function step(i: number, d: number, board: Board): number {
@@ -88,7 +109,7 @@ export function step(i: number, d: number, board: Board): number {
 const edgeKey = (a: number, b: number) => (a < b ? `${a},${b}` : `${b},${a}`);
 
 /** Per board: open neighbors of every square, and which squares are holes or bridges. */
-const cache = new WeakMap<Board, { open: number[][]; hole: Set<number>; bridge: Set<number> }>();
+const cache = new WeakMap<Board, { bridge: Set<number>; hole: Set<number>; open: number[][] }>();
 function info(board: Board) {
   let found = cache.get(board);
   if (!found) {
@@ -100,7 +121,8 @@ function info(board: Board) {
       const out: number[] = [];
       for (let d = 0; d < 4; d++) {
         const j = step(i, d, board);
-        if (j !== -1 && j !== i && !hole.has(j) && !walls.has(edgeKey(i, j)) && !out.includes(j)) out.push(j);
+        if (j !== -1 && j !== i && !hole.has(j) && !walls.has(edgeKey(i, j)) && !out.includes(j))
+          out.push(j);
       }
       return out;
     });
@@ -135,16 +157,23 @@ function passing(path: Path, j: number, board: Board): 'across' | 'down' | null 
 
 /** How `path` uses the bridge at `j` so far: from the step into it, or out of it if it starts there. */
 export function bridgeWay(path: Path, j: number, board: Board): 'across' | 'down' | null {
-  const d = j > 0 ? dirOf(path[j - 1], path[j], board) : j + 1 < path.length ? dirOf(path[j], path[j + 1], board) : -1;
-  return d === -1 ? null : across(d) ? 'across' : 'down';
+  const d =
+    j > 0 ? dirOf(path[j - 1], path[j], board)
+    : j + 1 < path.length ? dirOf(path[j], path[j + 1], board)
+    : -1;
+  return (
+    d === -1 ? null
+    : across(d) ? 'across'
+    : 'down'
+  );
 }
 
 // ---- Generation ----
 
 export interface Puzzle {
+  board: Board;
   dots: [number, number][]; // per color, the two squares to join
   solution: Path[];
-  board: Board;
 }
 
 /** Whether a path runs alongside itself: two squares adjacent on the grid but not on the path. */
@@ -154,10 +183,12 @@ function touchesItself(path: Path, board: Board): boolean {
     if (index.has(path[k])) return true; // through the same bridge twice
     index.set(path[k], k);
   }
-  return path.some((cell, k) => neighbors(cell, board).some((n) => {
-    const j = index.get(n);
-    return j !== undefined && Math.abs(j - k) > 1;
-  }));
+  return path.some((cell, k) =>
+    neighbors(cell, board).some((n) => {
+      const j = index.get(n);
+      return j !== undefined && Math.abs(j - k) > 1;
+    }),
+  );
 }
 
 /** Share of squares that are holes, walls per square, and bridges per board, with those rules on. */
@@ -177,9 +208,14 @@ export function wait(difficulty: Difficulty, rules: Rules): Wait {
   return difficulty === 'hard' && rules.wrap && !boxedIn ? 'slower' : 'quick';
 }
 
-export const isSlow = (difficulty: Difficulty, rules: Rules): boolean => wait(difficulty, rules) !== 'quick';
+export const isSlow = (difficulty: Difficulty, rules: Rules): boolean =>
+  wait(difficulty, rules) !== 'quick';
 
-export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random: Random = Math.random): Puzzle {
+export function generate(
+  difficulty: Difficulty,
+  rules: Rules = NO_RULES,
+  random: Random = Math.random,
+): Puzzle {
   const { size, colors } = DIFFICULTIES[difficulty];
   for (;;) {
     // Each step makes a new board object: what's worked out per board (see `info`) is cached by
@@ -192,7 +228,7 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
     const paths = merge(board, start, colors, random);
     if (!paths) continue;
     if (rules.walls) board = { ...board, walls: walls(board, paths, random) };
-    const dots = paths.map((p): [number, number] => [p[0], p[p.length - 1]]);
+    const dots = paths.map((p): [number, number] => [p[0], p.at(-1)!]);
     if (countSolutions(dots, board, 2) !== 1) continue;
     return { dots, solution: paths, board };
   }
@@ -200,7 +236,9 @@ export function generate(difficulty: Difficulty, rules: Rules = NO_RULES, random
 
 /** Every open square as a path of its own. */
 const singles = (board: Board): Path[] =>
-  Array.from({ length: board.size * board.size }, (_, i) => i).filter((i) => !isHole(i, board)).map((i) => [i]);
+  Array.from({ length: board.size * board.size }, (_, i) => i)
+    .filter((i) => !isHole(i, board))
+    .map((i) => [i]);
 
 /** A few holes, keeping the rest in one piece and every square with at least two ways out. */
 function holes(board: Board, random: Random): number[] {
@@ -215,7 +253,12 @@ function holes(board: Board, random: Random): number[] {
     // Still one piece?
     const seen = new Set([open[0]]);
     const queue = [open[0]];
-    for (let q = 0; q < queue.length; q++) for (const j of neighbors(queue[q], trial)) if (!seen.has(j)) { seen.add(j); queue.push(j); }
+    for (const here of queue)
+      for (const j of neighbors(here, trial))
+        if (!seen.has(j)) {
+          seen.add(j);
+          queue.push(j);
+        }
     if (seen.size === open.length) out.push(i);
   }
   return out;
@@ -225,7 +268,7 @@ function holes(board: Board, random: Random): number[] {
  * Up to `count` bridges, each with all four neighbors open and not shared with another bridge. Each
  * starts as two straight three-square paths crossing it; every other open square is a path of its own.
  */
-function bridges(board: Board, count: number, random: Random): Path[] | null {
+function bridges(board: Board, count: number, random: Random): null | Path[] {
   const used = new Set<number>();
   const start: Path[] = [];
   const n = board.size * board.size;
@@ -234,7 +277,8 @@ function bridges(board: Board, count: number, random: Random): Path[] | null {
     if (isHole(b, board) || used.has(b)) continue;
     const [up, down, left, right] = [0, 1, 2, 3].map((d) => step(b, d, board));
     const around = [up, down, left, right];
-    if (around.some((j) => j === -1 || used.has(j) || isHole(j, board) || !adjacent(b, j, board))) continue;
+    if (around.some((j) => j === -1 || used.has(j) || isHole(j, board) || !adjacent(b, j, board)))
+      continue;
     if (new Set([b, ...around]).size !== 5) continue;
     board.bridges.push(b);
     [b, ...around].forEach((j) => used.add(j));
@@ -256,14 +300,21 @@ function walls(board: Board, paths: Path[], random: Random): [number, number][] 
     const r = Math.floor(i / size);
     const c = i % size;
     for (const j of [c < size - 1 ? i + 1 : -1, r < size - 1 ? i + size : -1]) {
-      if (j === -1 || isHole(j, board) || isBridge(i, board) || isBridge(j, board) || used.has(edgeKey(i, j))) continue;
+      if (
+        j === -1 ||
+        isHole(j, board) ||
+        isBridge(i, board) ||
+        isBridge(j, board) ||
+        used.has(edgeKey(i, j))
+      )
+        continue;
       free.push([i, j]);
     }
   }
   return shuffle(free, random).slice(0, Math.round(size * size * WALLS));
 }
 
-function merge(board: Board, start: Path[], target: number, random: Random): Path[] | null {
+function merge(board: Board, start: Path[], target: number, random: Random): null | Path[] {
   const n = board.size * board.size;
   let paths = start.map((p) => p.slice());
   const owner = new Array<number>(n); // path index for each path end, else -1
@@ -271,19 +322,21 @@ function merge(board: Board, start: Path[], target: number, random: Random): Pat
     owner.fill(-1);
     paths.forEach((p, k) => {
       owner[p[0]] = k;
-      owner[p[p.length - 1]] = k;
+      owner[p.at(-1)!] = k;
     });
   };
   reindex();
   while (paths.length > target) {
     // Grow one of the shortest paths, so lengths stay even: try them in random order until one can
     // join a neighboring path end without running alongside itself.
-    const order = paths.map((_, k) => k).sort((a, b) => paths[a].length - paths[b].length || random() - 0.5);
-    let joined: { a: number; b: number; path: Path } | null = null;
+    const order = paths
+      .map((_, k) => k)
+      .sort((a, b) => paths[a].length - paths[b].length || random() - 0.5);
+    let joined: null | { a: number; b: number; path: Path } = null;
     for (const a of order.slice(0, 12)) {
       const p = paths[a];
       const options: { a: number; b: number; path: Path }[] = [];
-      for (const end of p.length === 1 ? [p[0]] : [p[0], p[p.length - 1]]) {
+      for (const end of p.length === 1 ? [p[0]] : [p[0], p.at(-1)!]) {
         for (const nb of neighbors(end, board)) {
           const b = owner[nb];
           if (b === -1 || b === a) continue; // not the end of another path
@@ -316,14 +369,19 @@ export const dotColor = (dots: readonly [number, number][], cell: number) =>
   dots.findIndex(([a, b]) => a === cell || b === cell);
 
 /** The color whose path covers `cell`, or -1 (the first one, on a bridge). */
-export const pathColor = (paths: readonly Path[], cell: number) => paths.findIndex((p) => p.includes(cell));
+export const pathColor = (paths: readonly Path[], cell: number) =>
+  paths.findIndex((p) => p.includes(cell));
 
 /** Whether color k's path runs from one of its dots to the other. */
-export function connected(dots: readonly [number, number][], paths: readonly Path[], k: number): boolean {
+export function connected(
+  dots: readonly [number, number][],
+  paths: readonly Path[],
+  k: number,
+): boolean {
   const p = paths[k];
   if (p.length < 2) return false;
   const [a, b] = dots[k];
-  return (p[0] === a && p[p.length - 1] === b) || (p[0] === b && p[p.length - 1] === a);
+  return (p[0] === a && p.at(-1) === b) || (p[0] === b && p.at(-1) === a);
 }
 
 /**
@@ -331,7 +389,12 @@ export function connected(dots: readonly [number, number][], paths: readonly Pat
  * is cut back to end there (not on a bridge, where two paths meet). Returns the color being drawn
  * (or -1) and the paths.
  */
-export function startStroke(dots: readonly [number, number][], paths: readonly Path[], cell: number, board: Board): { color: number; paths: Path[] } {
+export function startStroke(
+  dots: readonly [number, number][],
+  paths: readonly Path[],
+  cell: number,
+  board: Board,
+): { color: number; paths: Path[] } {
   const out = paths.map((p) => p.slice());
   const d = dotColor(dots, cell);
   if (d !== -1) {
@@ -349,9 +412,15 @@ export function startStroke(dots: readonly [number, number][], paths: readonly P
  * color's dot or path blocks (move that one first); reaching the other dot completes the path
  * (it won't extend past that). A bridge is crossed straight: one path across and one down.
  */
-export function extend(dots: readonly [number, number][], paths: readonly Path[], k: number, cell: number, board: Board): Path[] {
+export function extend(
+  dots: readonly [number, number][],
+  paths: readonly Path[],
+  k: number,
+  cell: number,
+  board: Board,
+): Path[] {
   const p = paths[k];
-  const last = p[p.length - 1];
+  const last = p.at(-1);
   if (last === undefined || !adjacent(last, cell, board)) return paths as Path[];
   const at = p.indexOf(cell);
   // Back onto its own path: cut back to there. Not onto a bridge it crosses from another side
@@ -361,7 +430,7 @@ export function extend(dots: readonly [number, number][], paths: readonly Path[]
   if (connected(dots, paths, k)) return paths as Path[];
   // Leaving a bridge: straight on only.
   if (isBridge(last, board) && p.length >= 2) {
-    const d = dirOf(p[p.length - 2], last, board);
+    const d = dirOf(p.at(-2)!, last, board);
     if (step(last, d, board) !== cell) return paths as Path[];
   }
   const d = dotColor(dots, cell);
@@ -369,7 +438,9 @@ export function extend(dots: readonly [number, number][], paths: readonly Path[]
   if (isBridge(cell, board)) {
     // Onto a bridge: only if no other path already crosses it this way.
     const way = across(dirOf(last, cell, board)) ? 'across' : 'down';
-    const taken = paths.some((q, j) => j !== k && q.includes(cell) && bridgeWay(q, q.indexOf(cell), board) === way);
+    const taken = paths.some(
+      (q, j) => j !== k && q.includes(cell) && bridgeWay(q, q.indexOf(cell), board) === way,
+    );
     if (taken) return paths as Path[];
   } else if (pathColor(paths, cell) !== -1) return paths as Path[];
   return paths.map((q, j) => (j === k ? [...q, cell] : q));
@@ -380,11 +451,16 @@ export function extend(dots: readonly [number, number][], paths: readonly Path[]
  * picked up again (a stroke can't start on a bridge). So it carries on one square, straight
  * through; if that square is taken, it goes back to just before the bridge instead.
  */
-export function settle(dots: readonly [number, number][], paths: readonly Path[], k: number, board: Board): Path[] {
+export function settle(
+  dots: readonly [number, number][],
+  paths: readonly Path[],
+  k: number,
+  board: Board,
+): Path[] {
   const p = paths[k];
-  const last = p[p.length - 1];
+  const last = p.at(-1)!;
   if (p.length < 2 || !isBridge(last, board)) return paths as Path[];
-  const on = extend(dots, paths, k, step(last, dirOf(p[p.length - 2], last, board), board), board);
+  const on = extend(dots, paths, k, step(last, dirOf(p.at(-2)!, last, board), board), board);
   if (on !== paths) return on;
   return paths.map((q, j) => (j === k ? q.slice(0, -1) : q));
 }
@@ -393,10 +469,14 @@ export function settle(dots: readonly [number, number][], paths: readonly Path[]
  * Every pair joined and every square filled: each open square by exactly one path, each bridge by
  * two paths going straight through it, one across and one down.
  */
-export function isSolved(dots: readonly [number, number][], paths: readonly Path[], board: Board): boolean {
+export function isSolved(
+  dots: readonly [number, number][],
+  paths: readonly Path[],
+  board: Board,
+): boolean {
   if (!dots.every((_, k) => connected(dots, paths, k))) return false;
   const n = board.size * board.size;
-  const uses: { k: number; j: number }[][] = Array.from({ length: n }, () => []);
+  const uses: { j: number; k: number }[][] = Array.from({ length: n }, () => []);
   paths.forEach((p, k) => p.forEach((cell, j) => uses[cell].push({ k, j })));
   for (let i = 0; i < n; i++) {
     if (isHole(i, board)) {

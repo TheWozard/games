@@ -1,12 +1,22 @@
-.mj-count { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.mj-count svg { width: 1em; height: 1em; }
+.mj-count {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mj-count svg {
+  width: 1em;
+  height: 1em;
+}
 
 .mj-board {
   /* Sized in pixels by Mahjong.svelte; --u is one unit (a tile is 3 × 4). */
   position: relative;
   flex: none;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
   -webkit-touch-callout: none;
 }
 
@@ -15,17 +25,19 @@
   /* A 5% margin all around (a tile is 3u × 4u): the face is 3:4 too, so these fill it evenly.
      From the tile, not the board: boards vary in width. */
   padding: calc(var(--u) * 0.2) calc(var(--u) * 0.15);
+  touch-action: manipulation;
+  background: none;
   border: 0;
   border-radius: calc(var(--u) * 0.45);
-  background: none;
   /* A soft shadow on the layer below; the tile itself is drawn by .mj-body. */
-  box-shadow: calc(var(--u) * 0.55) calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgb(0 0 0 / 0.45);
+  box-shadow: calc(var(--u) * 0.55) calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgb(0 0 0 / 45%);
   transition: filter 0.2s ease;
-  touch-action: manipulation;
 }
 
 /* Inset faces (Settings, from the menu): a 10% margin, leaving space between neighbors' faces. */
-.mj-tile.inset { padding: calc(var(--u) * 0.4) calc(var(--u) * 0.3); }
+.mj-tile.inset {
+  padding: calc(var(--u) * 0.4) calc(var(--u) * 0.3);
+}
 
 /* The face, its ivory edge and green back (body.ts), from the tile's top left, a side's depth
    (0.42 of a 3 × 4 face) larger than the button. */
@@ -36,25 +48,48 @@
   width: calc(100% * 3.42 / 3);
   height: calc(100% * 4.42 / 4);
 }
-.mj-back { fill: #2f7a52; }
-.mj-edge { fill: #d8cba6; }
-.mj-top { fill: url(#mj-top); }
+.mj-back {
+  fill: #2f7a52;
+}
+.mj-edge {
+  fill: #d8cba6;
+}
+.mj-top {
+  fill: url('#mj-top');
+}
 
-.mj-tile .mj-face { position: relative; display: block; width: 100%; height: 100%; }
+.mj-tile .mj-face {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* Tiles that can't be taken yet sit back a little. */
-.mj-tile.blocked { filter: brightness(0.8) saturate(0.85); }
+.mj-tile.blocked {
+  filter: brightness(0.8) saturate(0.85);
+}
 
 /* A picked tile is dyed the accent's hue all over, face, edge, back and symbol, as if it were
    made in blue, and bordered in a pale accent (#mj-pick and #mj-pick-outline, in TileFaces.svelte).
    On the body and symbol, not the button, so the border follows the tile and not its shadow. It's
    drawn over every other tile, so the ones drawn after it (a row above and a layer up, say) don't
    hide any of it; it's free, so nothing rests on it, and only neighbors' edges are overlapped. */
-.mj-tile.selected { z-index: 1; }
-.mj-tile.selected .mj-body { filter: url(#mj-pick-outline); }
-.mj-tile.selected .mj-face { filter: url(#mj-pick); }
-
+.mj-tile.selected {
+  z-index: 1;
+}
+.mj-tile.selected .mj-body {
+  filter: url('#mj-pick-outline');
+}
+.mj-tile.selected .mj-face {
+  filter: url('#mj-pick');
+}
 
 /* Credits (from the menu): links in the text's own color, underlined. */
-.mj-credits p { font-size: 0.9rem; line-height: 1.45; }
-.mj-credits a { color: var(--text); }
+.mj-credits p {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.mj-credits a {
+  color: var(--text);
+}

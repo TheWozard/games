@@ -2,7 +2,8 @@
 // a 32-bit unsigned integer, shown to the player as eight hex digits (the menu's puzzle line).
 
 /** A new seed, at random. */
-export const newSeed = (random: () => number = Math.random): number => Math.floor(random() * 2 ** 32) >>> 0;
+export const newSeed = (random: () => number = Math.random): number =>
+  Math.floor(random() * 2 ** 32) >>> 0;
 
 /** A source of numbers in [0, 1) that always runs the same way from the same seed (mulberry32). */
 export function seeded(seed: number): () => number {

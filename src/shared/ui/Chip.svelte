@@ -7,4 +7,4 @@
   let { label, on, onclick }: { label: string; on: boolean; onclick: () => void } = $props();
 </script>
 
-<button type="button" class="chip" aria-pressed={on} {onclick}>{label}</button>
+<button class="chip" aria-pressed={on} {onclick} type="button">{label}</button>

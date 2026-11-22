@@ -1,83 +1,132 @@
 .gradient-wrap {
   /* Board plus a 6px marker gutter (and 6px gap) to the right and below. */
   --gutter: 12px;
-  width: min(100cqw, (100cqh - var(--gutter)) * var(--cols) / var(--rows) + var(--gutter));
   display: grid;
-  grid-template-columns: 1fr 6px;
   grid-template-rows: auto 6px;
+  grid-template-columns: 1fr 6px;
   gap: 6px;
+  width: min(100cqw, (100cqh - var(--gutter)) * var(--cols) / var(--rows) + var(--gutter));
 }
 
 .gradient-board {
-  aspect-ratio: var(--cols) / var(--rows);
   display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
   grid-template-rows: repeat(var(--rows), 1fr);
+  grid-template-columns: repeat(var(--cols), 1fr);
   gap: 3px;
-  border-radius: 12px;
+  aspect-ratio: var(--cols) / var(--rows);
   overflow: hidden;
-  user-select: none;
   -webkit-user-select: none;
-  -webkit-touch-callout: none;
+  user-select: none;
+  border-radius: 12px;
   transition: gap 0.6s ease;
+  -webkit-touch-callout: none;
 }
 
 .gradient-board .tile {
   position: relative;
   min-width: 0;
   padding: 0;
+  touch-action: manipulation;
   border: 0;
   border-radius: 6px;
-  transition: border-radius 0.6s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  touch-action: manipulation;
+  transition:
+    border-radius 0.6s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.gradient-board .tile.fixed { cursor: default; }
+.gradient-board .tile.fixed {
+  cursor: default;
+}
 .gradient-board .tile.fixed::after {
-  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 6px;
   height: 6px;
   margin: -3px 0 0 -3px;
+  content: '';
+  background: rgb(0 0 0 / 35%);
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.35);
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 25%);
 }
 
 .gradient-board .tile.selected {
-  transform: scale(0.86);
-  box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text);
   z-index: 1;
+  box-shadow:
+    0 0 0 3px var(--bg),
+    0 0 0 5px var(--text);
+  transform: scale(0.86);
 }
 
-.marks { display: grid; gap: 3px; }
-.marks.rows { grid-template-rows: repeat(var(--rows), 1fr); }
-.marks.cols { grid-template-columns: repeat(var(--cols), 1fr); }
+.marks {
+  display: grid;
+  gap: 3px;
+}
+.marks.rows {
+  grid-template-rows: repeat(var(--rows), 1fr);
+}
+.marks.cols {
+  grid-template-columns: repeat(var(--cols), 1fr);
+}
 
 .mark {
   place-self: center;
   width: 6px;
   height: 6px;
-  border-radius: 3px;
   background: var(--line);
-  transition: background 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 0.6s ease;
+  border-radius: 3px;
+  transition:
+    background 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease,
+    opacity 0.6s ease;
 }
 /* Lit: a short bar along the line, in the text color. */
-.marks.rows .mark.on { height: 45%; background: var(--text); }
-.marks.cols .mark.on { width: 45%; background: var(--text); }
-.mark.none { visibility: hidden; }
+.marks.rows .mark.on {
+  height: 45%;
+  background: var(--text);
+}
+.marks.cols .mark.on {
+  width: 45%;
+  background: var(--text);
+}
+.mark.none {
+  visibility: hidden;
+}
 
 /* Solved: the gaps close, the tiles melt into one smooth gradient, and the markers fade away. */
-.gradient-wrap.done .gradient-board { gap: 0; }
-.gradient-wrap.done .tile { border-radius: 0; }
-.gradient-wrap.done .tile.fixed::after { opacity: 0; transition: opacity 0.6s ease; }
-.gradient-wrap.done .mark { opacity: 0; }
+.gradient-wrap.done .gradient-board {
+  gap: 0;
+}
+.gradient-wrap.done .tile {
+  border-radius: 0;
+}
+.gradient-wrap.done .tile.fixed::after {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.gradient-wrap.done .mark {
+  opacity: 0;
+}
 
 /* Gradient's New dialog: four sizes, five patterns with tiny previews. */
-.pick.sizes { grid-template-columns: repeat(4, 1fr); }
-.pick.patterns { grid-template-columns: repeat(5, 1fr); }
-.pick svg { width: 28px; height: 35px; }
-.pick svg .fixed { fill: currentColor; }
-.pick svg .loose { fill: none; stroke: currentColor; stroke-width: 0.6; opacity: 0.45; }
+.pick.sizes {
+  grid-template-columns: repeat(4, 1fr);
+}
+.pick.patterns {
+  grid-template-columns: repeat(5, 1fr);
+}
+.pick svg {
+  width: 28px;
+  height: 35px;
+}
+.pick svg .fixed {
+  fill: currentColor;
+}
+.pick svg .loose {
+  opacity: 0.45;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.6;
+}

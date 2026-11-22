@@ -10,7 +10,7 @@
 
   const saved = loadJSON(STORAGE_KEY, isGame);
   let first = $state.raw(saved);
-  if (!saved) dealInBackground(nextDeal(['pyramid'], 'medium')).then((g) => (first = g));
+  if (!saved) void dealInBackground(nextDeal(['pyramid'], 'medium')).then((g) => (first = g));
 </script>
 
 {#if first}<Mahjong initial={first} />{/if}

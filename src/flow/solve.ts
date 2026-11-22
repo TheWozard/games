@@ -29,10 +29,10 @@ const ACROSS = (d: number) => d >= 2;
 const lowBit = (m: number) => 31 - Math.clz32(m & -m);
 
 interface Graph {
-  /** Per node: the nodes a path can step to. Nodes 0..n-1 are squares (a bridge's across path), n..2n-1 a bridge's down path. */
-  next: number[][];
   /** Per node: whether it's on the board at all (not a hole, and only bridges have a down node). */
   live: boolean[];
+  /** Per node: the nodes a path can step to. Nodes 0..n-1 are squares (a bridge's across path), n..2n-1 a bridge's down path. */
+  next: number[][];
 }
 
 function graph(board: Board): Graph {
@@ -65,7 +65,7 @@ export function countSolutions(
   board: Board,
   limit = 2,
   budget = Infinity,
-): number | null {
+): null | number {
   const n = board.size * board.size;
   const { next, live } = graph(board);
   const nodes = 2 * n;
@@ -87,7 +87,8 @@ export function countSolutions(
   const isBridgeNode = (v: number) => v >= n || live[n + v];
   const sibling = (v: number) => (v < n ? n + v : v - n);
   /** Whether color k may step onto empty node u (not both ways over one bridge). */
-  const mayEnter = (u: number, k: number) => color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k);
+  const mayEnter = (u: number, k: number) =>
+    color[u] === -1 && !(isBridgeNode(u) && color[sibling(u)] === k);
 
   // Worked out by viable(), for the step that follows it.
   const pocket = new Int32Array(nodes); // pocket number per empty node
@@ -133,8 +134,8 @@ export function countSolutions(
       let odd = 0; // ... and end 2k+1
       const queue = [v];
       pocket[v] = r;
-      for (let q = 0; q < queue.length; q++) {
-        for (const u of next[queue[q]]) {
+      for (const here of queue) {
+        for (const u of next[here]) {
           if (color[u] === -1) {
             if (pocket[u] === -1) {
               pocket[u] = r;
@@ -183,7 +184,8 @@ export function countSolutions(
     const pin = pinned[k];
     const out: number[] = [];
     for (const u of next[at[e]]) {
-      if (pin !== -1 ? mayEnter(u, k) && pocket[u] === pin : u === other || mayEnter(u, k)) out.push(u);
+      if (pin !== -1 ? mayEnter(u, k) && pocket[u] === pin : u === other || mayEnter(u, k))
+        out.push(u);
     }
     return out;
   }

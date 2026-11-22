@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describe as label, fromSaved, isGame, lines, newGame, reducer, type Game } from './game';
+import { fromSaved, isGame, describe as label, lines, newGame, reducer, type Game } from './game';
 
 /** Puts each tile home with as few swaps as it takes. */
 function solve(g: Game): Game {

@@ -23,10 +23,15 @@ function build(parts: (Block | Mask)[]): Slot[] {
   for (const part of parts) {
     if (part.length === 4) {
       const [z, x, y, rows] = part;
-      rows.forEach((row, r) => [...row].forEach((ch, c) => ch === '#' && slots.push({ x: (x + c) * 2, y: (y + r) * 2, z })));
+      rows.forEach((row, r) =>
+        [...row].forEach(
+          (ch, c) => ch === '#' && slots.push({ x: (x + c) * 2, y: (y + r) * 2, z }),
+        ),
+      );
     } else {
       const [z, x, y, w, h] = part;
-      for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) slots.push({ x: (x + c) * 2, y: (y + r) * 2, z });
+      for (let r = 0; r < h; r++)
+        for (let c = 0; c < w; c++) slots.push({ x: (x + c) * 2, y: (y + r) * 2, z });
     }
   }
   return slots;
@@ -40,16 +45,54 @@ export const LAYOUTS = {
     name: 'Arrow',
     // Pointing up: a raised head on a ridged shaft, with fletching at the foot.
     slots: build([
-      [0, 0, 0, ['...##...', '..####..', '.######.', '########', '##.##.##', '...##...', '...##...', '..####..', '.##..##.', '##....##']],
-      [1, 3, 1, 2, 1], [1, 2, 2, 4, 1], [1, 1, 3, 6, 1], [1, 3, 4, 2, 4], [1, 1, 8, 1, 1], [1, 6, 8, 1, 1],
-      [2, 3, 1.5, 2, 1], [2, 2, 2.5, 4, 1], [2, 3.5, 4, 1, 4],
-      [3, 3, 2.5, 2, 1], [3, 3.5, 5, 1, 2],
+      [
+        0,
+        0,
+        0,
+        [
+          '...##...',
+          '..####..',
+          '.######.',
+          '########',
+          '##.##.##',
+          '...##...',
+          '...##...',
+          '..####..',
+          '.##..##.',
+          '##....##',
+        ],
+      ],
+      [1, 3, 1, 2, 1],
+      [1, 2, 2, 4, 1],
+      [1, 1, 3, 6, 1],
+      [1, 3, 4, 2, 4],
+      [1, 1, 8, 1, 1],
+      [1, 6, 8, 1, 1],
+      [2, 3, 1.5, 2, 1],
+      [2, 2, 2.5, 4, 1],
+      [2, 3.5, 4, 1, 4],
+      [3, 3, 2.5, 2, 1],
+      [3, 3.5, 5, 1, 2],
     ]),
   },
   diamond: {
     name: 'Diamond',
     slots: build([
-      [0, 0, 0, ['...##...', '..####..', '.######.', '########', '########', '.######.', '..####..', '...##...']],
+      [
+        0,
+        0,
+        0,
+        [
+          '...##...',
+          '..####..',
+          '.######.',
+          '########',
+          '########',
+          '.######.',
+          '..####..',
+          '...##...',
+        ],
+      ],
       [1, 1, 1, ['..##..', '.####.', '######', '######', '.####.', '..##..']],
       [2, 2, 2, ['.##.', '####', '####', '.##.']],
       [3, 3, 3, 2, 2],
@@ -57,12 +100,33 @@ export const LAYOUTS = {
   },
   pyramid: {
     name: 'Pyramid',
-    slots: build([[0, 0, 0, 6, 8], [1, 1, 1, 4, 6], [2, 2, 2, 2, 4], [3, 2.5, 3, 1, 2]]),
+    slots: build([
+      [0, 0, 0, 6, 8],
+      [1, 1, 1, 4, 6],
+      [2, 2, 2, 2, 4],
+      [3, 2.5, 3, 1, 2],
+    ]),
   },
   hourglass: {
     name: 'Hourglass',
     slots: build([
-      [0, 0, 0, ['########', '########', '.######.', '..####..', '...##...', '...##...', '..####..', '.######.', '########', '########']],
+      [
+        0,
+        0,
+        0,
+        [
+          '########',
+          '########',
+          '.######.',
+          '..####..',
+          '...##...',
+          '...##...',
+          '..####..',
+          '.######.',
+          '########',
+          '########',
+        ],
+      ],
       [1, 1, 1, ['######', '.####.', '..##..', '......', '......', '..##..', '.####.', '######']],
       [2, 2, 1.5, ['####', '.##.', '....', '....', '....', '.##.', '####']],
     ]),
@@ -71,39 +135,119 @@ export const LAYOUTS = {
     name: 'Crown',
     // Three points over a band, with a raised row of jewels across it.
     slots: build([
-      [0, 0, 0, ['#..##..#', '#..##..#', '##.##.##', '########', '########', '########', '########', '########']],
-      [1, 0, 0, 1, 3], [1, 3, 0, 2, 3], [1, 7, 0, 1, 3], [1, 0.5, 4.5, 7, 2],
-      [2, 0, 0.5, 1, 2], [2, 3.5, 0.5, 1, 2], [2, 7, 0.5, 1, 2], [2, 1, 5, 6, 1],
-      [3, 0, 1, 1, 1], [3, 3.5, 1, 1, 1], [3, 7, 1, 1, 1], [3, 3.5, 5, 1, 1],
+      [
+        0,
+        0,
+        0,
+        [
+          '#..##..#',
+          '#..##..#',
+          '##.##.##',
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+        ],
+      ],
+      [1, 0, 0, 1, 3],
+      [1, 3, 0, 2, 3],
+      [1, 7, 0, 1, 3],
+      [1, 0.5, 4.5, 7, 2],
+      [2, 0, 0.5, 1, 2],
+      [2, 3.5, 0.5, 1, 2],
+      [2, 7, 0.5, 1, 2],
+      [2, 1, 5, 6, 1],
+      [3, 0, 1, 1, 1],
+      [3, 3.5, 1, 1, 1],
+      [3, 7, 1, 1, 1],
+      [3, 3.5, 5, 1, 1],
     ]),
   },
   rings: {
     name: 'Rings',
     slots: build([
       // Two rings round a center; the inner ring and the outer ring's ends are raised.
-      [0, 0, 0, ['########', '#......#', '#.####.#', '#.#..#.#', '#.#..#.#', '#.#..#.#', '#.#..#.#', '#.####.#', '#......#', '########']],
+      [
+        0,
+        0,
+        0,
+        [
+          '########',
+          '#......#',
+          '#.####.#',
+          '#.#..#.#',
+          '#.#..#.#',
+          '#.#..#.#',
+          '#.#..#.#',
+          '#.####.#',
+          '#......#',
+          '########',
+        ],
+      ],
       [0, 3, 4, 2, 2],
-      [1, 0, 0, 8, 1], [1, 0, 9, 8, 1],
+      [1, 0, 0, 8, 1],
+      [1, 0, 9, 8, 1],
       [1, 2, 2, ['####', '#..#', '#..#', '#..#', '#..#', '####']],
-      [2, 0.5, 0, 7, 1], [2, 0.5, 9, 7, 1],
+      [2, 0.5, 0, 7, 1],
+      [2, 0.5, 9, 7, 1],
     ]),
   },
   heart: {
     name: 'Heart',
     // Domed in steps half a tile down from the last, the two lobes highest.
     slots: build([
-      [0, 0, 0, ['.##..##.', '########', '########', '########', '########', '.######.', '..####..', '...##...']],
+      [
+        0,
+        0,
+        0,
+        [
+          '.##..##.',
+          '########',
+          '########',
+          '########',
+          '########',
+          '.######.',
+          '..####..',
+          '...##...',
+        ],
+      ],
       [1, 0, 0.5, ['.##..##.', '########', '########', '.######.', '..####..', '...##...']],
       [2, 1, 1, ['##..##', '######', '.####.', '..##..']],
-      [3, 1.5, 1.5, 1, 1], [3, 5.5, 1.5, 1, 1], [3, 3, 2.5, 2, 1],
+      [3, 1.5, 1.5, 1, 1],
+      [3, 5.5, 1.5, 1, 1],
+      [3, 3, 2.5, 2, 1],
     ]),
   },
   butterfly: {
     name: 'Butterfly',
     slots: build([
-      [0, 0, 0, ['##....##', '########', '########', '.######.', '..####..', '.######.', '########', '########', '##....##']],
-      [1, 0.5, 1, 2, 2], [1, 5.5, 1, 2, 2], [1, 0.5, 6, 2, 2], [1, 5.5, 6, 2, 2], [1, 3, 1, 2, 7],
-      [2, 1, 1.5, 1, 1], [2, 6, 1.5, 1, 1], [2, 1, 6.5, 1, 1], [2, 6, 6.5, 1, 1], [2, 3, 2, 2, 5],
+      [
+        0,
+        0,
+        0,
+        [
+          '##....##',
+          '########',
+          '########',
+          '.######.',
+          '..####..',
+          '.######.',
+          '########',
+          '########',
+          '##....##',
+        ],
+      ],
+      [1, 0.5, 1, 2, 2],
+      [1, 5.5, 1, 2, 2],
+      [1, 0.5, 6, 2, 2],
+      [1, 5.5, 6, 2, 2],
+      [1, 3, 1, 2, 7],
+      [2, 1, 1.5, 1, 1],
+      [2, 6, 1.5, 1, 1],
+      [2, 1, 6.5, 1, 1],
+      [2, 6, 6.5, 1, 1],
+      [2, 3, 2, 2, 5],
       [3, 3, 3.5, 2, 2],
     ]),
   },
@@ -111,17 +255,25 @@ export const LAYOUTS = {
     name: 'Twin Peaks',
     slots: build([
       [0, 0, 0, 8, 8],
-      [1, 0.5, 2, 3, 4], [1, 4.5, 2, 3, 4],
-      [2, 1, 2.5, 2, 3], [2, 5, 2.5, 2, 3],
-      [3, 1.5, 3, 1, 2], [3, 5.5, 3, 1, 2],
-      [4, 1.5, 3.5, 1, 1], [4, 5.5, 3.5, 1, 1],
+      [1, 0.5, 2, 3, 4],
+      [1, 4.5, 2, 3, 4],
+      [2, 1, 2.5, 2, 3],
+      [2, 5, 2.5, 2, 3],
+      [3, 1.5, 3, 1, 2],
+      [3, 5.5, 3, 1, 2],
+      [4, 1.5, 3.5, 1, 1],
+      [4, 5.5, 3.5, 1, 1],
     ]),
   },
   cross: {
     name: 'Cross',
     slots: build([
-      [0, 2, 0, 4, 10], [0, 0, 3, 2, 4], [0, 6, 3, 2, 4],
-      [1, 2.5, 1, 3, 8], [1, 0.5, 3.5, 2, 3], [1, 5.5, 3.5, 2, 3],
+      [0, 2, 0, 4, 10],
+      [0, 0, 3, 2, 4],
+      [0, 6, 3, 2, 4],
+      [1, 2.5, 1, 3, 8],
+      [1, 0.5, 3.5, 2, 3],
+      [1, 5.5, 3.5, 2, 3],
       [2, 3, 2, 2, 6],
       [3, 3, 4, 2, 2],
     ]),
@@ -129,52 +281,171 @@ export const LAYOUTS = {
   bridge: {
     name: 'Bridge',
     slots: build([
-      [0, 0, 0, ['##....##', '##....##', '##....##', '########', '########', '########', '##....##', '##....##', '##....##']],
-      [1, 0, 0, 2, 9], [1, 6, 0, 2, 9], [1, 2, 3.5, 4, 2],
-      [2, 0.5, 1, 1, 7], [2, 6.5, 1, 1, 7], [2, 3, 4, 2, 1],
-      [3, 0.5, 3.5, 1, 2], [3, 6.5, 3.5, 1, 2],
+      [
+        0,
+        0,
+        0,
+        [
+          '##....##',
+          '##....##',
+          '##....##',
+          '########',
+          '########',
+          '########',
+          '##....##',
+          '##....##',
+          '##....##',
+        ],
+      ],
+      [1, 0, 0, 2, 9],
+      [1, 6, 0, 2, 9],
+      [1, 2, 3.5, 4, 2],
+      [2, 0.5, 1, 1, 7],
+      [2, 6.5, 1, 1, 7],
+      [2, 3, 4, 2, 1],
+      [3, 0.5, 3.5, 1, 2],
+      [3, 6.5, 3.5, 1, 2],
     ]),
   },
   pine: {
     name: 'Pine',
     // Three tiers of branches on a short trunk, each raised to a ridge down the middle.
     slots: build([
-      [0, 0, 0, ['...##...', '..####..', '.######.', '..####..', '.######.', '########', '.######.', '########', '########', '...##...']],
-      [1, 0, 0, ['...##...', '...##...', '..####..', '...##...', '..####..', '.######.', '..####..', '.######.', '.######.', '...##...']],
-      [2, 0, 0, ['........', '...##...', '...##...', '........', '...##...', '..####..', '...##...', '..####..', '..####..']],
-      [3, 3.5, 1.5, 1, 1], [3, 3.5, 4.5, 1, 1], [3, 3, 7.5, 2, 1],
+      [
+        0,
+        0,
+        0,
+        [
+          '...##...',
+          '..####..',
+          '.######.',
+          '..####..',
+          '.######.',
+          '########',
+          '.######.',
+          '########',
+          '########',
+          '...##...',
+        ],
+      ],
+      [
+        1,
+        0,
+        0,
+        [
+          '...##...',
+          '...##...',
+          '..####..',
+          '...##...',
+          '..####..',
+          '.######.',
+          '..####..',
+          '.######.',
+          '.######.',
+          '...##...',
+        ],
+      ],
+      [
+        2,
+        0,
+        0,
+        [
+          '........',
+          '...##...',
+          '...##...',
+          '........',
+          '...##...',
+          '..####..',
+          '...##...',
+          '..####..',
+          '..####..',
+        ],
+      ],
+      [3, 3.5, 1.5, 1, 1],
+      [3, 3.5, 4.5, 1, 1],
+      [3, 3, 7.5, 2, 1],
     ]),
   },
   gate: {
     name: 'Gate',
     // Two pillars under a lintel, stepping up to a crown.
     slots: build([
-      [0, 0, 0, ['############', '############', '###......###', '###......###', '###......###', '###......###', '###......###', '###......###']],
-      [1, 0.5, 0.5, 11, 1], [1, 0.5, 1.5, 2, 6], [1, 9.5, 1.5, 2, 6],
-      [2, 1, 0.5, 10, 1], [2, 1, 1.5, 1, 5], [2, 10, 1.5, 1, 5],
+      [
+        0,
+        0,
+        0,
+        [
+          '############',
+          '############',
+          '###......###',
+          '###......###',
+          '###......###',
+          '###......###',
+          '###......###',
+          '###......###',
+        ],
+      ],
+      [1, 0.5, 0.5, 11, 1],
+      [1, 0.5, 1.5, 2, 6],
+      [1, 9.5, 1.5, 2, 6],
+      [2, 1, 0.5, 10, 1],
+      [2, 1, 1.5, 1, 5],
+      [2, 10, 1.5, 1, 5],
       [3, 4.5, 0.5, 3, 1],
     ]),
   },
   steps: {
     name: 'Steps',
     // Each layer half a tile in from the last.
-    slots: build([[0, 0, 0, 7, 8], [1, 0.5, 0.5, 6, 7], [2, 1.5, 1.5, 4, 5], [3, 2.5, 3, 2, 2]]),
+    slots: build([
+      [0, 0, 0, 7, 8],
+      [1, 0.5, 0.5, 6, 7],
+      [2, 1.5, 1.5, 4, 5],
+      [3, 2.5, 3, 2, 2],
+    ]),
   },
   rampart: {
     name: 'Rampart',
     // A long wall with three towers and two raised walks between them.
     slots: build([
-      [0, 0, 1, 14, 4], [0, 0, 0, 2, 1], [0, 6, 0, 2, 1], [0, 12, 0, 2, 1],
-      [1, 0, 0.5, 2, 4], [1, 6, 0.5, 2, 4], [1, 12, 0.5, 2, 4], [1, 2.5, 1.5, 3, 3], [1, 8.5, 1.5, 3, 3],
-      [2, 0.5, 1, 1, 3], [2, 6.5, 1, 1, 3], [2, 12.5, 1, 1, 3], [2, 3, 2, 2, 2], [2, 9, 2, 2, 2],
-      [3, 0.5, 2, 1, 1], [3, 6.5, 2, 1, 1], [3, 12.5, 2, 1, 1],
+      [0, 0, 1, 14, 4],
+      [0, 0, 0, 2, 1],
+      [0, 6, 0, 2, 1],
+      [0, 12, 0, 2, 1],
+      [1, 0, 0.5, 2, 4],
+      [1, 6, 0.5, 2, 4],
+      [1, 12, 0.5, 2, 4],
+      [1, 2.5, 1.5, 3, 3],
+      [1, 8.5, 1.5, 3, 3],
+      [2, 0.5, 1, 1, 3],
+      [2, 6.5, 1, 1, 3],
+      [2, 12.5, 1, 1, 3],
+      [2, 3, 2, 2, 2],
+      [2, 9, 2, 2, 2],
+      [3, 0.5, 2, 1, 1],
+      [3, 6.5, 2, 1, 1],
+      [3, 12.5, 2, 1, 1],
     ]),
   },
   turtle: {
     name: 'Turtle',
     // Seen from above, heading right: a shell domed in five layers, four legs and a head.
     slots: build([
-      [0, 0, 0, ['##......##..', '.########...', '##########..', '############', '############', '##########..', '.########...', '##......##..']],
+      [
+        0,
+        0,
+        0,
+        [
+          '##......##..',
+          '.########...',
+          '##########..',
+          '############',
+          '############',
+          '##########..',
+          '.########...',
+          '##......##..',
+        ],
+      ],
       [1, 1, 2, ['.######.', '########', '########', '.######.']],
       [2, 2, 2.5, 6, 3],
       [3, 3, 3, 4, 2],
@@ -185,10 +456,17 @@ export const LAYOUTS = {
     name: 'Lanterns',
     // Two hanging lanterns, joined by a short bar.
     slots: build([
-      [0, 0, 1, 5, 6], [0, 8, 1, 5, 6], [0, 5, 3, 3, 2], [0, 2, 0, 1, 1], [0, 10, 0, 1, 1],
-      [1, 0.5, 1.5, 4, 5], [1, 8.5, 1.5, 4, 5],
-      [2, 1, 2, 3, 4], [2, 9, 2, 3, 4],
-      [3, 2, 3.5, 1, 1], [3, 10, 3.5, 1, 1],
+      [0, 0, 1, 5, 6],
+      [0, 8, 1, 5, 6],
+      [0, 5, 3, 3, 2],
+      [0, 2, 0, 1, 1],
+      [0, 10, 0, 1, 1],
+      [1, 0.5, 1.5, 4, 5],
+      [1, 8.5, 1.5, 4, 5],
+      [2, 1, 2, 3, 4],
+      [2, 9, 2, 3, 4],
+      [3, 2, 3.5, 1, 1],
+      [3, 10, 3.5, 1, 1],
     ]),
   },
   fortress: {
@@ -196,8 +474,16 @@ export const LAYOUTS = {
     // Corner towers round a central keep: 136 tiles.
     slots: build([
       [0, 0, 0, 8, 10],
-      [1, 0, 0, 2, 2], [1, 6, 0, 2, 2], [1, 0, 8, 2, 2], [1, 6, 8, 2, 2], [1, 2, 2, 4, 6],
-      [2, 0.5, 0.5, 1, 1], [2, 6.5, 0.5, 1, 1], [2, 0.5, 8.5, 1, 1], [2, 6.5, 8.5, 1, 1], [2, 3, 3, 2, 4],
+      [1, 0, 0, 2, 2],
+      [1, 6, 0, 2, 2],
+      [1, 0, 8, 2, 2],
+      [1, 6, 8, 2, 2],
+      [1, 2, 2, 4, 6],
+      [2, 0.5, 0.5, 1, 1],
+      [2, 6.5, 0.5, 1, 1],
+      [2, 0.5, 8.5, 1, 1],
+      [2, 6.5, 8.5, 1, 1],
+      [2, 3, 3, 2, 4],
       [3, 3, 4, 2, 2],
     ]),
   },
@@ -205,8 +491,24 @@ export const LAYOUTS = {
     name: 'Fish',
     // Swimming left: a body domed in four layers, fins above and below, a forked tail.
     slots: build([
-      [0, 0, 0, ['....####..##', '..#######.##', '.##########.', '############', '############', '.##########.', '..#######.##', '....####..##']],
-      [1, 2, 1.5, 7, 5], [1, 10, 0, 2, 2], [1, 10, 6, 2, 2],
+      [
+        0,
+        0,
+        0,
+        [
+          '....####..##',
+          '..#######.##',
+          '.##########.',
+          '############',
+          '############',
+          '.##########.',
+          '..#######.##',
+          '....####..##',
+        ],
+      ],
+      [1, 2, 1.5, 7, 5],
+      [1, 10, 0, 2, 2],
+      [1, 10, 6, 2, 2],
       [2, 3, 2.5, 5, 3],
       [3, 3.5, 3, 4, 1],
     ]),
@@ -217,9 +519,31 @@ export const LAYOUTS = {
     // the middle, crosses the bottom and climbs again to the head at the top right. Raised along
     // its length with a ridge down each stretch, the head highest. All 144 tiles.
     slots: build([
-      [0, 0, 0, ['#####.##', '#####.##', '##.##.##', '##.##.##', '##.##.##', '##.##.##', '##.##.##', '##.#####', '##.#####', '##......']],
-      [1, 0, 0, 2, 9], [1, 3, 0, 2, 9], [1, 6, 0, 2, 9], [1, 2, 0, 1, 2], [1, 5, 7, 1, 2],
-      [2, 0.5, 0.5, 1, 8], [2, 3.5, 0.5, 1, 8], [2, 6.5, 0.5, 1, 8],
+      [
+        0,
+        0,
+        0,
+        [
+          '#####.##',
+          '#####.##',
+          '##.##.##',
+          '##.##.##',
+          '##.##.##',
+          '##.##.##',
+          '##.##.##',
+          '##.#####',
+          '##.#####',
+          '##......',
+        ],
+      ],
+      [1, 0, 0, 2, 9],
+      [1, 3, 0, 2, 9],
+      [1, 6, 0, 2, 9],
+      [1, 2, 0, 1, 2],
+      [1, 5, 7, 1, 2],
+      [2, 0.5, 0.5, 1, 8],
+      [2, 3.5, 0.5, 1, 8],
+      [2, 6.5, 0.5, 1, 8],
       [3, 6.5, 1, 1, 2],
     ]),
   },
@@ -241,7 +565,9 @@ export function drawOrder(slots: readonly Slot[]): number[] {
 }
 
 /** Layouts at most 8 tiles across: they fit a phone held upright, with no panning (Mahjong.svelte). */
-export const SLIM = (Object.keys(LAYOUTS) as LayoutName[]).filter((k) => Math.max(...LAYOUTS[k].slots.map((s) => s.x)) + 2 <= 16);
+export const SLIM = (Object.keys(LAYOUTS) as LayoutName[]).filter(
+  (k) => Math.max(...LAYOUTS[k].slots.map((s) => s.x)) + 2 <= 16,
+);
 
 /** The full set: the most tiles a layout can have, since every deal uses one set of faces. */
 export const MAX_TILES = 144;
@@ -257,7 +583,8 @@ export function layoutProblems(slots: readonly Slot[]): string[] {
   if (slots.length > MAX_TILES) problems.push(`more tiles than the full set (${slots.length})`);
   for (const [i, s] of slots.entries()) {
     for (const t of slots.slice(i + 1)) {
-      if (s.z === t.z && Math.abs(s.x - t.x) < 2 && Math.abs(s.y - t.y) < 2) problems.push(`tiles overlap at (${s.x}, ${s.y}, ${s.z})`);
+      if (s.z === t.z && Math.abs(s.x - t.x) < 2 && Math.abs(s.y - t.y) < 2)
+        problems.push(`tiles overlap at (${s.x}, ${s.y}, ${s.z})`);
     }
   }
   return problems;
@@ -277,7 +604,10 @@ export const FLOWERS = 34;
 export const SEASONS = 38;
 
 /** What a face matches as: itself, or any flower or any season (each set of four is one group). */
-export const group = (kind: number) => (kind < FLOWERS ? kind : kind < SEASONS ? FLOWERS : SEASONS);
+export const group = (kind: number) =>
+  kind < FLOWERS ? kind
+  : kind < SEASONS ? FLOWERS
+  : SEASONS;
 export const matches = (a: number, b: number) => group(a) === group(b);
 
 /** The 36 groups of four faces a full set is made of. */
@@ -306,7 +636,9 @@ function shuffle<T>(a: T[], random: Random): T[] {
 export function neighbors(slots: readonly Slot[]) {
   const overlapY = (a: Slot, b: Slot) => Math.abs(a.y - b.y) < 2;
   return slots.map((s) => ({
-    above: slots.flatMap((t, j) => (t.z > s.z && Math.abs(t.x - s.x) < 2 && overlapY(s, t) ? [j] : [])),
+    above: slots.flatMap((t, j) =>
+      t.z > s.z && Math.abs(t.x - s.x) < 2 && overlapY(s, t) ? [j] : [],
+    ),
     left: slots.flatMap((t, j) => (t.z === s.z && t.x === s.x - 2 && overlapY(s, t) ? [j] : [])),
     right: slots.flatMap((t, j) => (t.z === s.z && t.x === s.x + 2 && overlapY(s, t) ? [j] : [])),
   }));
@@ -322,7 +654,11 @@ export function isFree(i: number, near: Neighbors, gone: readonly boolean[]): bo
 }
 
 /** Pairs of free tiles with the same face, as slot indices. */
-export function freePairs(kinds: readonly number[], near: Neighbors, gone: readonly boolean[]): [number, number][] {
+export function freePairs(
+  kinds: readonly number[],
+  near: Neighbors,
+  gone: readonly boolean[],
+): [number, number][] {
   const free = kinds.flatMap((_, i) => (!gone[i] && isFree(i, near, gone) ? [i] : []));
   const pairs: [number, number][] = [];
   for (let a = 0; a < free.length; a++) {
@@ -337,10 +673,10 @@ export function freePairs(kinds: readonly number[], near: Neighbors, gone: reado
 
 /** How the dealer pairs things up: what makes a deal lean easy or hard (see `deal`). */
 interface Style {
-  /** Deal both pairs of a group one after the other, so all four copies are free about together. */
-  together: boolean;
   /** Take the free tiles that had the most resting on them, rather than any free tiles. */
   covered: boolean;
+  /** Deal both pairs of a group one after the other, so all four copies are free about together. */
+  together: boolean;
 }
 
 const PLAIN: Style = { together: false, covered: true };
@@ -349,7 +685,13 @@ const PLAIN: Style = { together: false, covered: true };
  * Faces for the slots not yet `gone`, using `faces` (an even count of each group), such that the
  * board can be cleared: or null if this ordering hit a dead end (try again).
  */
-function assign(near: Neighbors, gone: readonly boolean[], faces: number[], random: Random, style = PLAIN): Dealt | null {
+function assign(
+  near: Neighbors,
+  gone: readonly boolean[],
+  faces: number[],
+  random: Random,
+  style = PLAIN,
+): Dealt | null {
   // Pair up the faces at random within their groups (two flowers make a pair), then deal pairs
   // onto tiles that would be free together.
   const byGroup = new Map<number, number[]>();
@@ -366,7 +708,10 @@ function assign(near: Neighbors, gone: readonly boolean[], faces: number[], rand
   const kinds = new Array<number>(gone.length).fill(-1);
   const order: [number, number][] = [];
   for (const [first, second] of pairs) {
-    const free = shuffle(left.flatMap((g, i) => (!g && isFree(i, near, left) ? [i] : [])), random);
+    const free = shuffle(
+      left.flatMap((g, i) => (!g && isFree(i, near, left) ? [i] : [])),
+      random,
+    );
     if (free.length < 2) return null;
     // Taking from the top keeps deep tiles from being left stranded with no partner.
     if (style.covered) free.sort((a, b) => near[b].above.length - near[a].above.length);
@@ -390,7 +735,10 @@ export interface Dealt {
  * flowers and the seasons are a group each), and two of the last if the count needs it.
  */
 export function facesFor(count: number, random: Random = Math.random): number[] {
-  const groups = shuffle(GROUPS.map((g) => shuffle(g.slice(), random)), random);
+  const groups = shuffle(
+    GROUPS.map((g) => shuffle(g.slice(), random)),
+    random,
+  );
   const faces: number[] = [];
   for (const g of groups) {
     if (faces.length >= count) break;
@@ -409,7 +757,8 @@ export function facesFor(count: number, random: Random = Math.random): number[] 
 
 export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
-export const isDifficulty = (value: unknown): value is Difficulty => DIFFICULTIES.includes(value as Difficulty);
+export const isDifficulty = (value: unknown): value is Difficulty =>
+  DIFFICULTIES.includes(value as Difficulty);
 
 /** The share of careless games each difficulty wins: from, to (inclusive). */
 export const TIERS: Record<Difficulty, readonly [number, number]> = {
@@ -470,9 +819,18 @@ export function grader(near: Neighbors) {
           p[at[i]] = last;
           at[last] = at[i];
         }
-        for (const j of under[i]) cover[j]--, release(j);
-        for (const j of toRight[i]) lefts[j]--, release(j);
-        for (const j of toLeft[i]) rights[j]--, release(j);
+        for (const j of under[i]) {
+          cover[j]--;
+          release(j);
+        }
+        for (const j of toRight[i]) {
+          lefts[j]--;
+          release(j);
+        }
+        for (const j of toLeft[i]) {
+          rights[j]--;
+          release(j);
+        }
       };
       let left = n;
       for (;;) {
@@ -501,7 +859,8 @@ export function grader(near: Neighbors) {
 }
 
 /** How far a careless-win share lies outside a difficulty's tier (0 inside it). */
-const miss = (share: number, [from, to]: readonly [number, number]) => Math.max(0, from - share, share - to);
+const miss = (share: number, [from, to]: readonly [number, number]) =>
+  Math.max(0, from - share, share - to);
 
 /** Quick grades (or the work of one) a deal may take, in all, before settling for the closest found. */
 const BUDGET = 600;
@@ -513,14 +872,21 @@ const BUDGET = 600;
  * dropped for a fresh one. Within the budget it nearly always lands in the tier; past it, the
  * closest deal found is played.
  */
-export function deal(layout: LayoutName | readonly Slot[], difficulty: Difficulty = 'medium', random: Random = Math.random): Dealt {
+export function deal(
+  layout: LayoutName | readonly Slot[],
+  difficulty: Difficulty = 'medium',
+  random: Random = Math.random,
+): Dealt {
   const slots = typeof layout === 'string' ? LAYOUTS[layout].slots : layout;
   const near = neighbors(slots);
   const grade = grader(near);
   const tier = TIERS[difficulty];
   const gone = slots.map(() => false);
-  const style: Style = difficulty === 'hard' ? { together: true, covered: true } : { together: false, covered: difficulty === 'medium' };
-  let best: { dealt: Dealt; off: number } | null = null;
+  const style: Style =
+    difficulty === 'hard' ?
+      { together: true, covered: true }
+    : { together: false, covered: difficulty === 'medium' };
+  let best: null | { dealt: Dealt; off: number } = null;
   let steps = 0;
   // A quick grade, then, once that looks inside the tier, a closer one to confirm it: a deal picked
   // for a quick grade inside the tier is often one that got lucky near its edge.
@@ -543,7 +909,12 @@ export function deal(layout: LayoutName | readonly Slot[], difficulty: Difficult
       const p = order[Math.floor(random() * order.length)];
       const q = order[Math.floor(random() * order.length)];
       const swapped = kinds.slice();
-      [swapped[p[0]], swapped[p[1]], swapped[q[0]], swapped[q[1]]] = [kinds[q[0]], kinds[q[1]], kinds[p[0]], kinds[p[1]]];
+      [swapped[p[0]], swapped[p[1]], swapped[q[0]], swapped[q[1]]] = [
+        kinds[q[0]],
+        kinds[q[1]],
+        kinds[p[0]],
+        kinds[p[1]],
+      ];
       const next = check(swapped);
       if (next <= off) {
         dealt.kinds = swapped;
@@ -560,7 +931,12 @@ export function deal(layout: LayoutName | readonly Slot[], difficulty: Difficult
  * New faces for the tiles still on the board, keeping the same set of faces and, where the
  * remaining stack allows it, a way to clear the board.
  */
-export function reshuffle(kinds: readonly number[], near: Neighbors, gone: readonly boolean[], random: Random = Math.random): number[] {
+export function reshuffle(
+  kinds: readonly number[],
+  near: Neighbors,
+  gone: readonly boolean[],
+  random: Random = Math.random,
+): number[] {
   const faces = kinds.filter((_, i) => !gone[i]);
   for (let attempt = 0; attempt < 200; attempt++) {
     const next = assign(near, gone, faces, random);

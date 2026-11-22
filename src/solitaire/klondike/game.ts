@@ -1,20 +1,31 @@
 // Solitaire game state and moves, as a pure reducer (apart from dealing, which uses Math.random).
-import { bestTarget, draw, finish, finishable, isWon, move, winnableDeal, type Draw, type Source, type Table } from './logic';
+import {
+  bestTarget,
+  draw,
+  finish,
+  finishable,
+  isWon,
+  move,
+  winnableDeal,
+  type Draw,
+  type Source,
+  type Table,
+} from './logic';
 
 export const STORAGE_KEY = 'games.solitaire.v1';
 const HISTORY_LIMIT = 400;
 
 export interface Game {
+  done: boolean;
   draw: Draw;
-  table: Table;
   history: Table[];
   moves: number;
-  done: boolean;
+  table: Table;
 }
 
 export type Action =
+  | { source: Source; type: 'tap' } // send these cards to their best place
   | { type: 'stock' } // turn over stock cards (or the waste back over)
-  | { type: 'tap'; source: Source } // send these cards to their best place
   | { type: 'undo' };
 
 export function newGame(drawCount: Draw): Game {
@@ -22,11 +33,20 @@ export function newGame(drawCount: Draw): Game {
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   const t = g?.table;
   if ((g?.draw !== 1 && g?.draw !== 3) || !t || !Array.isArray(g.history)) return false;
-  if (!Array.isArray(t.stock) || !Array.isArray(t.waste) || t.foundations?.length !== 4 || t.tableau?.length !== 7) return false;
-  const cards = t.stock.length + t.waste.length + t.foundations.reduce((a, n) => a + n, 0) +
+  if (
+    !Array.isArray(t.stock) ||
+    !Array.isArray(t.waste) ||
+    t.foundations?.length !== 4 ||
+    t.tableau?.length !== 7
+  )
+    return false;
+  const cards =
+    t.stock.length +
+    t.waste.length +
+    t.foundations.reduce((a, n) => a + n, 0) +
     t.tableau.reduce((a, c) => a + c.down.length + c.up.length, 0);
   return cards === 52;
 }

@@ -8,24 +8,28 @@ import { LAYOUTS, type Difficulty, type LayoutName, type Slot } from './logic';
 export type LayoutId = string;
 
 export interface Layout {
+  /** Where an archive layout comes from; missing on the game's own. */
+  archive?: Pick<ArchiveLayout, 'by' | 'source'>;
   id: LayoutId;
   name: string;
   slots: readonly Slot[];
-  /** Where an archive layout comes from; missing on the game's own. */
-  archive?: Pick<ArchiveLayout, 'by' | 'source'>;
 }
 
 /** The game's own layouts' ids, in their order (by tile count). */
 export const OWN_IDS: readonly LayoutId[] = Object.keys(LAYOUTS);
 /** The archive's ids, by name. */
-export const ARCHIVE_IDS: readonly LayoutId[] = ARCHIVE.toSorted((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)).map((l) => l.id);
+export const ARCHIVE_IDS: readonly LayoutId[] = ARCHIVE.toSorted(
+  (a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id),
+).map((l) => l.id);
 
 const BY_ID = new Map(ARCHIVE.map((l) => [l.id, l]));
 
 // Archive names that repeat (two Crabs) get a number, in id order: Crab, Crab 2.
 const NAMES = new Map<LayoutId, string>();
 for (const l of ARCHIVE.toSorted((a, b) => a.id.localeCompare(b.id))) {
-  const taken = [...NAMES.values()].filter((n) => n === l.name || n.startsWith(`${l.name} `)).length;
+  const taken = [...NAMES.values()].filter(
+    (n) => n === l.name || n.startsWith(`${l.name} `),
+  ).length;
   NAMES.set(l.id, taken ? `${l.name} ${taken + 1}` : l.name);
 }
 
@@ -45,7 +49,8 @@ const OUT_OF_REACH: Readonly<Record<LayoutId, readonly Difficulty[]>> = {
 };
 
 /** Whether the layout's deals can be as hard as the difficulty asks (see OUT_OF_REACH). */
-export const reaches = (id: LayoutId, difficulty: Difficulty) => !OUT_OF_REACH[id]?.includes(difficulty);
+export const reaches = (id: LayoutId, difficulty: Difficulty) =>
+  !OUT_OF_REACH[id]?.includes(difficulty);
 
 const CACHE = new Map<LayoutId, Layout>();
 
@@ -56,7 +61,13 @@ export function layoutOf(id: LayoutId): Layout {
     const own = Object.hasOwn(LAYOUTS, id) ? LAYOUTS[id as LayoutName] : null;
     const archived = BY_ID.get(id);
     if (own) layout = { id, name: own.name, slots: own.slots };
-    else if (archived) layout = { id, name: NAMES.get(id)!, slots: decode(archived.tiles), archive: { by: archived.by, source: archived.source } };
+    else if (archived)
+      layout = {
+        id,
+        name: NAMES.get(id)!,
+        slots: decode(archived.tiles),
+        archive: { by: archived.by, source: archived.source },
+      };
     else throw new Error(`No layout ${id}`);
     CACHE.set(id, layout);
   }

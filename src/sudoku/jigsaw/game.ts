@@ -1,7 +1,7 @@
 // Jigsaw Sudoku on top of the shared grid mechanics (../shared/grid.ts). Cells can't repeat a
 // digit with their row, column or region; regions are outlined with thick lines.
-import type { GridLayout } from '../../shared/GridPlay.svelte';
 import { gridStart, isGridState, type GridState } from '../../shared/grid';
+import type { GridLayout } from '../../shared/GridPlay.svelte';
 import { geometry } from '../classic/grade';
 import { generate, isDifficulty, type Difficulty } from './logic';
 
@@ -29,7 +29,7 @@ export function isRegions(value: unknown): value is number[] {
 }
 
 export function isGame(value: unknown): value is Game {
-  const g = value as Partial<Game> | null;
+  const g = value as null | Partial<Game>;
   return isDifficulty(g?.difficulty) && isRegions(g.regions) && isGridState(g, 81);
 }
 

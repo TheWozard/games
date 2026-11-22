@@ -13,6 +13,14 @@ preview: build
 test:
     npm test
 
+# Lint (ESLint, Stylelint) and check formatting (Prettier)
+lint:
+    npm run lint
+
+# Format everything with Prettier, then apply the linters' fixes
+fmt:
+    npm run format
+
 # Render the PNG icons from public/icons/icon.svg
 icons:
     inkscape public/icons/icon.svg --export-type=png -w 512 -h 512 -o public/icons/icon-512.png

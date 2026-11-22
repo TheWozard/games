@@ -4,11 +4,14 @@ import { edgesFor, type Game } from './game';
 
 export type Point = { x: number; y: number };
 
-export const center = (g: Game, i: number): Point => ({ x: g.islands[i].c + 0.5, y: g.islands[i].r + 0.5 });
+export const center = (g: Game, i: number): Point => ({
+  x: g.islands[i].c + 0.5,
+  y: g.islands[i].r + 0.5,
+});
 
 /** The island under a point, if it's within `reach` of an island's center. */
-export function islandAt(g: Game, p: Point, reach = 0.5): number | null {
-  let best: number | null = null;
+export function islandAt(g: Game, p: Point, reach = 0.5): null | number {
+  let best: null | number = null;
   let bestD = reach;
   g.islands.forEach((_, i) => {
     const c = center(g, i);
@@ -31,17 +34,22 @@ export function dragEdge(g: Game, from: number, to: Point, min = 0.5): number {
   const dx = to.x - c.x;
   const dy = to.y - c.y;
   const sectors = g.rules.diagonals ? 8 : 4;
-  const angle = Math.round((Math.atan2(dy, dx) / (2 * Math.PI)) * sectors) * ((2 * Math.PI) / sectors);
+  const angle =
+    Math.round((Math.atan2(dy, dx) / (2 * Math.PI)) * sectors) * ((2 * Math.PI) / sectors);
   const ux = Math.round(Math.cos(angle));
   const uy = Math.round(Math.sin(angle));
   if (dx * ux + dy * uy < min * Math.hypot(ux, uy)) return -1;
   const { edges } = edgesFor(g);
   // Edges run from a to b in the direction (dc, dr).
-  return edges.findIndex((e) =>
-    (e.a === from && e.dc === ux && e.dr === uy) || (e.b === from && e.dc === -ux && e.dr === -uy));
+  return edges.findIndex(
+    (e) =>
+      (e.a === from && e.dc === ux && e.dr === uy) ||
+      (e.b === from && e.dc === -ux && e.dr === -uy),
+  );
 }
 
-const orient = (a: Point, b: Point, c: Point) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+const orient = (a: Point, b: Point, c: Point) =>
+  (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 
 /** Whether segments p–q and r–s cross (properly, not just touching). */
 function cross(p: Point, q: Point, r: Point, s: Point): boolean {
@@ -55,5 +63,7 @@ function cross(p: Point, q: Point, r: Point, s: Point): boolean {
 /** Built bridges that the swipe step p → q passes across. */
 export function swipedEdges(g: Game, p: Point, q: Point): number[] {
   const { edges } = edgesFor(g);
-  return edges.flatMap((e, k) => (g.bridges[k] > 0 && cross(p, q, center(g, e.a), center(g, e.b)) ? [k] : []));
+  return edges.flatMap((e, k) =>
+    g.bridges[k] > 0 && cross(p, q, center(g, e.a), center(g, e.b)) ? [k] : [],
+  );
 }
