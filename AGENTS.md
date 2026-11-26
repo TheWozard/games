@@ -84,6 +84,13 @@ and Light Up, one page: `src/shading/<game>/`, all on `ShadePlay`, switched by `
 `src/solitaire/klondike/` and `src/solitaire/freecell/`, switched by `App.svelte`; `src/freecell/`
 only forwards old links), `blocks` (Sliding Blocks).
 
+Tools: `grid` (a blank 4×4 to 15×15 grid to work a puzzle out on: cells shaded, solid
+edges between cells (dragged along the grid lines), and marks (up to 16 numbers, letters and symbols picked in Customize, `src/grid/marks.ts`) written or as notes, with undo; no rules, no win, so it passes `finished={false}` to `GameScreen2`. It gives no `board`
+size, since ZoomStage's one-finger pan would take the drags that write across cells: the grid fits the
+stage above the measured controls instead. A blank grid needs no making, so it has no worker and its
+`onstart` / `onnext` settle at once). The launcher's wrench (top right) swaps its list from the games to the tools: the tools'
+cards are marked `data-view="tools"` in `src/index.html`, and a tool page is otherwise built like a game.
+
 ## How a game is built
 
 - **logic.ts is pure.** Generators take an optional `random` argument (default `Math.random`)

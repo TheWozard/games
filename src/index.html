@@ -223,13 +223,171 @@
       .how-tabs {
         margin: 0 0 12px;
       }
+      /* Games or tools (the wrench in the header): the tools' list is marked data-view="tools", and
+       body.tools-view shows it in place of the games'. */
+      body:not(.tools-view) :is([data-view='tools'], .to-games),
+      body.tools-view :is(.group, .games):not([data-view='tools']),
+      body.tools-view .to-tools {
+        display: none;
+      }
+      .games[data-view='tools'] {
+        padding-bottom: 24px;
+      }
     </style>
   </head>
   <body>
     <header class="bar">
-      <h1>Games</h1>
+      <h1 id="view-title">Games</h1>
       <small class="version">%VITE_VERSION%</small>
+      <!-- Switches the list between the games and the tools (script at the end of the page). The
+           wrench shows on the games, the gamepad on the tools. Icons: Lucide's wrench and gamepad-2. -->
+      <button class="icon-btn" id="view-toggle" type="button" aria-label="Tools" title="Tools">
+        <svg
+          class="to-tools"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"
+          />
+        </svg>
+        <svg
+          class="to-games"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01" />
+          <path
+            d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"
+          />
+        </svg>
+      </button>
     </header>
+
+    <!-- Tools: not games, but aids for working a puzzle out (from a book, or another app). -->
+    <h2 class="group" data-view="tools">Puzzle Aids</h2>
+    <ul class="games" data-view="tools">
+      <li>
+        <a class="game" href="grid/">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <rect
+              x="2.75"
+              y="2.75"
+              width="42.5"
+              height="42.5"
+              rx="5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M17 3v42M31 3v42M3 17h42M3 31h42"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.6"
+            />
+            <rect x="18.5" y="18.5" width="11" height="11" rx="1.5" fill="currentColor" />
+            <path
+              d="M33.5 9.5l3 3 5.5-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <text
+              x="10"
+              y="41.5"
+              font-size="10"
+              font-weight="700"
+              fill="currentColor"
+              font-family="system-ui, sans-serif"
+              text-anchor="middle"
+            >
+              7
+            </text>
+          </svg>
+          <div>
+            <strong>Grid</strong
+            ><span
+              >A blank grid, 4×4 to 15×15, for working out a puzzle in shading, outlines, and your
+              pick of numbers, letters and symbols.</span
+            >
+          </div>
+        </a>
+        <button class="info" type="button" popovertarget="how-grid" aria-label="How to use Grid">
+          i
+        </button>
+        <div class="how" id="how-grid" popover>
+          <div class="how-box">
+            <h2>Grid</h2>
+            <p class="how-goal">
+              A blank grid to work a puzzle out on, like squared paper: no rules, nothing to win.
+            </p>
+            <h3 class="pick-title">How to Use</h3>
+            <ul>
+              <li>Pick a tool under the grid, then tap or drag. Each drag is one move for Undo.</li>
+              <li>
+                <strong>Square</strong>: shades cells solid, taking away the edges around them.
+                Start on a shaded cell to clear shading instead.
+              </li>
+              <li>
+                <strong>Edge</strong>: draws the lines between cells solid, to outline regions. Drag
+                along the lines, or tap one to draw or remove it; start on a solid line to remove
+                lines instead.
+              </li>
+              <li>
+                <strong>Eraser</strong>: clears a cell’s mark and notes. Shading and edges stay.
+              </li>
+              <li>
+                <strong>Pencil</strong>: writes the mark picked under the tools, replacing what’s in
+                the cell, but never shading. Start on a cell that holds it to take it away.
+              </li>
+              <li>
+                <strong>Notebook</strong>: adds the mark as a small note in empty cells, each mark
+                in its own spot.
+              </li>
+              <li>
+                In the menu, <strong>New</strong> clears the grid. <strong>Customize</strong> picks
+                its size and its marks: up to 16 numbers, letters and symbols (check, cross, dot,
+                circle, star, triangle, heart, diamond).
+              </li>
+            </ul>
+            <button
+              class="dialog-close"
+              type="button"
+              popovertarget="how-grid"
+              popovertargetaction="hide"
+              aria-label="Close"
+              title="Close"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </li>
+    </ul>
 
     <h2 class="group">Logic</h2>
     <ul class="games">
@@ -1962,5 +2120,41 @@
         </div>
       </li>
     </ul>
+    <script>
+      // Games or tools: the wrench in the header switches the list, and the page remembers which
+      // for the session. Coming back from a page (../#grid) shows the list holding its card. A plain
+      // script at the end of the page, so the right list is up before the first paint.
+      (() => {
+        const KEY = 'games.launcher.view';
+        const toggle = document.getElementById('view-toggle');
+        function show(view) {
+          const tools = view === 'tools';
+          document.body.classList.toggle('tools-view', tools);
+          document.getElementById('view-title').textContent = tools ? 'Tools' : 'Games';
+          const label = tools ? 'Games' : 'Tools';
+          toggle.setAttribute('aria-label', label);
+          toggle.title = label;
+          try {
+            sessionStorage.setItem(KEY, view);
+          } catch {
+            // No sessionStorage: it just starts on the games next time.
+          }
+        }
+        const name = decodeURIComponent(location.hash.slice(1));
+        const back =
+          name && document.querySelector(`[data-view="tools"] a.game[href="${CSS.escape(name)}/"]`);
+        let saved = null;
+        try {
+          saved = sessionStorage.getItem(KEY);
+        } catch {
+          // As above.
+        }
+        show(back || (!name && saved === 'tools') ? 'tools' : 'games');
+        toggle.addEventListener('click', () => {
+          show(document.body.classList.contains('tools-view') ? 'games' : 'tools');
+          scrollTo(0, 0);
+        });
+      })();
+    </script>
   </body>
 </html>

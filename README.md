@@ -20,6 +20,10 @@ Games:
 - [Sliding Blocks](src/blocks/): slide blocks to free the red one; Classic, Pillars (fixed squares), Big (8×8) and Two Keys (a second block leaves through the bottom); 100 pre-made levels for each (10 Easy, then 30 Medium, then 60 Hard), chosen for how interesting their shortest solutions are, played in order or picked by number, with the fewest moves shown.
 - [Mahjong](src/mahjong/): tile-matching solitaire at three difficulties (Zen, Balance, Focus) on twenty original layouts and 66 classics from KMahjongg and GNOME Mahjongg, one or a pool of several; deals are built by playing backwards, so every one can be cleared, made in a Web Worker, and graded by how often careless play still clears them.
 
+Tools (the wrench at the top right of the game list):
+
+- [Grid](src/grid/): a blank grid from 4×4 to 15×15 to work out a puzzle on, from a book or another app: shade cells, draw solid edges between them to outline regions, and write or note marks picked in Customize (up to 16 numbers, letters and symbols), by tap or drag, with undo.
+
 ## Installing on a phone
 
 Open https://thewozard.github.io/games/ and:
