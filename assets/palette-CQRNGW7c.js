@@ -1,0 +1,1 @@
+var e=[`#e5534b`,`#4f8ef7`,`#e8c547`,`#3fb67a`,`#a371f7`,`#f0883e`,`#3cc8d0`,`#ec6cb9`,`#9bd45a`,`#b07a4f`,`#d6dae2`,`#6d5be8`],t=[`Red`,`Blue`,`Yellow`,`Green`,`Purple`,`Orange`,`Teal`,`Pink`,`Lime`,`Brown`,`White`,`Indigo`];export{t as n,e as t};

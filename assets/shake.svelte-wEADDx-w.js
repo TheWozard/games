@@ -1,0 +1,1 @@
+import{$ as e,dt as t,ft as n}from"./NextButton-RwWLULKo.js";var r=300;function i(){let i=n(null),a;return{get current(){return e(i)},start(e){clearTimeout(a),t(i,e,!0),a=setTimeout(()=>t(i,null),r)}}}export{i as t};
