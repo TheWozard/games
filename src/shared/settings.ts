@@ -13,6 +13,22 @@ export const CHOICES = {
   mahjongFaces: ['full', 'inset'],
   /** Mahjong: tiles that can't be taken yet are dimmed, so the free ones stand out, or look like the rest. */
   mahjongBlocked: ['dimmed', 'plain'],
+  /** Grid: what writing a number, a letter or a symbol does to the same mark's notes (marks.ts `Behavior`). */
+  gridNumbersClears: ['none', 'lines', 'grid'],
+  gridLettersClears: ['none', 'lines', 'grid'],
+  gridSymbolsClears: ['none', 'lines', 'grid'],
+  /** Grid: whether cells holding the pad's pick light up, for each group. */
+  gridNumbersHighlight: ['on', 'off'],
+  gridLettersHighlight: ['on', 'off'],
+  gridSymbolsHighlight: ['on', 'off'],
+  /** Grid: whether a group's marks can go in as notes (Notes writes them otherwise). */
+  gridNumbersNotes: ['on', 'off'],
+  gridLettersNotes: ['on', 'off'],
+  gridSymbolsNotes: ['on', 'off'],
+  /** Grid: whether a group's marks are always drawn dim. */
+  gridNumbersFaded: ['off', 'on'],
+  gridLettersFaded: ['off', 'on'],
+  gridSymbolsFaded: ['off', 'on'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type Settings = { -readonly [K in keyof typeof CHOICES]: (typeof CHOICES)[K][number] };

@@ -19,10 +19,12 @@
   import SquareDashedTopSolid from '@lucide/svelte/icons/square-dashed-top-solid';
   import GameScreen2 from '../shared/GameScreen2.svelte';
   import { gridKey } from '../shared/grid';
+  import { loadSettings, saveSetting, type Setting, type Settings } from '../shared/settings';
   import { loadJSON, saveJSON } from '../shared/storage';
   import Button from '../shared/ui/Button.svelte';
   import Choice from '../shared/ui/Choice.svelte';
   import PickGroup from '../shared/ui/PickGroup.svelte';
+  import Toggle from '../shared/ui/Toggle.svelte';
   import {
     BOTTOM,
     DEFAULT_SIZE,
@@ -39,7 +41,17 @@
     type SheetAction,
   } from './game';
   import Mark from './Mark.svelte';
-  import { DEFAULT_MARKS, MARK_GROUPS, markName, MAX_MARKS, sortMarks } from './marks';
+  import {
+    DEFAULT_MARKS,
+    groupOf,
+    MARK_GROUPS,
+    markName,
+    MAX_MARKS,
+    sortMarks,
+    type Behavior,
+    type Clears,
+    type GroupId,
+  } from './marks';
   import '../shared/grid.css';
 
   const STORAGE_KEY = 'games.grid.v1';
@@ -52,6 +64,38 @@
   // its pad offers (any mix of numbers, letters and symbols, up to MAX_MARKS).
   let size = $state(DEFAULT_SIZE);
   let picking = $state<string[]>([]);
+
+  // How each group's marks act once written (marks.ts `Behavior`): set in the Display dialog, for
+  // every grid, and changed at once (saved for next time too).
+  let prefs = $state.raw(loadSettings());
+  const KEYS = {
+    numbers: ['gridNumbersClears', 'gridNumbersNotes', 'gridNumbersHighlight', 'gridNumbersFaded'],
+    letters: ['gridLettersClears', 'gridLettersNotes', 'gridLettersHighlight', 'gridLettersFaded'],
+    symbols: ['gridSymbolsClears', 'gridSymbolsNotes', 'gridSymbolsHighlight', 'gridSymbolsFaded'],
+  } as const satisfies Record<GroupId, readonly [Setting, Setting, Setting, Setting]>;
+  const CLEAR_CHOICES: [Clears, string, string][] = [
+    ['none', 'Keep', 'notes stay'],
+    ['lines', 'Lines', 'row & column'],
+    ['grid', 'Grid', 'everywhere'],
+  ];
+  const behaviors = $derived(
+    Object.fromEntries(
+      MARK_GROUPS.map(({ id }) => {
+        const [clears, notes, highlight, faded] = KEYS[id];
+        return [
+          id,
+          {
+            clears: prefs[clears],
+            notes: prefs[notes] === 'on',
+            highlight: prefs[highlight] === 'on',
+            faded: prefs[faded] === 'on',
+          },
+        ];
+      }),
+    ) as Record<GroupId, Behavior>,
+  );
+  const pickSetting = <K extends Setting>(key: K, value: Settings[K]) =>
+    (prefs = saveSetting(key, value));
   function flip(m: string) {
     if (picking.includes(m)) picking = picking.filter((p) => p !== m);
     else if (picking.length < MAX_MARKS) picking = sortMarks([...picking, m]);
@@ -75,7 +119,11 @@
   const padCols = $derived(marks.length <= 10 ? marks.length : Math.ceil(marks.length / 2));
 
   // What a tap or drag does. Write and Notes place the pad's mark; picking a mark while another
-  // tool is on goes back to the one of those two used last.
+  // tool is on goes back to the one of those two used last. A mark whose group can't be noted
+  // (Display) is written even while Notes is on: Write shows as the tool then (the pad keeps such
+  // marks full size among the small noted ones), and Notes comes back by itself once a mark that
+  // can be noted is picked. Tapping Notes then picks the last mark that could be noted again.
+  // `chosen` is the tool tapped; `tool` the one a tap uses.
   type Tool = 'edge' | 'erase' | 'notes' | 'set' | 'solid';
   const TOOLS = [
     ['solid', 'Solid', Square],
@@ -84,19 +132,36 @@
     ['notes', 'Notes', NotebookPen],
     ['set', 'Write', Pencil],
   ] as const;
-  let tool = $state<Tool>('set');
+  let chosen = $state<Tool>('set');
   let writing = $state<'notes' | 'set'>('set');
   let picked = $state('');
+  let pickedNotable = $state(''); // the last mark picked that can be noted
   // The picked mark, or the pad's first when it isn't on this grid's pad (a new grid's, at first).
   const mark = $derived(marks.includes(picked) ? picked : marks[0]);
+  const behavior = (m: string) => {
+    const g = groupOf(m);
+    return g ? behaviors[g] : null;
+  };
+  const canNote = (m: string) => behavior(m)?.notes !== false;
+  const notable = $derived(canNote(mark));
+  // What Notes goes back to from a mark that can't be noted: the last one that could, if it's still
+  // on the pad and still can, or else the pad's first that can (none: Notes is off).
+  const noteMark = $derived(
+    marks.includes(pickedNotable) && canNote(pickedNotable) ? pickedNotable : marks.find(canNote),
+  );
+  const tool = $derived(chosen === 'notes' && !notable ? 'set' : chosen);
   const placing = $derived(tool === 'set' || tool === 'notes');
+  // Cells holding the picked mark light up, if its group says so.
+  const lit = $derived(placing && behavior(mark)?.highlight === true);
   function setTool(t: Tool) {
-    tool = t;
+    if (t === 'notes' && !notable && noteMark) picked = noteMark;
+    chosen = t;
     if (t === 'set' || t === 'notes') writing = t;
   }
   function pickMark(m: string) {
     picked = m;
-    if (!placing) tool = writing;
+    if (canNote(m)) pickedNotable = m;
+    if (!placing) chosen = writing;
   }
 
   function onKey(e: KeyboardEvent) {
@@ -156,7 +221,9 @@
     const { tool, mark, on, path } = s;
     if (tool === 'erase') return { type: 'erase', indices: path };
     if (tool === 'solid') return { type: 'write', indices: path, mark: SOLID, on };
-    return { type: tool === 'set' ? 'write' : 'note', indices: path, mark, on };
+    if (tool === 'set')
+      return { type: 'write', indices: path, mark, on, clears: behavior(mark)?.clears };
+    return { type: 'note', indices: path, mark, on };
   }
 
   function cellStroke(i: number, pointer: number, t: Exclude<Tool, 'edge'>): CellStroke {
@@ -318,6 +385,42 @@
   {/each}
 {/snippet}
 
+{#snippet settings()}
+  <!-- For each group: what writing one of its marks does to the same mark's notes, whether it can
+       be noted, then how it looks. -->
+  {#each MARK_GROUPS as { id, name } (id)}
+    {@const [clears, notes, highlight, faded] = KEYS[id]}
+    {@const b = behaviors[id]}
+    <PickGroup title={name}>
+      {#each CLEAR_CHOICES as [value, label, detail] (value)}
+        <Choice
+          {detail}
+          {label}
+          onclick={() => pickSetting(clears, value)}
+          pressed={b.clears === value}
+        />
+      {/each}
+    </PickGroup>
+    <div class="mark-toggles">
+      <Toggle
+        label="Notes"
+        on={b.notes}
+        onclick={() => pickSetting(notes, b.notes ? 'off' : 'on')}
+      />
+      <Toggle
+        label="Highlight"
+        on={b.highlight}
+        onclick={() => pickSetting(highlight, b.highlight ? 'off' : 'on')}
+      />
+      <Toggle
+        label="Faded"
+        on={b.faded}
+        onclick={() => pickSetting(faded, b.faded ? 'off' : 'on')}
+      />
+    </div>
+  {/each}
+{/snippet}
+
 <GameScreen2
   canPlay={picking.length > 0}
   canUndo={sheet.history.length > 0}
@@ -330,6 +433,7 @@
   onstart={() => blank(size, picking)}
   onundo={() => dispatch({ type: 'undo' })}
   picker={customize}
+  {settings}
   subtitle="{sheet.size}×{sheet.size} · {marks.length} {marks.length === 1 ? 'mark' : 'marks'}"
   title="Grid"
 >
@@ -366,7 +470,8 @@
               'corner-bl': i === n * (n - 1),
               'corner-br': i === n * n - 1,
               solid: v === SOLID,
-              same: placing && v !== '' && v === mark,
+              same: lit && v === mark,
+              faded: behavior(v)?.faded === true,
             },
           ]}
           aria-label="row {r + 1}, column {c + 1}: {v === SOLID ? 'solid'
@@ -379,7 +484,7 @@
         >
           {#if v && v !== SOLID}<span class="value"><Mark mark={v} /></span>{/if}
           <span class="notes">
-            {#each marks as m (m)}<span class={{ hit: placing && m === mark }}>
+            {#each marks as m (m)}<span class={{ hit: lit && m === mark }}>
                 {#if notes.includes(m)}<Mark mark={m} />{/if}
               </span>{/each}
           </span>
@@ -396,6 +501,7 @@
             class={['btn', { 'group-start': t === 'erase' }]}
             aria-label={name}
             aria-pressed={tool === t}
+            disabled={t === 'notes' && !noteMark}
             onclick={() => setTool(t)}
             title={name}
             type="button"
@@ -412,11 +518,11 @@
 
       <div
         style:--pad-cols={padCols}
-        class={['pad', 'tool-pad', { 'notes-mode': tool === 'notes' }]}
+        class={['pad', 'tool-pad', { 'notes-mode': placing && chosen === 'notes' }]}
       >
         {#each marks as m (m)}
           <button
-            class="digit"
+            class={['digit', { 'write-only': !canNote(m) }]}
             aria-label={markName(m)}
             aria-pressed={placing && m === mark}
             onclick={() => pickMark(m)}
@@ -466,6 +572,10 @@
   .tool-grid .notes {
     font-size: calc(min(78 / var(--note-cols), 65 / var(--note-rows)) * 1cqi / var(--n));
   }
+  /* A faded mark: dim, highlighted or not. */
+  .tool-grid .cell.faded .value {
+    opacity: 0.4;
+  }
   /* With Edge, a press anywhere on the board draws, the border included. */
   .tool-grid.edge-tool {
     cursor: crosshair;
@@ -492,6 +602,12 @@
   .tool-pad {
     grid-template-columns: repeat(var(--pad-cols), 1fr);
   }
+  /* In Notes, a mark that can't be noted stays full size: a tap writes it. */
+  .tool-pad.notes-mode .write-only .digit-n {
+    font-size: 1.6rem; /* grid.css .digit-n */
+    line-height: 1.1;
+    color: inherit;
+  }
   .tool-pad .digit {
     justify-content: center;
     min-height: 48px;
@@ -517,6 +633,17 @@
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     gap: 4px;
+  }
+  .mark-toggles {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 4px;
+  }
+  /* Three to a row on a phone: a little tighter than a rule's toggle. */
+  .mark-toggles :global(.btn.toggle) {
+    gap: 6px;
+    min-width: 0;
+    padding: 10px 8px;
   }
   .mark-tile {
     display: grid;

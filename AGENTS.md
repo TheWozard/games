@@ -225,7 +225,10 @@ cards are marked `data-view="tools"` in `src/index.html`, and a tool page is oth
   with `saveSetting()` and changes the game at once. Add a setting to `CHOICES` in
   `src/shared/settings.ts` (first choice is the default), keep it in `$state` from
   `loadSettings()`, and add its group to the game's `settings` snippet. Mahjong has three: Tile Art
-  (Classic / Riichi), Tile Faces (Full / Inset) and Blocked Tiles (Dimmed / Plain).
+  (Classic / Riichi), Tile Faces (Full / Inset) and Blocked Tiles (Dimmed / Plain). Grid, a tool with
+  no rules to change, keeps three per group of marks (numbers, letters, symbols) there: the notes
+  writing a mark clears (Keep / Lines / Grid), Notes (off: Notes writes that group's marks
+  instead), Highlight and Faded.
 - **Calm by default:** no timers, and no messages when a game ends: the finished board stays on
   screen and a floating **Next** button (`GameScreen`'s `finished` / `onnext`) appears, starting
   another puzzle with the same settings; **+** (New) is for changing them. Zen games (Gradient, Untangle, Mahjong) also have no fail state.

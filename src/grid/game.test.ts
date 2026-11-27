@@ -15,7 +15,7 @@ import {
   type Sheet,
   type SheetAction,
 } from './game';
-import { DEFAULT_MARKS, MARK_GROUPS, MAX_MARKS, sortMarks } from './marks';
+import { DEFAULT_MARKS, MARK_GROUPS, MAX_MARKS, sortMarks, type Clears } from './marks';
 
 describe('marks', () => {
   it('sorts any pick into pad order, each once, leaving out what is not a mark', () => {
@@ -285,6 +285,41 @@ describe('edges', () => {
     expect(s.edges[5]).toBe(0);
     s = reducer(s, { type: 'edge', edges: [edgeId(5, RIGHT)], on: true });
     expect(hasEdge(s, edgeId(5, RIGHT))).toBe(true);
+  });
+});
+
+describe('clearing notes', () => {
+  const all = [...Array(16).keys()];
+  let noted = newSheet(4, ['1', '2', 'A']);
+  for (const mark of ['1', '2', 'A'])
+    noted = reducer(noted, { type: 'note', indices: all, mark, on: true });
+  const withNote = (s: Sheet, m: string) => s.notes.flatMap((n, i) => (n.includes(m) ? [i] : []));
+  const write = (s: Sheet, clears?: Clears, on = true) =>
+    reducer(s, { type: 'write', indices: [5], mark: '1', on, clears });
+
+  it('keeps notes unless asked', () => {
+    expect(withNote(write(noted), '1')).toHaveLength(15);
+    expect(withNote(write(noted, 'none'), '1')).toHaveLength(15);
+  });
+
+  it("clears the mark's notes in the row and column, as one move", () => {
+    const s = write(noted, 'lines');
+    // Row 1 is 4–7, column 1 is 1, 5, 9, 13.
+    expect(withNote(s, '1')).toEqual([0, 2, 3, 8, 10, 11, 12, 14, 15]);
+    expect(withNote(s, '2')).toHaveLength(15); // other marks keep theirs
+    expect(reducer(s, { type: 'undo' })).toEqual(noted);
+  });
+
+  it("clears the mark's notes everywhere", () => {
+    const s = write(noted, 'grid');
+    expect(withNote(s, '1')).toEqual([]);
+    expect(withNote(s, 'A')).toHaveLength(15);
+  });
+
+  it('clears nothing when a mark is taken away', () => {
+    let s = write(noted, 'grid');
+    s = reducer(s, { type: 'note', indices: [0], mark: '1', on: true });
+    expect(withNote(write(s, 'grid', false), '1')).toEqual([0]);
   });
 });
 

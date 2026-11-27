@@ -3,7 +3,7 @@
 // marks of any of them, or is shaded solid, and the lines between cells can be drawn solid, to
 // outline regions. There are no rules, no solution and no win: it only remembers what's drawn,
 // with undo.
-import { DEFAULT_MARKS, MAX_MARKS, sortMarks } from './marks';
+import { DEFAULT_MARKS, MAX_MARKS, sortMarks, type Clears } from './marks';
 
 /** A cell shaded solid: not a mark on the pad, but drawn by its own tool. */
 export const SOLID = 'solid';
@@ -31,12 +31,13 @@ export interface Sheet {
 /**
  * Moves name the cells (or edges) they act on, as a tap or a drag passes them. Write and Note put
  * the mark on (`on`) or take it away; Erase clears a cell's mark and notes; Edge draws or takes away
- * lines between cells (edge ids: `edgeId`).
+ * lines between cells (edge ids: `edgeId`). A write can also take away the same mark's notes
+ * nearby (`clears`).
  */
 export type SheetAction =
+  | { clears?: Clears; indices: number[]; mark: string; on: boolean; type: 'write' }
   | { edges: number[]; on: boolean; type: 'edge' }
   | { indices: number[]; mark: string; on: boolean; type: 'note' }
-  | { indices: number[]; mark: string; on: boolean; type: 'write' }
   | { indices: number[]; type: 'erase' }
   | { type: 'undo' };
 
@@ -197,6 +198,28 @@ function fill(s: Sheet, cells: number[]): Change[] {
   );
 }
 
+/**
+ * The notes of a mark just written that the write takes away (`clears`, its group's setting:
+ * marks.ts `Behavior`): in the rows and columns of the cells it went in, or everywhere. The cells
+ * written are left to the write.
+ */
+function clearNotes(s: Sheet, mark: string, written: number[], clears: Clears): Change[] {
+  if (clears === 'none' || written.length === 0) return [];
+  const n = s.size;
+  const rows = new Set(written.map((i) => Math.floor(i / n)));
+  const cols = new Set(written.map((i) => i % n));
+  const skip = new Set(written);
+  return s.notes.flatMap((notes, i): Change[] =>
+    (
+      !skip.has(i) &&
+      notes.includes(mark) &&
+      (clears === 'grid' || rows.has(Math.floor(i / n)) || cols.has(i % n))
+    ) ?
+      [[i, s.values[i], notes.filter((m) => m !== mark), s.edges[i]]]
+    : [],
+  );
+}
+
 /** Applies one move. Returns the same object when the move changes nothing. */
 export function reducer(s: Sheet, action: SheetAction): Sheet {
   switch (action.type) {
@@ -212,10 +235,9 @@ export function reducer(s: Sheet, action: SheetAction): Sheet {
         : s.values[i] === mark,
       );
       if (mark === SOLID && on) return apply(s, fill(s, written));
-      return apply(
-        s,
-        written.map((i): Change => [i, on ? mark : '', [], s.edges[i]]),
-      );
+      const changes = written.map((i): Change => [i, on ? mark : '', [], s.edges[i]]);
+      if (on && action.clears) changes.push(...clearNotes(s, mark, written, action.clears));
+      return apply(s, changes);
     }
 
     case 'note': {
